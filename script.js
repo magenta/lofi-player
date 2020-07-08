@@ -63,7 +63,7 @@ function initSounds() {
         if (drumMute) {
           if (Math.random() > 0.05) drumMute = false;
         } else {
-          if (Math.random() > 0.8) {
+          if (Math.random() > 0.7) {
             drumMute = true;
           }
         }
