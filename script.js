@@ -13,6 +13,7 @@ let guitarSample;
 let rainSample;
 let loadEventsCounts = 0;
 let drumUrls;
+let drumMute = true;
 let melodyMidi;
 let chordsMidi;
 let chordsPart;
@@ -46,18 +47,26 @@ function initSounds() {
 
   seq = new Tone.Sequence(
     (time, b) => {
-      // if (b === 0) {
-      //   rainSample.start(time);
-      // }
+      if (!drumMute) {
+        if (b % 16 === 0) {
+          drumPlayers.get("kk").start(time);
+        }
+        if (b % 16 === 8) {
+          drumPlayers.get("sn").start(time);
+        }
+        if (b % 2 === 0) {
+          drumPlayers.get("hh").start(time);
+        }
+      }
 
-      if (b % 16 === 0) {
-        drumPlayers.get("kk").start(time);
-      }
-      if (b % 16 === 8) {
-        drumPlayers.get("sn").start(time);
-      }
-      if (b % 2 === 0) {
-        drumPlayers.get("hh").start(time);
+      if (b === 127) {
+        if (drumMute) {
+          if (Math.random() > 0.05) drumMute = false;
+        } else {
+          if (Math.random() > 0.8) {
+            drumMute = true;
+          }
+        }
       }
 
       checkTimeText.textContent = Tone.Transport.position;
