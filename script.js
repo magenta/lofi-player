@@ -1,0 +1,155 @@
+const LOAD_EVENTS_COUNTS_THRESHOLD = 5;
+
+const startButton = document.getElementById("start-button");
+const checkTimeButton = document.getElementById("check-time-button");
+const checkTimeText = document.getElementById("check-time-text");
+const { Part } = Tone;
+
+const ac = Tone.context._context;
+let samplesBaseUrl = "./assets/samples";
+let drumNames = ["kk", "sn", "hh"];
+let drumPlayers;
+let guitarSample;
+let rainSample;
+let loadEventsCounts = 0;
+let drumUrls;
+let melodyMidi;
+let chordsMidi;
+let chordsPart;
+let seq;
+let synth;
+
+loadMidiFiles();
+initSounds();
+
+function initSounds() {
+  Tone.Transport.bpm.value = 75;
+  Tone.Transport.loop = true;
+  Tone.Transport.loopStart = "0:0:0";
+  Tone.Transport.loopEnd = "8:0:0";
+
+  drumUrls = {};
+  drumNames.forEach((name) => (drumUrls[name] = `${samplesBaseUrl}/drums/${name}.mp3`));
+  drumPlayers = new Tone.Players(drumUrls, () => {
+    console.log("drums loaded");
+    checkFinishLoading();
+  }).toMaster();
+  guitarSample = new Tone.Player(`${samplesBaseUrl}/guitar/75_guitar_F.mp3`, () => {
+    console.log("guitar sample loaded");
+    checkFinishLoading();
+  }).toMaster();
+  rainSample = new Tone.Player(`${samplesBaseUrl}/fx/rain.mp3`, () => {
+    console.log("rain sample loaded");
+    checkFinishLoading();
+  }).toMaster();
+  rainSample.loop = true;
+
+  seq = new Tone.Sequence(
+    (time, b) => {
+      // if (b === 0) {
+      //   rainSample.start(time);
+      // }
+
+      if (b % 16 === 0) {
+        drumPlayers.get("kk").start(time);
+      }
+      if (b % 16 === 8) {
+        drumPlayers.get("sn").start(time);
+      }
+      if (b % 2 === 0) {
+        drumPlayers.get("hh").start(time);
+      }
+
+      checkTimeText.textContent = Tone.Transport.position;
+    },
+    Array(128)
+      .fill(null)
+      .map((_, i) => i),
+    "16n"
+  );
+  seq.start(0);
+
+  const reverb = new Tone.Reverb({
+    decay: 8.5,
+    preDelay: 0.1,
+  }).toMaster();
+  reverb.generate().then(() => {
+    console.log("reverb ready");
+    checkFinishLoading();
+  });
+  reverb.wet.value = 0.3;
+  const lpf = new Tone.Filter(1000, "lowpass").connect(reverb);
+  const hpf = new Tone.Filter(1, "highpass").connect(lpf);
+  const chorus = new Tone.Chorus(4, 2.5, 0.1).connect(hpf);
+
+  synth = new Tone.PolySynth(10, Tone.Synth, {
+    envelope: {
+      attack: 0.02,
+      decay: 0.1,
+      sustain: 0.3,
+      release: 1,
+    },
+  }).connect(chorus);
+}
+
+async function loadMidiFiles() {
+  const [m1, m2] = await Promise.all([
+    Midi.fromUrl("./assets/midi/m_1.mid"),
+    Midi.fromUrl("./assets/midi/progression_90_Gm.mid"),
+  ]);
+
+  melodyMidi = m1;
+  chordsMidi = m2;
+
+  const notes = chordsMidi.tracks[0].notes.map((note) => {
+    const totalTicks = chordsMidi.durationTicks;
+    const newNote = {
+      time: `${Math.floor(note.ticks / 384)}:${Math.floor(note.ticks / 96) % 4}:${(note.ticks / 24) % 4}`,
+      name: note.name,
+      duration: note.duration,
+      velocity: note.velocity,
+    };
+    return newNote;
+  });
+  chordsPart = new Part(function (time, note) {
+    synth.triggerAttackRelease(note.name, note.duration, time, note.velocity);
+  }, notes).start(0);
+  console.log("midi loaded");
+  checkFinishLoading();
+}
+
+function checkFinishLoading() {
+  loadEventsCounts += 1;
+  if (loadEventsCounts === LOAD_EVENTS_COUNTS_THRESHOLD) {
+    console.log("Finish loading!");
+    onFinishLoading();
+  }
+}
+
+function onFinishLoading() {
+  startButton.textContent = "start";
+  startButton.addEventListener("click", () => {
+    if (ac.state !== "started") {
+      ac.resume();
+    }
+
+    if (guitarSample.loaded) {
+      if (Tone.Transport.state === "started") {
+        Tone.Transport.stop();
+        rainSample.stop();
+        startButton.textContent = "start";
+      } else {
+        Tone.Transport.start();
+        rainSample.start();
+        startButton.textContent = "stop";
+      }
+    }
+  });
+
+  // checkTimeButton.addEventListener("click", () => {
+  //   checkTimeText.textContent = `transport position: ${Tone.Transport.position}
+  // 															transport seconds: ${Tone.Transport.seconds}
+  // 															audiocontext time: ${ac.currentTime}
+  // 															Tone.now: ${Tone.now()}`;
+  // });
+}
