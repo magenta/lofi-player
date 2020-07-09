@@ -1,3 +1,6 @@
+const TOTAL_BAR_COUNTS = 8;
+const TICKS_PER_BAR = 384;
+const BEATS_PER_BAR = 4;
 const LOAD_EVENTS_COUNTS_THRESHOLD = 5;
 
 const startButton = document.getElementById("start-button");
@@ -110,18 +113,9 @@ async function loadMidiFiles() {
   melodyMidi = m1;
   chordsMidi = m2;
 
-  const notes = chordsMidi.tracks[0].notes.map((note) => {
-    const totalTicks = chordsMidi.durationTicks;
-    const newNote = {
-      time: `${Math.floor(note.ticks / 384)}:${Math.floor(note.ticks / 96) % 4}:${(note.ticks / 24) % 4}`,
-      name: note.name,
-      duration: note.duration,
-      velocity: note.velocity,
-    };
-    return newNote;
-  });
+  const notes = parseMidiNotes(chordsMidi);
   chordsPart = new Part(function (time, note) {
-    synth.triggerAttackRelease(note.name, note.duration, time, note.velocity);
+    synth.triggerAttackRelease(note.pitch, note.duration, time, note.velocity);
   }, notes).start(0);
   console.log("midi loaded");
   checkFinishLoading();
@@ -161,4 +155,22 @@ function onFinishLoading() {
   // 															audiocontext time: ${ac.currentTime}
   // 															Tone.now: ${Tone.now()}`;
   // });
+}
+
+// utils
+function parseMidiNotes(midi) {
+  // console.log("parse this midi", midi);
+  const ticksPerBeat = TICKS_PER_BAR / BEATS_PER_BAR;
+  const ticksPerFourthNote = ticksPerBeat / 4;
+  return midi.tracks[0].notes.map((note) => {
+    // const totalTicks = chordsMidi.durationTicks;
+    return {
+      time: `${Math.floor(note.ticks / TICKS_PER_BAR)}:${Math.floor(note.ticks / ticksPerBeat) % BEATS_PER_BAR}:${
+        (note.ticks / ticksPerFourthNote) % 4
+      }`,
+      pitch: note.name,
+      duration: note.duration,
+      velocity: note.velocity,
+    };
+  });
 }
