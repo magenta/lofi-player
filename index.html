@@ -21,27 +21,100 @@
       <button id="start-button">loading...</button>
     </div>
 
-    <div>
-      <!-- <button id="check-time-button">check time</button> -->
-      <h3>time: <span id="check-time-text">0:0:0</span></h3>
-    </div>
+    <div id="control-div">
+      <div id="time-div" class="block">
+        <!-- <button id="check-time-button">check time</button> -->
+        <h3>time</h3>
+        <p id="check-time-text">0:0:0</p>
+      </div>
 
-    <div>
-      <h3><span id="bpm-value">75</span> bpm</h3>
-      <input type="range" id="bpm-input" value="75" min="60" max="120" step="5" />
-    </div>
+      <div id="bpm-div" class="block">
+        <h3><span id="bpm-value">75</span> bpm</h3>
+        <input type="range" id="bpm-input" value="75" min="60" max="120" step="5" />
+      </div>
 
-    <div>
-      <h3>Drum patterns</h3>
-      <div id="drum-radios">
-        <input type="radio" name="drum-radio" value="0" checked />
-        <label for="classic">classic</label>
+      <div class="block">
+        <h3>Drum patterns</h3>
+        <div>
+          <input type="checkbox" id="drum-toggle" checked />
+          <label>on/off</label>
+        </div>
 
-        <input type="radio" name="drum-radio" value="1" />
-        <label for="lazy">lazy</label>
+        <div id="drum-radios">
+          <input type="radio" name="drum-radio" value="0" checked />
+          <label for="classic">classic</label>
 
-        <input type="radio" name="drum-radio" value="2" />
-        <label for="dense">dense</label>
+          <input type="radio" name="drum-radio" value="1" />
+          <label for="lazy">lazy</label>
+
+          <input type="radio" name="drum-radio" value="2" />
+          <label for="dense">dense</label>
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>Chords</h3>
+        <label>vibe</label>
+        <select name="chords" id="chords">
+          <option value="0">mellow</option>
+          <option value="1">sad</option>
+          <option value="2">warm</option>
+          <option value="3">ninja</option>
+        </select>
+
+        <br />
+
+        <label>instrument</label>
+        <select name="chords-instrument" id="chords-instrument">
+          <option value="0">piano</option>
+          <option value="1">guitar</option>
+          <option value="2">chello</option>
+          <option value="3">sax</option>
+        </select>
+
+        <h4>effects</h4>
+        <input type="range" min="1" max="100" value="50" />
+        <input type="range" min="1" max="100" value="50" />
+      </div>
+
+      <div class="block">
+        <h3>Melody</h3>
+        <label>1st</label>
+        <select id="melody">
+          <option value="0">mellow</option>
+          <option value="1">sad</option>
+          <option value="2">warm</option>
+          <option value="3">ninja</option>
+        </select>
+
+        <label>2nd</label>
+        <select id="melody">
+          <option value="0">mellow</option>
+          <option value="1">sad</option>
+          <option value="2">warm</option>
+          <option value="3">ninja</option>
+        </select>
+
+        <h4>interpolate</h4>
+        <input type="range" min="0" max="100" value="0" />
+
+        <h4>effects</h4>
+        <input type="range" min="1" max="100" value="50" />
+        <input type="range" min="1" max="100" value="50" />
+      </div>
+
+      <div class="block">
+        <h3>Background Sounds</h3>
+        <select id="background-sounds">
+          <option value="0">Raindrops</option>
+          <option value="1">Forests</option>
+          <option value="2">Waves</option>
+          <option value="3">Vinyl Cracks</option>
+        </select>
+
+        <h4>effects</h4>
+        <input type="range" min="1" max="100" value="50" />
+        <input type="range" min="1" max="100" value="50" />
       </div>
     </div>
   </body>

@@ -9,3 +9,21 @@ h1 {
   font-style: italic;
   color: #373fff;
 }
+
+#control-div {
+  display: flex;
+  align-items: stretch;
+  align-content: stretch;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  width: 80%;
+  /* max-width: 1100px; */
+}
+
+#control-div .block {
+  margin: 10px 15px 10px 0;
+  padding: 5px;
+  min-width: 250px;
+  min-height: 120px;
+  border: solid black 0.5px;
+}

@@ -9,6 +9,7 @@ const checkTimeText = document.getElementById("check-time-text");
 const bpmInput = document.getElementById("bpm-input");
 const bpmValueSpan = document.getElementById("bpm-value");
 const drumRadios = document.getElementById("drum-radios").children;
+const drumToggle = document.getElementById("drum-toggle");
 
 const samplesBaseUrl = "./assets/samples";
 const ac = Tone.context._context;
@@ -103,21 +104,33 @@ function seqCallback(time, b) {
         drumSamples.get("sn").start(time);
       }
       if (b % 2 === 0) {
-        drumSamples.get("hh").start(time + 0.05);
+        drumSamples.get("hh").start(time + 0.07);
+      }
+    } else if (drumPatternIndex === 2) {
+      if (b % 16 === 0 || b % 16 === 10 || (b % 32 >= 16 && b % 16 === 11)) {
+        drumSamples.get("kk").start(time);
+      }
+      if (b % 8 === 4) {
+        drumSamples.get("sn").start(time);
+      }
+      if (b % 2 === 0) {
+        drumSamples.get("hh").start(time + 0.07);
       }
     }
   }
 
   // Markov chain
-  // if (b === 127) {
-  //   if (drumMute) {
-  //     if (Math.random() > 0.05) drumMute = false;
-  //   } else {
-  //     if (Math.random() > 0.7) {
-  //       drumMute = true;
-  //     }
-  //   }
-  // }
+  if (b % 32 === 31) {
+    if (drumMute) {
+      if (Math.random() > 0.05) {
+        toggleDrumMute(false);
+      }
+    } else {
+      if (Math.random() > 0.7) {
+        toggleDrumMute(true);
+      }
+    }
+  }
 
   checkTimeText.textContent = Tone.Transport.position;
 }
@@ -185,6 +198,10 @@ function onFinishLoading() {
       });
     }
   }
+
+  drumToggle.addEventListener("change", (e) => {
+    toggleDrumMute(!e.target.checked);
+  });
 }
 
 function onTransportStart() {
@@ -195,8 +212,16 @@ function onTransportStop() {
   rainSample.stop();
 }
 
-function onDrumRadioChange() {
-  console.log(drumPatternIndex);
+function onDrumRadioChange() {}
+
+function toggleDrumMute(value) {
+  if (value === undefined) {
+    drumMute = !drumMute;
+  } else {
+    drumMute = value;
+  }
+
+  drumToggle.checked = !drumMute;
 }
 
 // utils
