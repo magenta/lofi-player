@@ -23,7 +23,26 @@
 
     <div>
       <!-- <button id="check-time-button">check time</button> -->
-      <p id="check-time-text"></p>
+      <h3>time: <span id="check-time-text">0:0:0</span></h3>
+    </div>
+
+    <div>
+      <h3><span id="bpm-value">75</span> bpm</h3>
+      <input type="range" id="bpm-input" value="75" min="60" max="120" step="5" />
+    </div>
+
+    <div>
+      <h3>Drum patterns</h3>
+      <div id="drum-radios">
+        <input type="radio" name="drum-radio" value="0" checked />
+        <label for="classic">classic</label>
+
+        <input type="radio" name="drum-radio" value="1" />
+        <label for="lazy">lazy</label>
+
+        <input type="radio" name="drum-radio" value="2" />
+        <label for="dense">dense</label>
+      </div>
     </div>
   </body>
 </html>

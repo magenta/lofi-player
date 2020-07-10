@@ -1,47 +1,50 @@
+const LOAD_EVENTS_COUNTS_THRESHOLD = 4;
 const TOTAL_BAR_COUNTS = 8;
 const TICKS_PER_BAR = 384;
 const BEATS_PER_BAR = 4;
-const LOAD_EVENTS_COUNTS_THRESHOLD = 5;
 
 const startButton = document.getElementById("start-button");
 const checkTimeButton = document.getElementById("check-time-button");
 const checkTimeText = document.getElementById("check-time-text");
-const { Part } = Tone;
+const bpmInput = document.getElementById("bpm-input");
+const bpmValueSpan = document.getElementById("bpm-value");
+const drumRadios = document.getElementById("drum-radios").children;
 
+const samplesBaseUrl = "./assets/samples";
 const ac = Tone.context._context;
-let samplesBaseUrl = "./assets/samples";
-let drumNames = ["kk", "sn", "hh"];
-let drumPlayers;
-let guitarSample;
-let rainSample;
 let loadEventsCounts = 0;
-let drumUrls;
-let drumMute = true;
+let bpm = 75;
+
+let seq;
+let drumSamples;
+let drumNames = ["kk", "sn", "hh"];
+let drumMute = false;
+let drumPatternIndex = 1;
+
 let melodyMidi;
+let melodyPart;
 let chordsMidi;
 let chordsPart;
-let seq;
+let rainSample;
+
 let synth;
 
 loadMidiFiles();
 initSounds();
 
 function initSounds() {
-  Tone.Transport.bpm.value = 75;
+  Tone.Transport.bpm.value = bpm;
   Tone.Transport.loop = true;
   Tone.Transport.loopStart = "0:0:0";
   Tone.Transport.loopEnd = "8:0:0";
 
-  drumUrls = {};
+  const drumUrls = {};
   drumNames.forEach((name) => (drumUrls[name] = `${samplesBaseUrl}/drums/${name}.mp3`));
-  drumPlayers = new Tone.Players(drumUrls, () => {
+  drumSamples = new Tone.Players(drumUrls, () => {
     console.log("drums loaded");
     checkFinishLoading();
   }).toMaster();
-  guitarSample = new Tone.Player(`${samplesBaseUrl}/guitar/75_guitar_F.mp3`, () => {
-    console.log("guitar sample loaded");
-    checkFinishLoading();
-  }).toMaster();
+
   rainSample = new Tone.Player(`${samplesBaseUrl}/fx/rain.mp3`, () => {
     console.log("rain sample loaded");
     checkFinishLoading();
@@ -49,31 +52,7 @@ function initSounds() {
   rainSample.loop = true;
 
   seq = new Tone.Sequence(
-    (time, b) => {
-      if (!drumMute) {
-        if (b % 16 === 0) {
-          drumPlayers.get("kk").start(time);
-        }
-        if (b % 16 === 8) {
-          drumPlayers.get("sn").start(time);
-        }
-        if (b % 2 === 0) {
-          drumPlayers.get("hh").start(time);
-        }
-      }
-
-      if (b === 127) {
-        if (drumMute) {
-          if (Math.random() > 0.05) drumMute = false;
-        } else {
-          if (Math.random() > 0.7) {
-            drumMute = true;
-          }
-        }
-      }
-
-      checkTimeText.textContent = Tone.Transport.position;
-    },
+    seqCallback,
     Array(128)
       .fill(null)
       .map((_, i) => i),
@@ -104,19 +83,60 @@ function initSounds() {
   }).connect(chorus);
 }
 
+function seqCallback(time, b) {
+  if (!drumMute) {
+    if (drumPatternIndex === 0) {
+      if (b % 16 === 0) {
+        drumSamples.get("kk").start(time);
+      }
+      if (b % 16 === 8) {
+        drumSamples.get("sn").start(time);
+      }
+      if (b % 2 === 0) {
+        drumSamples.get("hh").start(time);
+      }
+    } else if (drumPatternIndex === 1) {
+      if (b % 32 === 0 || b % 32 === 20) {
+        drumSamples.get("kk").start(time);
+      }
+      if (b % 16 === 8) {
+        drumSamples.get("sn").start(time);
+      }
+      if (b % 2 === 0) {
+        drumSamples.get("hh").start(time + 0.05);
+      }
+    }
+  }
+
+  // Markov chain
+  // if (b === 127) {
+  //   if (drumMute) {
+  //     if (Math.random() > 0.05) drumMute = false;
+  //   } else {
+  //     if (Math.random() > 0.7) {
+  //       drumMute = true;
+  //     }
+  //   }
+  // }
+
+  checkTimeText.textContent = Tone.Transport.position;
+}
+
 async function loadMidiFiles() {
-  const [m1, m2] = await Promise.all([
-    Midi.fromUrl("./assets/midi/m_1.mid"),
-    Midi.fromUrl("./assets/midi/progression_90_Gm.mid"),
+  const [m1, m2, m3] = await Promise.all([
+    Midi.fromUrl("./assets/midi/IV_IV_I_I/melody/m_1_C.mid"),
+    Midi.fromUrl("./assets/midi/IV_IV_I_I/IV_IV_I_I_C.mid"),
+    Midi.fromUrl("./assets/midi/progression_75_C.mid"),
   ]);
 
   melodyMidi = m1;
-  chordsMidi = m2;
+  chordsMidi = m3;
 
   const notes = parseMidiNotes(chordsMidi);
-  chordsPart = new Part(function (time, note) {
+  chordsPart = new Tone.Part((time, note) => {
     synth.triggerAttackRelease(note.pitch, note.duration, time, note.velocity);
   }, notes).start(0);
+
   console.log("midi loaded");
   checkFinishLoading();
 }
@@ -136,25 +156,47 @@ function onFinishLoading() {
       ac.resume();
     }
 
-    if (guitarSample.loaded) {
+    if (rainSample.loaded) {
       if (Tone.Transport.state === "started") {
         Tone.Transport.stop();
-        rainSample.stop();
+        onTransportStop();
         startButton.textContent = "start";
       } else {
         Tone.Transport.start();
-        rainSample.start();
+        onTransportStart();
         startButton.textContent = "stop";
       }
     }
   });
 
-  // checkTimeButton.addEventListener("click", () => {
-  //   checkTimeText.textContent = `transport position: ${Tone.Transport.position}
-  // 															transport seconds: ${Tone.Transport.seconds}
-  // 															audiocontext time: ${ac.currentTime}
-  // 															Tone.now: ${Tone.now()}`;
-  // });
+  bpmInput.value = bpm;
+  bpmInput.addEventListener("input", (e) => {
+    bpmValueSpan.textContent = `${e.target.value}`;
+    bpm = e.target.value;
+    Tone.Transport.bpm.value = e.target.value;
+  });
+
+  for (let i = 0; i < drumRadios.length; i++) {
+    const elt = drumRadios[i];
+    if (elt.nodeName === "INPUT") {
+      elt.addEventListener("change", () => {
+        drumPatternIndex = parseInt(elt.value, 10);
+        onDrumRadioChange();
+      });
+    }
+  }
+}
+
+function onTransportStart() {
+  rainSample.start();
+}
+
+function onTransportStop() {
+  rainSample.stop();
+}
+
+function onDrumRadioChange() {
+  console.log(drumPatternIndex);
 }
 
 // utils
