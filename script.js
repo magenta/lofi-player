@@ -1,4 +1,4 @@
-const LOAD_EVENTS_COUNTS_THRESHOLD = 4;
+const LOAD_EVENTS_COUNTS_THRESHOLD = 5;
 const TOTAL_BAR_COUNTS = 8;
 const TICKS_PER_BAR = 384;
 const BEATS_PER_BAR = 4;
@@ -8,10 +8,12 @@ const checkTimeButton = document.getElementById("check-time-button");
 const checkTimeText = document.getElementById("check-time-text");
 const bpmInput = document.getElementById("bpm-input");
 const bpmValueSpan = document.getElementById("bpm-value");
-const drumRadios = document.getElementById("drum-radios").children;
+const drumPatternsSelect = document.getElementById("drum-patterns-select");
 const drumToggle = document.getElementById("drum-toggle");
+const chordsSelect = document.getElementById("chords-select");
+const chordsInstrumentSelect = document.getElementById("chords-instrument-select");
 
-const samplesBaseUrl = "./assets/samples";
+const samplesBaseUrl = "./samples";
 const ac = Tone.context._context;
 let loadEventsCounts = 0;
 let bpm = 75;
@@ -22,13 +24,21 @@ let drumNames = ["kk", "sn", "hh"];
 let drumMute = false;
 let drumPatternIndex = 1;
 
+let melodyMidis;
 let melodyMidi;
 let melodyPart;
+let chordsMidis;
 let chordsMidi;
 let chordsPart;
+let chordsIndex = 0;
+let chordsInstrumentIndex = 0;
 let rainSample;
 
+let piano;
+let acousticGuitar;
+let electricGuitar;
 let synth;
+let chordsInstruments;
 
 loadMidiFiles();
 initSounds();
@@ -82,6 +92,27 @@ function initSounds() {
       release: 1,
     },
   }).connect(chorus);
+
+  piano = SampleLibrary.load({
+    instruments: "piano",
+  });
+  acousticGuitar = SampleLibrary.load({
+    instruments: "guitar-acoustic",
+  });
+  electricGuitar = SampleLibrary.load({
+    instruments: "guitar-electric",
+  });
+
+  piano.connect(reverb);
+  acousticGuitar.connect(reverb);
+  electricGuitar.connect(reverb);
+
+  chordsInstruments = [synth, piano, acousticGuitar, electricGuitar];
+
+  Tone.Buffer.on("load", () => {
+    checkFinishLoading();
+    console.log("buffers loaded");
+  });
 }
 
 function seqCallback(time, b) {
@@ -136,19 +167,27 @@ function seqCallback(time, b) {
 }
 
 async function loadMidiFiles() {
-  const [m1, m2, m3] = await Promise.all([
-    Midi.fromUrl("./assets/midi/IV_IV_I_I/melody/m_1_C.mid"),
-    Midi.fromUrl("./assets/midi/IV_IV_I_I/IV_IV_I_I_C.mid"),
-    Midi.fromUrl("./assets/midi/progression_75_C.mid"),
+  chordsMidis = await Promise.all([
+    Midi.fromUrl("./midi/IV_IV_I_I/IV_IV_I_I_C_1.mid"),
+    Midi.fromUrl("./midi/IV_IV_I_I/IV_IV_I_I_C_3.mid"),
+    Midi.fromUrl("./midi/i_III_iv_v_Am.mid"),
+    Midi.fromUrl("./midi/VI_i_VI_v_Am.mid"),
   ]);
 
-  melodyMidi = m1;
-  chordsMidi = m3;
+  chordsMidi = chordsMidis[chordsIndex];
 
-  const notes = parseMidiNotes(chordsMidi);
-  chordsPart = new Tone.Part((time, note) => {
-    synth.triggerAttackRelease(note.pitch, note.duration, time, note.velocity);
-  }, notes).start(0);
+  changeChords(chordsIndex);
+  // const notes = parseMidiNotes(chordsMidi);
+  // chordsPart = new Tone.Part((time, note) => {
+  //   chordsInstruments[chordsInstrumentIndex].triggerAttackRelease(note.pitch, note.duration, time, note.velocity);
+  // }, notes).start(0);
+
+  melodiesMidis = await Promise.all([
+    Midi.fromUrl("./midi/IV_IV_I_I/melody/m_1_C.mid"),
+    Midi.fromUrl("./midi/IV_IV_I_I/melody/m_2_C.mid"),
+    Midi.fromUrl("./midi/IV_IV_I_I/melody/m_3_C.mid"),
+    Midi.fromUrl("./midi/IV_IV_I_I/melody/m_4_C.mid"),
+  ]);
 
   console.log("midi loaded");
   checkFinishLoading();
@@ -189,18 +228,19 @@ function onFinishLoading() {
     Tone.Transport.bpm.value = e.target.value;
   });
 
-  for (let i = 0; i < drumRadios.length; i++) {
-    const elt = drumRadios[i];
-    if (elt.nodeName === "INPUT") {
-      elt.addEventListener("change", () => {
-        drumPatternIndex = parseInt(elt.value, 10);
-        onDrumRadioChange();
-      });
-    }
-  }
-
   drumToggle.addEventListener("change", (e) => {
     toggleDrumMute(!e.target.checked);
+  });
+  drumPatternsSelect.addEventListener("change", () => {
+    drumPatternIndex = parseInt(drumPatternsSelect.value, 10);
+  });
+
+  chordsSelect.addEventListener("change", () => {
+    changeChords(chordsSelect.value);
+  });
+  chordsInstrumentSelect.addEventListener("change", () => {
+    console.log(`inst [${chordsInstrumentSelect.value}]`);
+    changeChordsInstrument(chordsInstrumentSelect.value);
   });
 }
 
@@ -212,8 +252,6 @@ function onTransportStop() {
   rainSample.stop();
 }
 
-function onDrumRadioChange() {}
-
 function toggleDrumMute(value) {
   if (value === undefined) {
     drumMute = !drumMute;
@@ -224,20 +262,40 @@ function toggleDrumMute(value) {
   drumToggle.checked = !drumMute;
 }
 
+function changeChords(index) {
+  if (chordsPart) {
+    chordsPart.cancel(0);
+  }
+  chordsIndex = index;
+  chordsMidi = chordsMidis[chordsIndex];
+  chordsPart = new Tone.Part((time, note) => {
+    chordsInstruments[chordsInstrumentIndex].triggerAttackRelease(midi(note.pitch), note.duration, time, note.velocity);
+  }, parseMidiNotes(chordsMidi)).start(0);
+}
+
+function changeChordsInstrument(index) {
+  chordsInstrumentIndex = index;
+}
+
 // utils
 function parseMidiNotes(midi) {
   // console.log("parse this midi", midi);
   const ticksPerBeat = TICKS_PER_BAR / BEATS_PER_BAR;
   const ticksPerFourthNote = ticksPerBeat / 4;
+
+  console.log(midi);
   return midi.tracks[0].notes.map((note) => {
     // const totalTicks = chordsMidi.durationTicks;
     return {
       time: `${Math.floor(note.ticks / TICKS_PER_BAR)}:${Math.floor(note.ticks / ticksPerBeat) % BEATS_PER_BAR}:${
         (note.ticks / ticksPerFourthNote) % 4
       }`,
-      pitch: note.name,
+      pitch: note.midi - 12,
       duration: note.duration,
       velocity: note.velocity,
     };
   });
+}
+function midi(m) {
+  return Tone.Frequency(m, "midi");
 }

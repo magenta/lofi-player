@@ -13,6 +13,7 @@
     <!-- import the webpage's javascript file -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/13.8.25/Tone.js"></script>
     <script src="https://unpkg.com/@tonejs/midi"></script>
+    <script src="./libs/Tonejs-Instruments.js"></script>
     <script src="./script.js" defer></script>
   </head>
   <body>
@@ -34,28 +35,22 @@
       </div>
 
       <div class="block">
-        <h3>Drum patterns</h3>
+        <h3>Drum</h3>
         <div>
           <input type="checkbox" id="drum-toggle" checked />
           <label>on/off</label>
         </div>
-
-        <div id="drum-radios">
-          <input type="radio" name="drum-radio" value="0" checked />
-          <label for="classic">classic</label>
-
-          <input type="radio" name="drum-radio" value="1" />
-          <label for="lazy">lazy</label>
-
-          <input type="radio" name="drum-radio" value="2" />
-          <label for="dense">dense</label>
-        </div>
+        <select name="drums" id="drum-patterns-select">
+          <option value="0">classic</option>
+          <option value="1">lazy</option>
+          <option value="2">dense</option>
+        </select>
       </div>
 
       <div class="block">
         <h3>Chords</h3>
         <label>vibe</label>
-        <select name="chords" id="chords">
+        <select name="chords" id="chords-select">
           <option value="0">mellow</option>
           <option value="1">sad</option>
           <option value="2">warm</option>
@@ -65,11 +60,11 @@
         <br />
 
         <label>instrument</label>
-        <select name="chords-instrument" id="chords-instrument">
-          <option value="0">piano</option>
-          <option value="1">guitar</option>
-          <option value="2">chello</option>
-          <option value="3">sax</option>
+        <select name="chords-instrument" id="chords-instrument-select">
+          <option value="0">synths</option>
+          <option value="1">piano</option>
+          <option value="2">acoustic guitar</option>
+          <option value="3">electric guitar</option>
         </select>
 
         <h4>effects</h4>
