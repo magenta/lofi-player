@@ -1,13 +1,30 @@
-/* CSS files add styling rules to your content */
+:root {
+  --canvas-width: 720px;
+  --canvas-height: 400px;
+  --background-color: rgba(255, 11, 174, 0.952);
+
+  --text-color: #373fff;
+  --text-background-color: rgba(255, 255, 255, 1);
+}
 
 body {
   font-family: helvetica, arial, sans-serif;
   margin: 2em;
+  background-color: var(--background-color);
 }
 
 h1 {
   font-style: italic;
-  color: #373fff;
+  width: 200px;
+  color: var(--text-color);
+  background-color: var(--text-background-color);
+  border: solid var(--text-color) 5px;
+}
+
+button {
+  color: var(--text-color);
+  background-color: var(--text-background-color);
+  border: solid var(--text-color) 5px;
 }
 
 #control-div {
@@ -25,9 +42,31 @@ h1 {
   padding: 5px;
   min-width: 250px;
   min-height: 120px;
-  border: solid black 0.5px;
+  border: solid var(--text-color) 5px;
+
+  color: var(--text-color);
+  background-color: var(--text-background-color);
 }
 
 #mixing-div {
   display: none;
+}
+
+/* canvas */
+
+#background-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--canvas-width);
+  height: var(--canvas-height);
+  z-index: -1;
+}
+
+#canvas-div {
+  margin: 1rem 0 0.5rem 0;
+  position: relative;
+  width: var(--canvas-width);
+  height: var(--canvas-height);
+  border: solid var(--text-color) 5px;
 }

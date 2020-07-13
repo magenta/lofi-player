@@ -17,6 +17,7 @@ const backgroundSamplesSelect = document.getElementById("background-samples-sele
 const firstMelodySelect = document.getElementById("first-melody-select");
 const melodyInteractionSelect = document.getElementById("melody-interaction-select");
 const melodyInteractionDivs = [document.getElementById("interpolation-div"), document.getElementById("mixing-div")];
+const melodyInstrumentSelect = document.getElementById("melody-instrument-select");
 const interpolationSlider = document.getElementById("interpolation-slider");
 const backgroundVolumeSlider = document.getElementById("background-volume-slider");
 const backgroundToneSlider = document.getElementById("background-tone-slider");
@@ -33,17 +34,19 @@ let drumNames = ["kk", "sn", "hh"];
 let drumMute = false;
 let drumPatternIndex = 1;
 
-const backgroundSample = {};
+const backgroundSampleData = {};
 let backgroundSamples = [];
 let backgroundSampleNames = ["rain", "waves", "street", "kids"];
 let backgroundSampleIndex = 0;
 
+const melodyData = { gain: 1 };
 let melodyMidis;
 let melodyMidi;
 let melodyPart;
 let melodyIndex = 0;
 let secondMelodyIndex = 1;
 let interpolationMidis = [];
+const chordsData = { gain: 1 };
 let chordsMidis;
 let chordsPart;
 let chordsIndex = 0;
@@ -56,9 +59,12 @@ let synth;
 let bass;
 let chordsInstruments;
 
+const canvasData = {};
+
 initModel();
 loadMidiFiles();
 initSounds();
+initCanvas();
 
 function initSounds() {
   Tone.Transport.bpm.value = bpm;
@@ -73,15 +79,15 @@ function initSounds() {
     checkFinishLoading();
   }).toMaster();
 
-  backgroundSample.gain = new Tone.Gain(1).toMaster();
-  // backgroundSample.hpf = new Tone.Filter(0, "highpass").connect(backgroundSample.gain);
-  backgroundSample.hpf = new Tone.Filter(20000, "lowpass").connect(backgroundSample.gain);
+  backgroundSampleData.gain = new Tone.Gain(1).toMaster();
+  // backgroundSampleData.hpf = new Tone.Filter(0, "highpass").connect(backgroundSampleData.gain);
+  backgroundSampleData.hpf = new Tone.Filter(20000, "lowpass").connect(backgroundSampleData.gain);
   const sampleUrls = {};
   backgroundSampleNames.forEach((n) => (sampleUrls[n] = `${samplesBaseUrl}/fx/${n}.mp3`));
   backgroundSamples = new Tone.Players(sampleUrls, () => {
     console.log("background sounds loaded");
     checkFinishLoading();
-  }).connect(backgroundSample.hpf);
+  }).connect(backgroundSampleData.hpf);
 
   backgroundSampleNames.forEach((name) => {
     backgroundSamples.get(name).loop = true;
@@ -136,6 +142,7 @@ function initSounds() {
   bass.connect(reverb);
 
   chordsInstruments = [synth, piano, acousticGuitar, electricGuitar];
+  melodyData.instrument = piano;
 
   Tone.Buffer.on("load", () => {
     checkFinishLoading();
@@ -159,6 +166,27 @@ function initModel() {
       // console.log("interpolationMidis", interpolationMidis);
     }
   };
+}
+
+function initCanvas() {
+  const canvas = document.getElementById("main-canvas");
+  canvasData.canvas = canvas;
+  canvas.width = document.getElementById("canvas-div").clientWidth;
+  canvas.height = document.getElementById("canvas-div").clientHeight;
+
+  draw();
+}
+
+function draw() {
+  let ctx = canvasData.canvas.getContext("2d");
+  const { width, height } = ctx.canvas;
+  ctx.clearRect(0, 0, width, height);
+  ctx.fillStyle = "rgba(200, 200, 200, 0.5)";
+  ctx.fillRect(0, 0, width, height);
+
+  requestAnimationFrame(() => {
+    draw();
+  });
 }
 
 function seqCallback(time, b) {
@@ -293,6 +321,11 @@ function onFinishLoading() {
     backgroundSamples.get(backgroundSampleNames[backgroundSampleIndex]).start();
   });
 
+  melodyInstrumentSelect.addEventListener("change", () => {
+    const index = melodyInstrumentSelect.value;
+    melodyData.instrument = chordsInstruments[index];
+  });
+
   melodyInteractionSelect.addEventListener("change", () => {
     const mode = melodyInteractionSelect.value;
     melodyInteractionDivs[mode].style.display = "block";
@@ -305,12 +338,12 @@ function onFinishLoading() {
   });
 
   backgroundVolumeSlider.addEventListener("input", () => {
-    backgroundSample.gain.gain.value = backgroundVolumeSlider.value / 100;
+    backgroundSampleData.gain.gain.value = backgroundVolumeSlider.value / 100;
   });
 
   backgroundToneSlider.addEventListener("input", () => {
     const frq = backgroundToneSlider.value * 200;
-    backgroundSample.hpf.frequency.value = frq;
+    backgroundSampleData.hpf.frequency.value = frq;
   });
 
   // model
@@ -365,7 +398,7 @@ function changeMelodyByIndex(index = 0) {
   }
   melodyIndex = index;
   melodyPart = new Tone.Part((time, note) => {
-    piano.triggerAttackRelease(midi(note.pitch - 12), note.duration, time, note.velocity);
+    melodyData.instrument.triggerAttackRelease(midi(note.pitch - 12), note.duration, time, note.velocity);
   }, parseMidiNotes(melodyMidis[melodyIndex])).start(0);
 }
 
@@ -374,7 +407,7 @@ function changeMelody(readyMidi) {
     melodyPart.cancel(0);
   }
   melodyPart = new Tone.Part((time, note) => {
-    piano.triggerAttackRelease(midi(note.pitch - 12), note.duration, time, note.velocity);
+    melodyData.instrument.triggerAttackRelease(midi(note.pitch - 12), note.duration, time, note.velocity);
   }, readyMidi).start(0);
 }
 

@@ -22,6 +22,13 @@
       <button id="start-button">loading...</button>
     </div>
 
+    <div>
+      <div id="canvas-div">
+        <img src="./assets/room.gif" alt="room" id="background-image" />
+        <canvas id="main-canvas"></canvas>
+      </div>
+    </div>
+
     <div id="control-div">
       <div id="time-div" class="block">
         <!-- <button id="check-time-button">check time</button> -->
@@ -75,6 +82,16 @@
       <div class="block">
         <h3>Melody</h3>
         <div>
+          <label>instrument</label>
+          <select id="melody-instrument-select">
+            <option value="0">synths</option>
+            <option value="1" selected>piano</option>
+            <option value="2">acoustic guitar</option>
+            <option value="3">electric guitar</option>
+          </select>
+
+          <br />
+
           <label>interaction mode</label>
           <select id="melody-interaction-select">
             <option value="0">interpolation</option>
