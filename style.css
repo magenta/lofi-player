@@ -1,7 +1,7 @@
 :root {
   --canvas-width: 720px;
   --canvas-height: 400px;
-  --background-color: rgba(255, 11, 174, 0.952);
+  --background-color: rgba(255, 11, 174, 1);
 
   --text-color: #373fff;
   --text-background-color: rgba(255, 255, 255, 1);

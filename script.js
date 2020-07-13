@@ -2,6 +2,8 @@ const LOAD_EVENTS_COUNTS_THRESHOLD = 6;
 const TOTAL_BAR_COUNTS = 8;
 const TICKS_PER_BAR = 384;
 const BEATS_PER_BAR = 4;
+const TOTAL_TICKS = TOTAL_BAR_COUNTS * TICKS_PER_BAR;
+const MAIN_CANVAS_PADDING = 0;
 
 const controlDiv = document.getElementById("control-div");
 const startButton = document.getElementById("start-button");
@@ -21,6 +23,7 @@ const melodyInstrumentSelect = document.getElementById("melody-instrument-select
 const interpolationSlider = document.getElementById("interpolation-slider");
 const backgroundVolumeSlider = document.getElementById("background-volume-slider");
 const backgroundToneSlider = document.getElementById("background-tone-slider");
+const canvasDiv = document.getElementById("canvas-div");
 
 const worker = new Worker("worker.js");
 const samplesBaseUrl = "./samples";
@@ -32,7 +35,7 @@ let seq;
 let drumSamples;
 let drumNames = ["kk", "sn", "hh"];
 let drumMute = false;
-let drumPatternIndex = 1;
+let drumPatternIndex = 0;
 
 const backgroundSampleData = {};
 let backgroundSamples = [];
@@ -59,7 +62,15 @@ let synth;
 let bass;
 let chordsInstruments;
 
+// visual
 const canvasData = {};
+const drumVisualEffects = {
+  scale: {
+    kk: 1,
+    sn: 1,
+    hh: 1,
+  },
+};
 
 initModel();
 loadMidiFiles();
@@ -174,6 +185,15 @@ function initCanvas() {
   canvas.width = document.getElementById("canvas-div").clientWidth;
   canvas.height = document.getElementById("canvas-div").clientHeight;
 
+  canvasDiv.addEventListener("mousedown", (e) => {
+    const { clientX, clientY } = e;
+    let canvasRect = canvas.getBoundingClientRect();
+    const mouseX = clientX - canvasRect.left - MAIN_CANVAS_PADDING;
+    const mouseY = clientY - canvasRect.top - MAIN_CANVAS_PADDING;
+
+    console.log(`x: ${mouseX} y: ${mouseY}`);
+  });
+
   draw();
 }
 
@@ -184,21 +204,108 @@ function draw() {
   ctx.fillStyle = "rgba(200, 200, 200, 0.5)";
   ctx.fillRect(0, 0, width, height);
 
+  // progress
+  if (Tone.Transport.state === "started") {
+    ctx.fillStyle = "rgba(255, 11, 174, 1)";
+    ctx.fillRect(width * Tone.Transport.progress, 0, 10, height);
+  }
+
+  if (melodyMidis) {
+    drawRect(ctx, 357, 102, 111, 61, "rgba(255, 11, 174, 0.8)");
+    drawMidi(ctx, 357, 102, 111, 61, melodyMidis[melodyIndex]);
+
+    // kick
+    drawRect(ctx, 519, 131, 52, 190, "rgba(255, 11, 174, 0.8)");
+    drawDrums(ctx, 519, 131, 52, 190);
+  }
+
+  // ctx.translate(470, 166);
+
   requestAnimationFrame(() => {
     draw();
   });
+}
+
+function drawRect(ctx, x, y, w, h, col) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.fillStyle = col;
+  ctx.fillRect(0, 0, w, h);
+  ctx.restore();
+}
+
+function drawMidi(ctx, x, y, w, h, m) {
+  const notes = m.tracks[0].notes;
+  // const hh = h / 16;
+  const hh = h / 32;
+  ctx.save();
+  ctx.translate(x, y);
+  for (let i = 0; i < notes.length; i++) {
+    const { midi, ticks, durationTicks } = notes[i];
+    ctx.save();
+    const xpos = (w * ticks) / TOTAL_TICKS;
+    const ypos = h * (1 - (midi - 64) / 32);
+    const ww = (w * durationTicks) / TOTAL_TICKS;
+
+    ctx.fillStyle = "rgba(255, 255, 255, 1)";
+    ctx.fillRect(xpos, ypos, ww, hh);
+    ctx.restore();
+  }
+
+  if (Tone.Transport.state === "started") {
+    ctx.fillStyle = "#373fff";
+    ctx.fillRect(w * Tone.Transport.progress, 0, -5, h);
+  }
+  ctx.restore();
+}
+
+function drawDrums(ctx, x, y, w, h) {
+  const radius = 10;
+
+  drumVisualEffects.scale.kk = drumVisualEffects.scale.kk * 0.9;
+  drumVisualEffects.scale.sn = drumVisualEffects.scale.sn * 0.9;
+  drumVisualEffects.scale.hh = drumVisualEffects.scale.hh * 0.9;
+  ctx.save();
+
+  ctx.translate(x + 0.5 * w, y);
+
+  ctx.translate(0, 0.2 * h);
+  ctx.fillStyle = `rgba(255, 255, 255, ${drumVisualEffects.scale.hh})`;
+  ctx.beginPath();
+  // ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+  ctx.fillRect(-5, 0, 10, 10);
+  ctx.fill();
+
+  ctx.translate(0, 0.2 * h);
+  ctx.fillStyle = `rgba(255, 255, 255, ${drumVisualEffects.scale.sn})`;
+  ctx.beginPath();
+  // ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+  ctx.fillRect(-5, 0, 10, 10);
+  ctx.fill();
+
+  ctx.translate(0, 0.2 * h);
+  ctx.fillStyle = `rgba(255, 255, 255, ${drumVisualEffects.scale.kk})`;
+  ctx.beginPath();
+  // ctx.arc(0, 0, radius, 0, 2 * Math.PI);
+  ctx.fillRect(-5, 0, 10, 10);
+  ctx.fill();
+
+  ctx.restore();
 }
 
 function seqCallback(time, b) {
   if (!drumMute) {
     if (drumPatternIndex === 0) {
       if (b % 16 === 0) {
+        drumVisualEffects.scale.kk = 1;
         drumSamples.get("kk").start(time);
       }
       if (b % 16 === 8) {
+        drumVisualEffects.scale.sn = 1;
         drumSamples.get("sn").start(time);
       }
       if (b % 2 === 0) {
+        drumVisualEffects.scale.hh = 1;
         drumSamples.get("hh").start(time);
       }
     } else if (drumPatternIndex === 1) {
@@ -384,7 +491,7 @@ function changeChords(index = 0) {
   chordsIndex = index;
   chordsPart = new Tone.Part((time, note) => {
     chordsInstruments[chordsInstrumentIndex].triggerAttackRelease(
-      midi(note.pitch - (chordsInstrumentIndex === 0 ? 0 : 12)),
+      toFreq(note.pitch - (chordsInstrumentIndex === 0 ? 0 : 12)),
       note.duration,
       time,
       note.velocity
@@ -398,7 +505,7 @@ function changeMelodyByIndex(index = 0) {
   }
   melodyIndex = index;
   melodyPart = new Tone.Part((time, note) => {
-    melodyData.instrument.triggerAttackRelease(midi(note.pitch - 12), note.duration, time, note.velocity);
+    melodyData.instrument.triggerAttackRelease(toFreq(note.pitch - 12), note.duration, time, note.velocity);
   }, parseMidiNotes(melodyMidis[melodyIndex])).start(0);
 }
 
@@ -407,7 +514,7 @@ function changeMelody(readyMidi) {
     melodyPart.cancel(0);
   }
   melodyPart = new Tone.Part((time, note) => {
-    melodyData.instrument.triggerAttackRelease(midi(note.pitch - 12), note.duration, time, note.velocity);
+    melodyData.instrument.triggerAttackRelease(toFreq(note.pitch - 12), note.duration, time, note.velocity);
   }, readyMidi).start(0);
 }
 
@@ -434,7 +541,7 @@ function parseMidiNotes(midi) {
 }
 
 function midiToModelFormat(midi) {
-  // console.log("parse this midi", midi);
+  console.log("parse this midi", midi);
   const totalTicks = TOTAL_BAR_COUNTS * TICKS_PER_BAR;
   const notes = midi.tracks[0].notes.map((note) => ({
     pitch: note.midi,
@@ -466,6 +573,6 @@ function modelFormatToMidi(data) {
   });
 }
 
-function midi(m) {
+function toFreq(m) {
   return Tone.Frequency(m, "midi");
 }
