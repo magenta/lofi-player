@@ -11,12 +11,12 @@ h1 {
 }
 
 #control-div {
-  display: flex;
+  display: none;
   align-items: stretch;
   align-content: stretch;
   flex-wrap: wrap;
   justify-content: flex-start;
-  width: 80%;
+  width: 100%;
   /* max-width: 1100px; */
 }
 
@@ -26,4 +26,8 @@ h1 {
   min-width: 250px;
   min-height: 120px;
   border: solid black 0.5px;
+}
+
+#mixing-div {
+  display: none;
 }

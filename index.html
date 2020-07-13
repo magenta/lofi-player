@@ -67,49 +67,96 @@
           <option value="3">electric guitar</option>
         </select>
 
-        <h4>effects</h4>
+        <!-- <h4>effects</h4>
         <input type="range" min="1" max="100" value="50" />
-        <input type="range" min="1" max="100" value="50" />
+        <input type="range" min="1" max="100" value="50" /> -->
       </div>
 
       <div class="block">
         <h3>Melody</h3>
-        <label>1st</label>
-        <select id="melody">
-          <option value="0">mellow</option>
-          <option value="1">sad</option>
-          <option value="2">warm</option>
-          <option value="3">ninja</option>
-        </select>
+        <div>
+          <label>interaction mode</label>
+          <select id="melody-interaction-select">
+            <option value="0">interpolation</option>
+            <option value="1">cooking</option>
+          </select>
+        </div>
+        <hr />
+        <div id="mixing-div">
+          <label>main melody</label>
+          <select id="main-melody-select">
+            <option value="0">chill</option>
+            <option value="1">dense</option>
+            <option value="2">sad</option>
+            <option value="3">moody</option>
+          </select>
 
-        <label>2nd</label>
-        <select id="melody">
-          <option value="0">mellow</option>
-          <option value="1">sad</option>
-          <option value="2">warm</option>
-          <option value="3">ninja</option>
-        </select>
+          <br />
+          <label>add flavor</label>
+          <select id="flavor-melody-select">
+            <option value="0">chill</option>
+            <option value="1" selected>dense</option>
+            <option value="2">sad</option>
+            <option value="3">moody</option>
+          </select>
 
-        <h4>interpolate</h4>
-        <input type="range" min="0" max="100" value="0" />
+          <br />
+          <label>amount</label>
+          <input type="range" min="1" max="100" value="50" />
 
-        <h4>effects</h4>
+          <br />
+          <button>add</button>
+          <button>reset</button>
+        </div>
+        <div id="interpolation-div">
+          <label>1st</label>
+          <select id="first-melody-select">
+            <option value="0">chill</option>
+            <option value="1">dense</option>
+            <option value="2">sad</option>
+            <option value="3">moody</option>
+          </select>
+
+          <label>2nd</label>
+          <select id="melody">
+            <option value="0">chill</option>
+            <option value="1" selected>dense</option>
+            <option value="2">sad</option>
+            <option value="3">moody</option>
+          </select>
+
+          <br />
+
+          <label>1st</label>
+          <input id="interpolation-slider" type="range" min="0" max="4" step="1" value="0" />
+          <label>2nd</label>
+        </div>
+
+        <div>
+          <p></p>
+        </div>
+
+        <!-- <h4>effects</h4>
         <input type="range" min="1" max="100" value="50" />
-        <input type="range" min="1" max="100" value="50" />
+        <input type="range" min="1" max="100" value="50" /> -->
       </div>
 
       <div class="block">
         <h3>Background Sounds</h3>
-        <select id="background-sounds">
+        <select id="background-samples-select">
           <option value="0">Raindrops</option>
-          <option value="1">Forests</option>
-          <option value="2">Waves</option>
-          <option value="3">Vinyl Cracks</option>
+          <option value="1">Waves</option>
+          <option value="2">City Street</option>
+          <option value="3">Kids</option>
         </select>
 
-        <h4>effects</h4>
-        <input type="range" min="1" max="100" value="50" />
-        <input type="range" min="1" max="100" value="50" />
+        <!-- <h4>effects</h4> -->
+        <hr />
+        <label>volume</label>
+        <input id="background-volume-slider" type="range" min="0" max="100" value="100" />
+        <br />
+        <label>tone</label>
+        <input id="background-tone-slider" type="range" min="0" max="100" value="100" />
       </div>
     </div>
   </body>

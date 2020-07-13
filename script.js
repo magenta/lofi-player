@@ -1,8 +1,9 @@
-const LOAD_EVENTS_COUNTS_THRESHOLD = 5;
+const LOAD_EVENTS_COUNTS_THRESHOLD = 6;
 const TOTAL_BAR_COUNTS = 8;
 const TICKS_PER_BAR = 384;
 const BEATS_PER_BAR = 4;
 
+const controlDiv = document.getElementById("control-div");
 const startButton = document.getElementById("start-button");
 const checkTimeButton = document.getElementById("check-time-button");
 const checkTimeText = document.getElementById("check-time-text");
@@ -12,7 +13,15 @@ const drumPatternsSelect = document.getElementById("drum-patterns-select");
 const drumToggle = document.getElementById("drum-toggle");
 const chordsSelect = document.getElementById("chords-select");
 const chordsInstrumentSelect = document.getElementById("chords-instrument-select");
+const backgroundSamplesSelect = document.getElementById("background-samples-select");
+const firstMelodySelect = document.getElementById("first-melody-select");
+const melodyInteractionSelect = document.getElementById("melody-interaction-select");
+const melodyInteractionDivs = [document.getElementById("interpolation-div"), document.getElementById("mixing-div")];
+const interpolationSlider = document.getElementById("interpolation-slider");
+const backgroundVolumeSlider = document.getElementById("background-volume-slider");
+const backgroundToneSlider = document.getElementById("background-tone-slider");
 
+const worker = new Worker("worker.js");
 const samplesBaseUrl = "./samples";
 const ac = Tone.context._context;
 let loadEventsCounts = 0;
@@ -24,22 +33,30 @@ let drumNames = ["kk", "sn", "hh"];
 let drumMute = false;
 let drumPatternIndex = 1;
 
+const backgroundSample = {};
+let backgroundSamples = [];
+let backgroundSampleNames = ["rain", "waves", "street", "kids"];
+let backgroundSampleIndex = 0;
+
 let melodyMidis;
 let melodyMidi;
 let melodyPart;
+let melodyIndex = 0;
+let secondMelodyIndex = 1;
+let interpolationMidis = [];
 let chordsMidis;
-let chordsMidi;
 let chordsPart;
 let chordsIndex = 0;
 let chordsInstrumentIndex = 0;
-let rainSample;
 
 let piano;
 let acousticGuitar;
 let electricGuitar;
 let synth;
+let bass;
 let chordsInstruments;
 
+initModel();
 loadMidiFiles();
 initSounds();
 
@@ -50,18 +67,25 @@ function initSounds() {
   Tone.Transport.loopEnd = "8:0:0";
 
   const drumUrls = {};
-  drumNames.forEach((name) => (drumUrls[name] = `${samplesBaseUrl}/drums/${name}.mp3`));
+  drumNames.forEach((n) => (drumUrls[n] = `${samplesBaseUrl}/drums/${n}.mp3`));
   drumSamples = new Tone.Players(drumUrls, () => {
     console.log("drums loaded");
     checkFinishLoading();
   }).toMaster();
 
-  rainSample = new Tone.Player(`${samplesBaseUrl}/fx/rain.mp3`, () => {
-    console.log("rain sample loaded");
+  backgroundSample.gain = new Tone.Gain(1).toMaster();
+  // backgroundSample.hpf = new Tone.Filter(0, "highpass").connect(backgroundSample.gain);
+  backgroundSample.hpf = new Tone.Filter(20000, "lowpass").connect(backgroundSample.gain);
+  const sampleUrls = {};
+  backgroundSampleNames.forEach((n) => (sampleUrls[n] = `${samplesBaseUrl}/fx/${n}.mp3`));
+  backgroundSamples = new Tone.Players(sampleUrls, () => {
+    console.log("background sounds loaded");
     checkFinishLoading();
-  }).toMaster();
-  rainSample.loop = true;
+  }).connect(backgroundSample.hpf);
 
+  backgroundSampleNames.forEach((name) => {
+    backgroundSamples.get(name).loop = true;
+  });
   seq = new Tone.Sequence(
     seqCallback,
     Array(128)
@@ -102,10 +126,14 @@ function initSounds() {
   electricGuitar = SampleLibrary.load({
     instruments: "guitar-electric",
   });
+  bass = SampleLibrary.load({
+    instruments: "bass-electric",
+  });
 
-  piano.connect(reverb);
-  acousticGuitar.connect(reverb);
-  electricGuitar.connect(reverb);
+  piano.connect(chorus);
+  acousticGuitar.connect(chorus);
+  electricGuitar.connect(chorus);
+  bass.connect(reverb);
 
   chordsInstruments = [synth, piano, acousticGuitar, electricGuitar];
 
@@ -113,6 +141,24 @@ function initSounds() {
     checkFinishLoading();
     console.log("buffers loaded");
   });
+}
+
+function initModel() {
+  worker.postMessage({ msg: "init" });
+  worker.onmessage = (e) => {
+    if (e.data.msg === "init") {
+      console.log("model loaded");
+      checkFinishLoading();
+    }
+    if (e.data.msg === "interpolate") {
+      const { id, result } = e.data;
+      // console.log("interpolation result", result);
+      interpolationMidis = result.map(modelFormatToMidi);
+      interpolationMidis[0] = parseMidiNotes(melodyMidis[melodyIndex]);
+      interpolationMidis[interpolationMidis.length - 1] = parseMidiNotes(melodyMidis[secondMelodyIndex]);
+      // console.log("interpolationMidis", interpolationMidis);
+    }
+  };
 }
 
 function seqCallback(time, b) {
@@ -174,22 +220,19 @@ async function loadMidiFiles() {
     Midi.fromUrl("./midi/VI_i_VI_v_Am.mid"),
   ]);
 
-  chordsMidi = chordsMidis[chordsIndex];
-
   changeChords(chordsIndex);
-  // const notes = parseMidiNotes(chordsMidi);
-  // chordsPart = new Tone.Part((time, note) => {
-  //   chordsInstruments[chordsInstrumentIndex].triggerAttackRelease(note.pitch, note.duration, time, note.velocity);
-  // }, notes).start(0);
 
-  melodiesMidis = await Promise.all([
+  melodyMidis = await Promise.all([
     Midi.fromUrl("./midi/IV_IV_I_I/melody/m_1_C.mid"),
     Midi.fromUrl("./midi/IV_IV_I_I/melody/m_2_C.mid"),
     Midi.fromUrl("./midi/IV_IV_I_I/melody/m_3_C.mid"),
     Midi.fromUrl("./midi/IV_IV_I_I/melody/m_4_C.mid"),
   ]);
 
+  changeMelodyByIndex(melodyIndex);
+
   console.log("midi loaded");
+  // console.log("midi loaded", melodyMidis[0]);
   checkFinishLoading();
 }
 
@@ -202,22 +245,20 @@ function checkFinishLoading() {
 }
 
 function onFinishLoading() {
+  controlDiv.style.display = "flex";
   startButton.textContent = "start";
   startButton.addEventListener("click", () => {
     if (ac.state !== "started") {
       ac.resume();
     }
-
-    if (rainSample.loaded) {
-      if (Tone.Transport.state === "started") {
-        Tone.Transport.stop();
-        onTransportStop();
-        startButton.textContent = "start";
-      } else {
-        Tone.Transport.start();
-        onTransportStart();
-        startButton.textContent = "stop";
-      }
+    if (Tone.Transport.state === "started") {
+      Tone.Transport.stop();
+      onTransportStop();
+      startButton.textContent = "start";
+    } else {
+      Tone.Transport.start();
+      onTransportStart();
+      startButton.textContent = "stop";
     }
   });
 
@@ -239,17 +280,58 @@ function onFinishLoading() {
     changeChords(chordsSelect.value);
   });
   chordsInstrumentSelect.addEventListener("change", () => {
-    console.log(`inst [${chordsInstrumentSelect.value}]`);
     changeChordsInstrument(chordsInstrumentSelect.value);
+  });
+
+  firstMelodySelect.addEventListener("change", () => {
+    changeMelodyByIndex(firstMelodySelect.value);
+  });
+
+  backgroundSamplesSelect.addEventListener("change", () => {
+    backgroundSamples.get(backgroundSampleNames[backgroundSampleIndex]).stop();
+    backgroundSampleIndex = backgroundSamplesSelect.value;
+    backgroundSamples.get(backgroundSampleNames[backgroundSampleIndex]).start();
+  });
+
+  melodyInteractionSelect.addEventListener("change", () => {
+    const mode = melodyInteractionSelect.value;
+    melodyInteractionDivs[mode].style.display = "block";
+    melodyInteractionDivs[1 - mode].style.display = "none";
+  });
+
+  interpolationSlider.addEventListener("change", () => {
+    const index = Math.floor(interpolationSlider.value);
+    changeMelody(interpolationMidis[index]);
+  });
+
+  backgroundVolumeSlider.addEventListener("input", () => {
+    backgroundSample.gain.gain.value = backgroundVolumeSlider.value / 100;
+  });
+
+  backgroundToneSlider.addEventListener("input", () => {
+    const frq = backgroundToneSlider.value * 200;
+    backgroundSample.hpf.frequency.value = frq;
+  });
+
+  // model
+  const firstMelody = melodyMidis[melodyIndex];
+  const secondMelody = melodyMidis[secondMelodyIndex];
+  const left = midiToModelFormat(firstMelody);
+  const right = midiToModelFormat(secondMelody);
+  worker.postMessage({
+    id: 0,
+    msg: "interpolate",
+    left,
+    right,
   });
 }
 
 function onTransportStart() {
-  rainSample.start();
+  backgroundSamples.get(backgroundSampleNames[backgroundSampleIndex]).start();
 }
 
 function onTransportStop() {
-  rainSample.stop();
+  backgroundSamples.get(backgroundSampleNames[backgroundSampleIndex]).stop();
 }
 
 function toggleDrumMute(value) {
@@ -262,15 +344,38 @@ function toggleDrumMute(value) {
   drumToggle.checked = !drumMute;
 }
 
-function changeChords(index) {
+function changeChords(index = 0) {
   if (chordsPart) {
     chordsPart.cancel(0);
   }
   chordsIndex = index;
-  chordsMidi = chordsMidis[chordsIndex];
   chordsPart = new Tone.Part((time, note) => {
-    chordsInstruments[chordsInstrumentIndex].triggerAttackRelease(midi(note.pitch), note.duration, time, note.velocity);
-  }, parseMidiNotes(chordsMidi)).start(0);
+    chordsInstruments[chordsInstrumentIndex].triggerAttackRelease(
+      midi(note.pitch - (chordsInstrumentIndex === 0 ? 0 : 12)),
+      note.duration,
+      time,
+      note.velocity
+    );
+  }, parseMidiNotes(chordsMidis[chordsIndex])).start(0);
+}
+
+function changeMelodyByIndex(index = 0) {
+  if (melodyPart) {
+    melodyPart.cancel(0);
+  }
+  melodyIndex = index;
+  melodyPart = new Tone.Part((time, note) => {
+    piano.triggerAttackRelease(midi(note.pitch - 12), note.duration, time, note.velocity);
+  }, parseMidiNotes(melodyMidis[melodyIndex])).start(0);
+}
+
+function changeMelody(readyMidi) {
+  if (melodyPart) {
+    melodyPart.cancel(0);
+  }
+  melodyPart = new Tone.Part((time, note) => {
+    piano.triggerAttackRelease(midi(note.pitch - 12), note.duration, time, note.velocity);
+  }, readyMidi).start(0);
 }
 
 function changeChordsInstrument(index) {
@@ -283,19 +388,51 @@ function parseMidiNotes(midi) {
   const ticksPerBeat = TICKS_PER_BAR / BEATS_PER_BAR;
   const ticksPerFourthNote = ticksPerBeat / 4;
 
-  console.log(midi);
   return midi.tracks[0].notes.map((note) => {
-    // const totalTicks = chordsMidi.durationTicks;
     return {
       time: `${Math.floor(note.ticks / TICKS_PER_BAR)}:${Math.floor(note.ticks / ticksPerBeat) % BEATS_PER_BAR}:${
         (note.ticks / ticksPerFourthNote) % 4
       }`,
-      pitch: note.midi - 12,
+      pitch: note.midi,
       duration: note.duration,
       velocity: note.velocity,
     };
   });
 }
+
+function midiToModelFormat(midi) {
+  // console.log("parse this midi", midi);
+  const totalTicks = TOTAL_BAR_COUNTS * TICKS_PER_BAR;
+  const notes = midi.tracks[0].notes.map((note) => ({
+    pitch: note.midi,
+    quantizedStartStep: Math.floor((note.ticks / totalTicks) * 64),
+    quantizedEndStep: Math.floor(((note.ticks + note.durationTicks) / totalTicks) * 64),
+  }));
+
+  return {
+    notes,
+    quantizationInfo: { stepsPerQuarter: 4 },
+    tempos: [{ time: 0, qpm: 120 }],
+    totalQuantizedSteps: 64,
+  };
+}
+
+function modelFormatToMidi(data) {
+  const { notes } = data;
+  return notes.map((note) => {
+    const { pitch, quantizedStartStep, quantizedEndStep } = note;
+
+    return {
+      time: `${Math.floor(quantizedStartStep / 8)}:${Math.floor((quantizedStartStep % 8) / 2)}:${
+        (quantizedStartStep % 2) * 2
+      }`,
+      pitch,
+      duration: (quantizedEndStep - quantizedStartStep) * (bpm / 60) * (1 / 4),
+      velocity: 0.7,
+    };
+  });
+}
+
 function midi(m) {
   return Tone.Frequency(m, "midi");
 }
