@@ -3,6 +3,7 @@ const TOTAL_BAR_COUNTS = 8;
 const TICKS_PER_BAR = 384;
 const BEATS_PER_BAR = 4;
 const TOTAL_TICKS = TOTAL_BAR_COUNTS * TICKS_PER_BAR;
+const MODEL_BAR_COUNT = 2;
 const MAIN_CANVAS_PADDING = 0;
 
 const controlDiv = document.getElementById("control-div");
@@ -17,6 +18,7 @@ const chordsSelect = document.getElementById("chords-select");
 const chordsInstrumentSelect = document.getElementById("chords-instrument-select");
 const backgroundSamplesSelect = document.getElementById("background-samples-select");
 const firstMelodySelect = document.getElementById("first-melody-select");
+const secondMelodySelect = document.getElementById("second-melody-select");
 const melodyInteractionSelect = document.getElementById("melody-interaction-select");
 const melodyInteractionDivs = [document.getElementById("interpolation-div"), document.getElementById("mixing-div")];
 const melodyInstrumentSelect = document.getElementById("melody-instrument-select");
@@ -43,7 +45,7 @@ let backgroundSamples = [];
 let backgroundSampleNames = ["rain", "waves", "street", "kids"];
 let backgroundSampleIndex = 0;
 
-const melodyData = { gain: 1 };
+const melodyData = { gain: 1, waitingInterpolation: true };
 let melodyMidis;
 let melodyMidi;
 let melodyPart;
@@ -172,10 +174,12 @@ function initModel() {
     if (e.data.msg === "interpolate") {
       const { id, result } = e.data;
       // console.log("interpolation result", result);
-      interpolationMidis = result.map(modelFormatToMidiNotes);
+      interpolationMidis = result.map(modelFormatToToneNotes);
       interpolationMidis[0] = midiToToneNotes(melodyMidis[melodyIndex]);
       interpolationMidis[interpolationMidis.length - 1] = midiToToneNotes(melodyMidis[secondMelodyIndex]);
-      // console.log("interpolationMidis", interpolationMidis);
+
+      melodyData.waitingInterpolation = false;
+      melodyInteractionDivs[0].classList.remove("disabledbutton");
     }
   };
 }
@@ -422,6 +426,12 @@ function onFinishLoading() {
 
   firstMelodySelect.addEventListener("change", () => {
     changeMelodyByIndex(firstMelodySelect.value);
+    sendInterpolationMessage();
+  });
+
+  secondMelodySelect.addEventListener("change", () => {
+    secondMelodyIndex = secondMelodySelect.value;
+    sendInterpolationMessage();
   });
 
   backgroundSamplesSelect.addEventListener("change", () => {
@@ -456,16 +466,7 @@ function onFinishLoading() {
   });
 
   // model
-  const firstMelody = melodyMidis[melodyIndex];
-  const secondMelody = melodyMidis[secondMelodyIndex];
-  const left = midiToModelFormat(firstMelody);
-  const right = midiToModelFormat(secondMelody);
-  worker.postMessage({
-    id: 0,
-    msg: "interpolate",
-    left,
-    right,
-  });
+  sendInterpolationMessage();
 }
 
 function onTransportStart() {
@@ -509,6 +510,8 @@ function changeMelodyByIndex(index = 0) {
   melodyPart = new Tone.Part((time, note) => {
     melodyData.instrument.triggerAttackRelease(toFreq(note.pitch - 12), note.duration, time, note.velocity);
   }, midiToToneNotes(melodyMidis[melodyIndex])).start(0);
+
+  melodyPart.loop = false;
 }
 
 function changeMelody(readyMidi) {
@@ -518,6 +521,24 @@ function changeMelody(readyMidi) {
   melodyPart = new Tone.Part((time, note) => {
     melodyData.instrument.triggerAttackRelease(toFreq(note.pitch - 12), note.duration, time, note.velocity);
   }, readyMidi).start(0);
+  melodyPart.loop = true;
+  melodyPart.loopEnd = "4:0:0";
+}
+
+function sendInterpolationMessage() {
+  melodyData.waitingInterpolation = true;
+  melodyInteractionDivs[0].classList.add("disabledbutton");
+
+  const firstMelody = melodyMidis[melodyIndex];
+  const secondMelody = melodyMidis[secondMelodyIndex];
+  const left = midiToModelFormat(firstMelody);
+  const right = midiToModelFormat(secondMelody);
+  worker.postMessage({
+    id: 0,
+    msg: "interpolate",
+    left,
+    right,
+  });
 }
 
 function changeChordsInstrument(index) {
@@ -543,10 +564,10 @@ function midiToToneNotes(midi) {
 }
 
 function midiToModelFormat(midi) {
-  const modelBarCounts = 4;
+  const modelBarCounts = MODEL_BAR_COUNT;
   const totalQuantizedSteps = modelBarCounts * 16;
 
-  console.log("parse this midi", midi);
+  // console.log("parse this midi", midi);
   const totalTicks = TOTAL_BAR_COUNTS * TICKS_PER_BAR;
   const notes = midi.tracks[0].notes.map((note) => ({
     pitch: note.midi,
@@ -562,7 +583,7 @@ function midiToModelFormat(midi) {
   };
 }
 
-function modelFormatToMidiNotes(data) {
+function modelFormatToToneNotes(data) {
   const { notes } = data;
   return notes.map((note) => {
     const { pitch, quantizedStartStep, quantizedEndStep } = note;

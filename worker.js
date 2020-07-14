@@ -2,11 +2,15 @@ importScripts("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.4.0/dist/tf.min.j
 importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@1.17.0/es6/core.js");
 importScripts("https://cdn.jsdelivr.net/npm/@magenta/music@1.17.0/es6/music_vae.js");
 
-const mvae = new music_vae.MusicVAE(
-  "https://storage.googleapis.com/magentadata/js/checkpoints/music_vae/mel_4bar_small_q2"
-);
+const checkpointsBaseUr = "https://storage.googleapis.com/magentadata/js/checkpoints";
+const urls = {
+  twoBarSmall: `${checkpointsBaseUr}/music_vae/mel_2bar_small`,
+  fourBarSmall: `${checkpointsBaseUr}/music_vae/mel_4bar_small_q2`,
+};
+const mvae = new music_vae.MusicVAE(urls.twoBarSmall);
 
 const NUM_INSPIRATIONAL_MELODIES = 4;
+const NUM_INTERPOLATIONS = 5;
 
 // Main script asks for work.
 self.onmessage = async ({ data }) => {
@@ -21,7 +25,7 @@ self.onmessage = async ({ data }) => {
 
   if (data.msg === "interpolate") {
     const { left, right, id } = data;
-    const result = await mvae.interpolate([left, right], 5);
+    const result = await mvae.interpolate([left, right], NUM_INTERPOLATIONS);
     postMessage({ id, msg: "interpolate", result });
   }
 
