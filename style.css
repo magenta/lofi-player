@@ -7,6 +7,7 @@
   --text-background-color: rgba(255, 255, 255, 1);
 
   --input-thumb-size: 10px;
+  --border-width: 8px;
 }
 
 * {
@@ -24,6 +25,7 @@ body {
   font-family: helvetica, arial, sans-serif;
   margin: 2em;
   background-color: var(--background-color);
+  /* background-color: var(--text-color); */
 }
 
 #title {
@@ -32,7 +34,7 @@ body {
   font-size: 2rem;
   color: var(--text-color);
   background-color: var(--text-background-color);
-  border: solid var(--text-color) 5px;
+  border: solid var(--text-color) var(--border-width);
   padding: 0.5rem;
   margin-bottom: 1rem;
 }
@@ -40,7 +42,7 @@ body {
 button {
   color: var(--text-color);
   background-color: var(--text-background-color);
-  border: solid var(--text-color) 5px;
+  border: solid var(--text-color) var(--border-width);
 }
 
 #control-div {
@@ -58,7 +60,7 @@ button {
   /* padding: 5px; */
   min-width: 250px;
   min-height: 120px;
-  border: solid var(--text-color) 5px;
+  border: solid var(--text-color) var(--border-width);
   /* border-color: var(--text-color); */
 
   color: var(--text-color);
@@ -94,7 +96,8 @@ button {
   width: 100%;
   max-width: 800px;
   /* height: 435px; */
-  border: solid var(--text-color) 5px;
+  border: solid var(--text-color) var(--border-width);
+  overflow: hidden;
 }
 
 .disabledbutton {
