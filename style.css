@@ -1,6 +1,6 @@
 :root {
-  --canvas-width: 720px;
-  --canvas-height: 400px;
+  --canvas-width: 885px;
+  --canvas-height: 435px;
   --background-color: rgba(255, 11, 174, 1);
 
   --text-color: #373fff;
@@ -80,6 +80,11 @@ button {
   z-index: -1;
 }
 
+#main-canvas {
+  position: relative;
+  z-index: 0;
+}
+
 #canvas-div {
   display: none;
   margin: 1rem 0 0.5rem 0;
@@ -89,13 +94,18 @@ button {
   border: solid var(--text-color) 5px;
 }
 
-canvas {
-  display: none;
-}
-
 .disabledbutton {
   pointer-events: none;
   opacity: 0.4;
+}
+
+.large-on-hover {
+  /* opacity: 0.3; */
+  transform: scale(1);
+}
+.large-on-hover:hover {
+  /* opacity: 1; */
+  transform: scale(1.05);
 }
 
 /* NES */

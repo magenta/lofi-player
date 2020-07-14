@@ -8,6 +8,7 @@ const MAIN_CANVAS_PADDING = 0;
 
 const controlDiv = document.getElementById("control-div");
 const startButton = document.getElementById("start-button");
+const switchScreenButton = document.getElementById("switch-screen-button");
 const checkTimeButton = document.getElementById("check-time-button");
 const checkTimeText = document.getElementById("check-time-text");
 const bpmInput = document.getElementById("bpm-input");
@@ -46,6 +47,7 @@ let drumMute = false;
 let drumPatternIndex = 0;
 
 const data = {
+  showPanel: true,
   backgroundSample: {},
   melody: {
     gain: 1,
@@ -220,8 +222,8 @@ function initModel() {
 function initCanvas() {
   const canvas = document.getElementById("main-canvas");
   data.canvas.canvas = canvas;
-  canvas.width = document.getElementById("canvas-div").clientWidth;
-  canvas.height = document.getElementById("canvas-div").clientHeight;
+  canvas.width = canvasDiv.clientWidth;
+  canvas.height = canvasDiv.clientHeight;
 
   canvasDiv.addEventListener("mousedown", (e) => {
     const { clientX, clientY } = e;
@@ -232,6 +234,47 @@ function initCanvas() {
     console.log(`x: ${mouseX} y: ${mouseY}`);
   });
 
+  // add images
+  let img = new Image();
+  img.src = "./assets/bed.png";
+  img.classList.add("large-on-hover");
+  img.style.position = "absolute";
+  img.style.width = "30%";
+  img.style.left = "65%";
+  img.style.bottom = "5%";
+  img.style.zIndex = "2";
+  canvasDiv.appendChild(img);
+
+  img = new Image();
+  img.src = "./assets/bass.png";
+  img.classList.add("large-on-hover");
+  img.style.position = "absolute";
+  img.style.height = "60%";
+  img.style.left = "5%";
+  img.style.bottom = "20%";
+  img.style.zIndex = "1";
+  canvasDiv.appendChild(img);
+
+  img = new Image();
+  img.src = "./assets/electric-guitar.png";
+  img.classList.add("large-on-hover");
+  img.style.position = "absolute";
+  img.style.height = "50%";
+  img.style.right = "20%";
+  img.style.bottom = "30%";
+  img.style.zIndex = "1";
+  canvasDiv.appendChild(img);
+
+  img = new Image();
+  img.src = "./assets/acoustic-guitar.png";
+  img.classList.add("large-on-hover");
+  img.style.position = "absolute";
+  img.style.height = "50%";
+  img.style.right = "5%";
+  img.style.bottom = "30%";
+  img.style.zIndex = "1";
+  canvasDiv.appendChild(img);
+
   draw();
 }
 
@@ -239,23 +282,24 @@ function draw() {
   let ctx = data.canvas.canvas.getContext("2d");
   const { width, height } = ctx.canvas;
   ctx.clearRect(0, 0, width, height);
-  ctx.fillStyle = "rgba(200, 200, 200, 0.5)";
-  ctx.fillRect(0, 0, width, height);
+  ctx.fillStyle = `rgba(200, 200, 200, ${Math.sin(0.01 * Date.now()) > 0 ? 1 : 0})`;
+  // ctx.fillRect(0, 0, width, height);
+  ctx.fillRect(20, 20, 20, 20);
 
-  // progress
-  if (Tone.Transport.state === "started") {
-    ctx.fillStyle = "rgba(255, 11, 174, 1)";
-    ctx.fillRect(width * Tone.Transport.progress, 0, 10, height);
-  }
+  // progress;
+  // if (Tone.Transport.state === "started") {
+  //   ctx.fillStyle = "rgba(255, 11, 174, 1)";
+  //   ctx.fillRect(width * Tone.Transport.progress, 0, 10, height);
+  // }
 
-  if (melodyMidis) {
-    drawRect(ctx, 357, 102, 111, 61, "rgba(255, 11, 174, 0.8)");
-    drawMidi(ctx, 357, 102, 111, 61, melodyMidis[melodyIndex]);
+  // if (melodyMidis) {
+  //   drawRect(ctx, 357, 102, 111, 61, "rgba(255, 11, 174, 0.8)");
+  //   drawMidi(ctx, 357, 102, 111, 61, melodyMidis[melodyIndex]);
 
-    // kick
-    drawRect(ctx, 519, 131, 52, 190, "rgba(255, 11, 174, 0.8)");
-    drawDrums(ctx, 519, 131, 52, 190);
-  }
+  //   // kick
+  //   drawRect(ctx, 519, 131, 52, 190, "rgba(255, 11, 174, 0.8)");
+  //   drawDrums(ctx, 519, 131, 52, 190);
+  // }
 
   // ctx.translate(470, 166);
 
@@ -434,6 +478,21 @@ function onFinishLoading() {
       Tone.Transport.start();
       onTransportStart();
       startButton.textContent = "stop";
+    }
+  });
+
+  switchScreenButton.addEventListener("click", () => {
+    if (data.showPanel) {
+      switchScreenButton.textContent = "music";
+      canvasDiv.style.display = "block";
+      initCanvas();
+      controlDiv.style.display = "none";
+      data.showPanel = false;
+    } else {
+      switchScreenButton.textContent = "room";
+      canvasDiv.style.display = "none";
+      controlDiv.style.display = "flex";
+      data.showPanel = true;
     }
   });
 
