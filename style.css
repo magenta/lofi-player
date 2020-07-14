@@ -7,6 +7,10 @@
   --text-background-color: rgba(255, 255, 255, 1);
 }
 
+* {
+  font-family: "Press Start 2P", cursive;
+}
+
 body {
   font-family: helvetica, arial, sans-serif;
   margin: 2em;
