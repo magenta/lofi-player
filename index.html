@@ -9,6 +9,7 @@
 
     <!-- import the webpage's stylesheet -->
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+    <link href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="./style.css" />
 
     <!-- import the webpage's javascript file -->
@@ -18,9 +19,9 @@
     <script src="./script.js" defer></script>
   </head>
   <body>
-    <h1>Lo-Fi Player</h1>
+    <h1 id="title" class="nes-container is-rounded">Lo-Fi Player</h1>
     <div>
-      <button id="start-button">loading...</button>
+      <button id="start-button" class="nes-btn">loading...</button>
     </div>
 
     <div>
@@ -31,31 +32,34 @@
     </div>
 
     <div id="control-div">
-      <div id="time-div" class="block">
+      <div id="time-div" class="block nes-container is-rounded">
         <!-- <button id="check-time-button">check time</button> -->
-        <h3>time</h3>
+        <h3 class="title">time</h3>
         <p id="check-time-text">0:0:0</p>
+        <progress id="time-progress" class="nes-progress" value="0" max="100"></progress>
       </div>
 
-      <div id="bpm-div" class="block">
+      <div id="bpm-div" class="block nes-container is-rounded">
         <h3><span id="bpm-value">75</span> bpm</h3>
-        <input type="range" id="bpm-input" value="75" min="60" max="120" step="5" />
+        <input type="range" class="nes-progress" id="bpm-input" value="75" min="60" max="120" step="5" />
       </div>
 
-      <div class="block">
+      <div class="block nes-container is-rounded">
         <h3>Drum</h3>
+        <label>
+          <input type="checkbox" id="drum-toggle" class="nes-checkbox" checked />
+          <span>on/off</span>
+        </label>
         <div>
-          <input type="checkbox" id="drum-toggle" checked />
-          <label>on/off</label>
+          <select name="drums" id="drum-patterns-select">
+            <option value="0">classic</option>
+            <option value="1">lazy</option>
+            <option value="2">dense</option>
+          </select>
         </div>
-        <select name="drums" id="drum-patterns-select">
-          <option value="0">classic</option>
-          <option value="1">lazy</option>
-          <option value="2">dense</option>
-        </select>
       </div>
 
-      <div class="block">
+      <div class="block nes-container is-rounded">
         <h3>Chords</h3>
         <label>vibe</label>
         <select name="chords" id="chords-select">
@@ -76,11 +80,11 @@
         </select>
 
         <!-- <h4>effects</h4>
-        <input type="range" min="1" max="100" value="50" />
-        <input type="range" min="1" max="100" value="50" /> -->
+        <input type="range" class="nes-progress" min="1" max="100" value="50" />
+        <input type="range" class="nes-progress" min="1" max="100" value="50" /> -->
       </div>
 
-      <div class="block">
+      <div class="block nes-container is-rounded">
         <h3>Melody</h3>
         <div>
           <label>instrument</label>
@@ -120,7 +124,7 @@
 
           <br />
           <label>amount</label>
-          <input type="range" min="1" max="100" value="50" />
+          <input type="range" class="nes-progress" min="1" max="100" value="50" />
 
           <br />
           <button>add</button>
@@ -146,7 +150,7 @@
           <br />
 
           <label>1st</label>
-          <input id="interpolation-slider" type="range" min="0" max="4" step="1" value="0" />
+          <input id="interpolation-slider" type="range" class="nes-progress" min="0" max="4" step="1" value="0" />
           <label>2nd</label>
         </div>
 
@@ -155,11 +159,11 @@
         </div>
 
         <!-- <h4>effects</h4>
-        <input type="range" min="1" max="100" value="50" />
-        <input type="range" min="1" max="100" value="50" /> -->
+        <input type="range" class="nes-progress" min="1" max="100" value="50" />
+        <input type="range" class="nes-progress" min="1" max="100" value="50" /> -->
       </div>
 
-      <div class="block">
+      <div class="block nes-container is-rounded">
         <h3>Background Sounds</h3>
         <select id="background-samples-select">
           <option value="0">Raindrops</option>
@@ -171,10 +175,10 @@
         <!-- <h4>effects</h4> -->
         <hr />
         <label>volume</label>
-        <input id="background-volume-slider" type="range" min="0" max="100" value="100" />
+        <input id="background-volume-slider" type="range" class="nes-progress" min="0" max="100" value="100" />
         <br />
         <label>tone</label>
-        <input id="background-tone-slider" type="range" min="0" max="100" value="100" />
+        <input id="background-tone-slider" type="range" class="nes-progress" min="0" max="100" value="100" />
       </div>
     </div>
     <footer>

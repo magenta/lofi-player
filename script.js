@@ -24,6 +24,7 @@ const interpolationSlider = document.getElementById("interpolation-slider");
 const backgroundVolumeSlider = document.getElementById("background-volume-slider");
 const backgroundToneSlider = document.getElementById("background-tone-slider");
 const canvasDiv = document.getElementById("canvas-div");
+const timeProgress = document.getElementById("time-progress");
 
 const worker = new Worker("worker.js");
 const samplesBaseUrl = "./samples";
@@ -345,6 +346,7 @@ function seqCallback(time, b) {
   }
 
   checkTimeText.textContent = Tone.Transport.position;
+  timeProgress.value = Tone.Transport.progress * 100;
 }
 
 async function loadMidiFiles() {
