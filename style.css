@@ -64,9 +64,14 @@ button {
 }
 
 #canvas-div {
+  display: none;
   margin: 1rem 0 0.5rem 0;
   position: relative;
   width: var(--canvas-width);
   height: var(--canvas-height);
   border: solid var(--text-color) 5px;
+}
+
+canvas {
+  display: none;
 }
