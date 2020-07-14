@@ -357,8 +357,9 @@ async function loadMidiFiles() {
   chordsMidis = await Promise.all([
     Midi.fromUrl("./midi/IV_IV_I_I/IV_IV_I_I_C_1.mid"),
     Midi.fromUrl("./midi/IV_IV_I_I/IV_IV_I_I_C_3.mid"),
-    Midi.fromUrl("./midi/i_III_iv_v_Am.mid"),
-    Midi.fromUrl("./midi/VI_i_VI_v_Am.mid"),
+    Midi.fromUrl("./midi/IV_IV_I_I/IV_IV_I_I_C_2.mid"),
+    // Midi.fromUrl("./midi/i_III_iv_v_Am.mid"),
+    // Midi.fromUrl("./midi/VI_i_VI_v_Am.mid"),
   ]);
 
   changeChords(chordsIndex);
