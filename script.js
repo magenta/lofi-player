@@ -250,6 +250,15 @@ function initCanvas() {
   canvasDiv.appendChild(img);
 
   img = new Image();
+  img.src = "./assets/snow.gif";
+  img.style.position = "absolute";
+  img.style.width = "40%";
+  img.style.left = "15%";
+  img.style.bottom = "0%";
+  img.style.zIndex = "-2";
+  canvasDiv.appendChild(img);
+
+  img = new Image();
   img.src = "./assets/bass.png";
   img.classList.add("large-on-hover");
   img.style.position = "absolute";
