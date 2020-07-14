@@ -172,9 +172,9 @@ function initModel() {
     if (e.data.msg === "interpolate") {
       const { id, result } = e.data;
       // console.log("interpolation result", result);
-      interpolationMidis = result.map(modelFormatToMidi);
-      interpolationMidis[0] = parseMidiNotes(melodyMidis[melodyIndex]);
-      interpolationMidis[interpolationMidis.length - 1] = parseMidiNotes(melodyMidis[secondMelodyIndex]);
+      interpolationMidis = result.map(modelFormatToMidiNotes);
+      interpolationMidis[0] = midiToToneNotes(melodyMidis[melodyIndex]);
+      interpolationMidis[interpolationMidis.length - 1] = midiToToneNotes(melodyMidis[secondMelodyIndex]);
       // console.log("interpolationMidis", interpolationMidis);
     }
   };
@@ -498,7 +498,7 @@ function changeChords(index = 0) {
       time,
       note.velocity
     );
-  }, parseMidiNotes(chordsMidis[chordsIndex])).start(0);
+  }, midiToToneNotes(chordsMidis[chordsIndex])).start(0);
 }
 
 function changeMelodyByIndex(index = 0) {
@@ -508,7 +508,7 @@ function changeMelodyByIndex(index = 0) {
   melodyIndex = index;
   melodyPart = new Tone.Part((time, note) => {
     melodyData.instrument.triggerAttackRelease(toFreq(note.pitch - 12), note.duration, time, note.velocity);
-  }, parseMidiNotes(melodyMidis[melodyIndex])).start(0);
+  }, midiToToneNotes(melodyMidis[melodyIndex])).start(0);
 }
 
 function changeMelody(readyMidi) {
@@ -525,7 +525,7 @@ function changeChordsInstrument(index) {
 }
 
 // utils
-function parseMidiNotes(midi) {
+function midiToToneNotes(midi) {
   // console.log("parse this midi", midi);
   const ticksPerBeat = TICKS_PER_BAR / BEATS_PER_BAR;
   const ticksPerFourthNote = ticksPerBeat / 4;
@@ -543,23 +543,26 @@ function parseMidiNotes(midi) {
 }
 
 function midiToModelFormat(midi) {
+  const modelBarCounts = 4;
+  const totalQuantizedSteps = modelBarCounts * 16;
+
   console.log("parse this midi", midi);
   const totalTicks = TOTAL_BAR_COUNTS * TICKS_PER_BAR;
   const notes = midi.tracks[0].notes.map((note) => ({
     pitch: note.midi,
-    quantizedStartStep: Math.floor((note.ticks / totalTicks) * 64),
-    quantizedEndStep: Math.floor(((note.ticks + note.durationTicks) / totalTicks) * 64),
+    quantizedStartStep: Math.floor((note.ticks / totalTicks) * totalQuantizedSteps),
+    quantizedEndStep: Math.floor(((note.ticks + note.durationTicks) / totalTicks) * totalQuantizedSteps),
   }));
 
   return {
     notes,
     quantizationInfo: { stepsPerQuarter: 4 },
     tempos: [{ time: 0, qpm: 120 }],
-    totalQuantizedSteps: 64,
+    totalQuantizedSteps,
   };
 }
 
-function modelFormatToMidi(data) {
+function modelFormatToMidiNotes(data) {
   const { notes } = data;
   return notes.map((note) => {
     const { pitch, quantizedStartStep, quantizedEndStep } = note;
