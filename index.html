@@ -58,9 +58,19 @@
           </select>
         </div>
       </div>
-
+      <div class="block nes-container is-rounded">
+        <h3>Bass</h3>
+        <label>volume</label>
+        <input id="bass-volume-slider" type="range" class="nes-progress" min="0" max="100" value="100" />
+        <br />
+        <label>tone</label>
+        <input id="bass-tone-slider" type="range" class="nes-progress" min="0" max="100" value="100" />
+      </div>
       <div class="block nes-container is-rounded">
         <h3>Chords</h3>
+        <label>volume</label>
+        <input id="chords-volume-slider" type="range" class="nes-progress" min="0" max="100" value="100" />
+        <br />
         <label>vibe</label>
         <select name="chords" id="chords-select">
           <option value="0">mellow</option>
@@ -88,6 +98,10 @@
       <div class="block nes-container is-rounded">
         <h3>Melody</h3>
         <div>
+          <label>volume</label>
+          <input id="melody-volume-slider" type="range" class="nes-progress" min="0" max="100" value="100" />
+          <br />
+
           <label>instrument</label>
           <select id="melody-instrument-select">
             <option value="0">synths</option>

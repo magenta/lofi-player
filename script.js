@@ -28,6 +28,11 @@ const backgroundToneSlider = document.getElementById("background-tone-slider");
 const canvasDiv = document.getElementById("canvas-div");
 const timeProgress = document.getElementById("time-progress");
 
+const bassVolumeSlider = document.getElementById("bass-volume-slider");
+const bassToneSlider = document.getElementById("bass-tone-slider");
+const melodyVolumeSlider = document.getElementById("melody-volume-slider");
+const chordsVolumeSlider = document.getElementById("chords-volume-slider");
+
 const worker = new Worker("worker.js");
 const samplesBaseUrl = "./samples";
 const ac = Tone.context._context;
@@ -40,19 +45,42 @@ let drumNames = ["kk", "sn", "hh"];
 let drumMute = false;
 let drumPatternIndex = 0;
 
-const backgroundSampleData = {};
+const data = {
+  backgroundSample: {},
+  melody: {
+    gain: 1,
+    waitingInterpolation: true,
+  },
+  chords: {
+    gain: 1,
+  },
+  bass: {
+    notes: [
+      { time: "0:0:0", note: "F2", duration: { "1m": 0.7 }, velocity: 1.0 },
+      { time: "1:0:0", note: "F2", duration: { "1m": 0.7 }, velocity: 1.0 },
+      { time: "2:0:0", note: "C2", duration: { "1m": 0.7 }, velocity: 1.0 },
+      { time: "3:0:0", note: "C2", duration: { "1m": 0.7 }, velocity: 1.0 },
+    ],
+  },
+  canvas: {},
+  drum: {
+    scale: {
+      kk: 1,
+      sn: 1,
+      hh: 1,
+    },
+  },
+};
 let backgroundSamples = [];
 let backgroundSampleNames = ["rain", "waves", "street", "kids"];
 let backgroundSampleIndex = 0;
 
-const melodyData = { gain: 1, waitingInterpolation: true };
 let melodyMidis;
 let melodyMidi;
 let melodyPart;
 let melodyIndex = 0;
 let secondMelodyIndex = 1;
 let interpolationMidis = [];
-const chordsData = { gain: 1 };
 let chordsMidis;
 let chordsPart;
 let chordsIndex = 0;
@@ -62,18 +90,7 @@ let piano;
 let acousticGuitar;
 let electricGuitar;
 let synth;
-let bass;
 let chordsInstruments;
-
-// visual
-const canvasData = {};
-const drumVisualEffects = {
-  scale: {
-    kk: 1,
-    sn: 1,
-    hh: 1,
-  },
-};
 
 initModel();
 loadMidiFiles();
@@ -93,15 +110,15 @@ function initSounds() {
     checkFinishLoading();
   }).toMaster();
 
-  backgroundSampleData.gain = new Tone.Gain(1).toMaster();
-  // backgroundSampleData.hpf = new Tone.Filter(0, "highpass").connect(backgroundSampleData.gain);
-  backgroundSampleData.hpf = new Tone.Filter(20000, "lowpass").connect(backgroundSampleData.gain);
+  data.backgroundSample.gain = new Tone.Gain(1).toMaster();
+  // data.backgroundSample.hpf = new Tone.Filter(0, "highpass").connect(data.backgroundSample.gain);
+  data.backgroundSample.hpf = new Tone.Filter(20000, "lowpass").connect(data.backgroundSample.gain);
   const sampleUrls = {};
   backgroundSampleNames.forEach((n) => (sampleUrls[n] = `${samplesBaseUrl}/fx/${n}.mp3`));
   backgroundSamples = new Tone.Players(sampleUrls, () => {
     console.log("background sounds loaded");
     checkFinishLoading();
-  }).connect(backgroundSampleData.hpf);
+  }).connect(data.backgroundSample.hpf);
 
   backgroundSampleNames.forEach((name) => {
     backgroundSamples.get(name).loop = true;
@@ -146,17 +163,33 @@ function initSounds() {
   electricGuitar = SampleLibrary.load({
     instruments: "guitar-electric",
   });
-  bass = SampleLibrary.load({
-    instruments: "bass-electric",
-  });
+  const { bass } = data;
+
+  bass.gain = new Tone.Gain(1).connect(reverb);
+  bass.lpf = new Tone.Filter(200, "lowpass").connect(bass.gain);
+  bass.instrument = new Tone.Synth({
+    oscillator: {
+      type: "triangle",
+    },
+    envelope: {
+      attack: 0.005,
+      decay: 0.1,
+      sustain: 0.3,
+      release: 0.8,
+    },
+  }).connect(bass.lpf);
+  bass.part = new Tone.Part((time, note) => {
+    bass.instrument.triggerAttackRelease(note.note, note.duration, time, note.velocity);
+  }, bass.notes).start(0);
+  bass.part.loop = true;
+  bass.part.loopEnd = "4:0:0";
 
   piano.connect(chorus);
   acousticGuitar.connect(chorus);
   electricGuitar.connect(chorus);
-  bass.connect(reverb);
 
   chordsInstruments = [synth, piano, acousticGuitar, electricGuitar];
-  melodyData.instrument = piano;
+  data.melody.instrument = piano;
 
   Tone.Buffer.on("load", () => {
     checkFinishLoading();
@@ -178,7 +211,7 @@ function initModel() {
       interpolationMidis[0] = midiToToneNotes(melodyMidis[melodyIndex]);
       interpolationMidis[interpolationMidis.length - 1] = midiToToneNotes(melodyMidis[secondMelodyIndex]);
 
-      melodyData.waitingInterpolation = false;
+      data.melody.waitingInterpolation = false;
       melodyInteractionDivs[0].classList.remove("disabledbutton");
     }
   };
@@ -186,7 +219,7 @@ function initModel() {
 
 function initCanvas() {
   const canvas = document.getElementById("main-canvas");
-  canvasData.canvas = canvas;
+  data.canvas.canvas = canvas;
   canvas.width = document.getElementById("canvas-div").clientWidth;
   canvas.height = document.getElementById("canvas-div").clientHeight;
 
@@ -203,7 +236,7 @@ function initCanvas() {
 }
 
 function draw() {
-  let ctx = canvasData.canvas.getContext("2d");
+  let ctx = data.canvas.canvas.getContext("2d");
   const { width, height } = ctx.canvas;
   ctx.clearRect(0, 0, width, height);
   ctx.fillStyle = "rgba(200, 200, 200, 0.5)";
@@ -267,29 +300,29 @@ function drawMidi(ctx, x, y, w, h, m) {
 function drawDrums(ctx, x, y, w, h) {
   const radius = 10;
 
-  drumVisualEffects.scale.kk = drumVisualEffects.scale.kk * 0.9;
-  drumVisualEffects.scale.sn = drumVisualEffects.scale.sn * 0.9;
-  drumVisualEffects.scale.hh = drumVisualEffects.scale.hh * 0.9;
+  data.drum.scale.kk = data.drum.scale.kk * 0.9;
+  data.drum.scale.sn = data.drum.scale.sn * 0.9;
+  data.drum.scale.hh = data.drum.scale.hh * 0.9;
   ctx.save();
 
   ctx.translate(x + 0.5 * w, y);
 
   ctx.translate(0, 0.2 * h);
-  ctx.fillStyle = `rgba(255, 255, 255, ${drumVisualEffects.scale.hh})`;
+  ctx.fillStyle = `rgba(255, 255, 255, ${data.drum.scale.hh})`;
   ctx.beginPath();
   // ctx.arc(0, 0, radius, 0, 2 * Math.PI);
   ctx.fillRect(-5, 0, 10, 10);
   ctx.fill();
 
   ctx.translate(0, 0.2 * h);
-  ctx.fillStyle = `rgba(255, 255, 255, ${drumVisualEffects.scale.sn})`;
+  ctx.fillStyle = `rgba(255, 255, 255, ${data.drum.scale.sn})`;
   ctx.beginPath();
   // ctx.arc(0, 0, radius, 0, 2 * Math.PI);
   ctx.fillRect(-5, 0, 10, 10);
   ctx.fill();
 
   ctx.translate(0, 0.2 * h);
-  ctx.fillStyle = `rgba(255, 255, 255, ${drumVisualEffects.scale.kk})`;
+  ctx.fillStyle = `rgba(255, 255, 255, ${data.drum.scale.kk})`;
   ctx.beginPath();
   // ctx.arc(0, 0, radius, 0, 2 * Math.PI);
   ctx.fillRect(-5, 0, 10, 10);
@@ -302,15 +335,15 @@ function seqCallback(time, b) {
   if (!drumMute) {
     if (drumPatternIndex === 0) {
       if (b % 16 === 0) {
-        drumVisualEffects.scale.kk = 1;
+        data.drum.scale.kk = 1;
         drumSamples.get("kk").start(time);
       }
       if (b % 16 === 8) {
-        drumVisualEffects.scale.sn = 1;
+        data.drum.scale.sn = 1;
         drumSamples.get("sn").start(time);
       }
       if (b % 2 === 0) {
-        drumVisualEffects.scale.hh = 1;
+        data.drum.scale.hh = 1;
         drumSamples.get("hh").start(time);
       }
     } else if (drumPatternIndex === 1) {
@@ -443,7 +476,7 @@ function onFinishLoading() {
 
   melodyInstrumentSelect.addEventListener("change", () => {
     const index = melodyInstrumentSelect.value;
-    melodyData.instrument = chordsInstruments[index];
+    data.melody.instrument = chordsInstruments[index];
   });
 
   melodyInteractionSelect.addEventListener("change", () => {
@@ -457,13 +490,27 @@ function onFinishLoading() {
     changeMelody(interpolationMidis[index]);
   });
 
+  melodyVolumeSlider.addEventListener("input", (e) => {
+    data.melody.gain = e.target.value / 100;
+  });
+  chordsVolumeSlider.addEventListener("input", (e) => {
+    data.chords.gain = e.target.value / 100;
+  });
+
+  bassVolumeSlider.addEventListener("input", () => {
+    data.bass.gain.gain.value = bassVolumeSlider.value / 100;
+  });
+  bassToneSlider.addEventListener("input", () => {
+    const frq = bassToneSlider.value * 2;
+    data.bass.lpf.frequency.value = frq;
+  });
   backgroundVolumeSlider.addEventListener("input", () => {
-    backgroundSampleData.gain.gain.value = backgroundVolumeSlider.value / 100;
+    data.backgroundSample.gain.gain.value = backgroundVolumeSlider.value / 100;
   });
 
   backgroundToneSlider.addEventListener("input", () => {
     const frq = backgroundToneSlider.value * 200;
-    backgroundSampleData.hpf.frequency.value = frq;
+    data.backgroundSample.hpf.frequency.value = frq;
   });
 
   // model
@@ -498,7 +545,7 @@ function changeChords(index = 0) {
       toFreq(note.pitch - (chordsInstrumentIndex === 0 ? 0 : 12)),
       note.duration,
       time,
-      note.velocity
+      note.velocity * data.chords.gain
     );
   }, midiToToneNotes(chordsMidis[chordsIndex])).start(0);
 }
@@ -509,7 +556,12 @@ function changeMelodyByIndex(index = 0) {
   }
   melodyIndex = index;
   melodyPart = new Tone.Part((time, note) => {
-    melodyData.instrument.triggerAttackRelease(toFreq(note.pitch - 12), note.duration, time, note.velocity);
+    data.melody.instrument.triggerAttackRelease(
+      toFreq(note.pitch - 12),
+      note.duration,
+      time,
+      note.velocity * data.melody.gain
+    );
   }, midiToToneNotes(melodyMidis[melodyIndex])).start(0);
 
   melodyPart.loop = false;
@@ -520,14 +572,19 @@ function changeMelody(readyMidi) {
     melodyPart.cancel(0);
   }
   melodyPart = new Tone.Part((time, note) => {
-    melodyData.instrument.triggerAttackRelease(toFreq(note.pitch - 12), note.duration, time, note.velocity);
+    data.melody.instrument.triggerAttackRelease(
+      toFreq(note.pitch - 12),
+      note.duration,
+      time,
+      note.velocity * data.melody.gain
+    );
   }, readyMidi).start(0);
   melodyPart.loop = true;
   melodyPart.loopEnd = "4:0:0";
 }
 
 function sendInterpolationMessage() {
-  melodyData.waitingInterpolation = true;
+  data.melody.waitingInterpolation = true;
   melodyInteractionDivs[0].classList.add("disabledbutton");
 
   const firstMelody = melodyMidis[melodyIndex];
