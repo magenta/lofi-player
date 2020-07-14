@@ -28,6 +28,7 @@ const backgroundVolumeSlider = document.getElementById("background-volume-slider
 const backgroundToneSlider = document.getElementById("background-tone-slider");
 const canvasDiv = document.getElementById("canvas-div");
 const timeProgress = document.getElementById("time-progress");
+const backgroundImage = document.getElementById("background-image");
 
 const bassVolumeSlider = document.getElementById("bass-volume-slider");
 const bassToneSlider = document.getElementById("bass-tone-slider");
@@ -222,6 +223,9 @@ function initModel() {
 function initCanvas() {
   const canvas = document.getElementById("main-canvas");
   data.canvas.canvas = canvas;
+
+  canvasDiv.style.height = `${backgroundImage.clientWidth * (435 / 885)}px`;
+
   canvas.width = canvasDiv.clientWidth;
   canvas.height = canvasDiv.clientHeight;
 
@@ -282,15 +286,16 @@ function draw() {
   let ctx = data.canvas.canvas.getContext("2d");
   const { width, height } = ctx.canvas;
   ctx.clearRect(0, 0, width, height);
-  ctx.fillStyle = `rgba(200, 200, 200, ${Math.sin(0.01 * Date.now()) > 0 ? 1 : 0})`;
+  // ctx.fillStyle = `rgba(200, 200, 200, ${Math.sin(0.01 * Date.now()) > 0 ? 1 : 0})`;
   // ctx.fillRect(0, 0, width, height);
-  ctx.fillRect(20, 20, 20, 20);
+  // ctx.fillRect(width / 30, width / 30, width / 30, width / 30);
 
   // progress;
-  // if (Tone.Transport.state === "started") {
-  //   ctx.fillStyle = "rgba(255, 11, 174, 1)";
-  //   ctx.fillRect(width * Tone.Transport.progress, 0, 10, height);
-  // }
+  if (Tone.Transport.state === "started") {
+    // ctx.fillStyle = "rgba(255, 11, 174, 1)";
+    ctx.fillStyle = "rgba(200, 200, 200, 0.3)";
+    ctx.fillRect(width * Tone.Transport.progress, 0, 10, height);
+  }
 
   // if (melodyMidis) {
   //   drawRect(ctx, 357, 102, 111, 61, "rgba(255, 11, 174, 0.8)");
@@ -570,6 +575,14 @@ function onFinishLoading() {
   backgroundToneSlider.addEventListener("input", () => {
     const frq = backgroundToneSlider.value * 200;
     data.backgroundSample.hpf.frequency.value = frq;
+  });
+
+  window.addEventListener("resize", () => {
+    const canvas = data.canvas.canvas;
+    canvasDiv.style.height = `${backgroundImage.clientWidth * (435 / 885)}px`;
+
+    canvas.width = canvasDiv.clientWidth;
+    canvas.height = canvasDiv.clientHeight;
   });
 
   // model

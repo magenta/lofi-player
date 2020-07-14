@@ -75,8 +75,10 @@ button {
   position: absolute;
   top: 0;
   left: 0;
-  width: var(--canvas-width);
-  height: var(--canvas-height);
+  width: 100%;
+  height: auto;
+  /* width: var(--canvas-width); */
+  /* height: var(--canvas-height); */
   z-index: -1;
 }
 
@@ -89,8 +91,9 @@ button {
   display: none;
   margin: 1rem 0 0.5rem 0;
   position: relative;
-  width: var(--canvas-width);
-  height: var(--canvas-height);
+  width: 100%;
+  max-width: 800px;
+  /* height: 435px; */
   border: solid var(--text-color) 5px;
 }
 
