@@ -52,6 +52,9 @@ const data = {
   backgroundSample: {},
   melody: {
     gain: 1,
+    changeGain: (v) => {
+      data.melody.gain = v;
+    },
     waitingInterpolation: true,
   },
   chords: {
@@ -95,11 +98,17 @@ let electricGuitar;
 let synth;
 let chordsInstruments;
 
+// visual callbacks
+let switchAvatar;
+const drinkingUrl = `${window.location}/assets/avatar-2.png`;
+const notDrinkingUrl = `${window.location}/assets/avatar.png`;
+let ampSlider;
+
+addImages();
 initModel();
 loadMidiFiles();
 initSounds();
 initCanvas();
-addImages();
 
 function initSounds() {
   Tone.Transport.bpm.value = bpm;
@@ -250,19 +259,26 @@ function addImages() {
     botto: "0",
   });
 
-  const avatar = addImageToCanvasDiv("./assets/avatar-2.png", {
+  const avatar = addImageToCanvasDiv(notDrinkingUrl, {
     class: "large-on-hover",
     height: "55%",
     left: "20%",
     zIndex: "4",
   });
 
-  avatar.addEventListener("click", () => {
-    if (avatar.src === `${window.location}/assets/avatar-2.png`) {
-      avatar.src = `${window.location}/assets/avatar.png`;
+  switchAvatar = (drinking) => {
+    if (drinking === undefined) {
+      if (avatar.src === drinkingUrl) {
+        avatar.src = notDrinkingUrl;
+      } else {
+        avatar.src = drinkingUrl;
+      }
     } else {
-      avatar.src = `${window.location}/assets/avatar-2.png`;
+      avatar.src = drinking ? drinkingUrl : notDrinkingUrl;
     }
+  };
+  avatar.addEventListener("click", () => {
+    toggleDrumMute();
   });
 
   addImageToCanvasDiv("./assets/cactus.png", {
@@ -407,6 +423,12 @@ function addImages() {
   input.style.width = "15%";
   input.style.zIndex = "3";
   input.setAttribute("type", "range");
+
+  input.addEventListener("input", () => {
+    data.melody.changeGain(input.value / 100);
+  });
+  ampSlider = input;
+
   canvasDiv.appendChild(input);
 
   ampImg.addEventListener("click", () => {
@@ -731,7 +753,7 @@ function onFinishLoading() {
   });
 
   melodyVolumeSlider.addEventListener("input", (e) => {
-    data.melody.gain = e.target.value / 100;
+    data.melody.changeGain(melodyVolumeSlider.value / 100);
   });
   chordsVolumeSlider.addEventListener("input", (e) => {
     data.chords.gain = e.target.value / 100;
@@ -771,6 +793,13 @@ function onFinishLoading() {
 
   // model
   sendInterpolationMessage();
+
+  // callbacks
+  data.melody.changeGain = function (v) {
+    data.melody.gain = v;
+    melodyVolumeSlider.value = v * 100;
+    ampSlider.value = v * 100;
+  };
 }
 
 function onTransportStart() {
@@ -788,7 +817,9 @@ function toggleDrumMute(value) {
     drumMute = value;
   }
 
+  // sync ui
   drumToggle.checked = !drumMute;
+  switchAvatar(drumMute);
 }
 
 function changeChords(index = 0) {
