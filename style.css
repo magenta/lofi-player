@@ -90,7 +90,7 @@ button {
 }
 
 #canvas-div {
-  display: none;
+  /* display: none; */
   margin: 1rem 0 0.5rem 0;
   position: relative;
   width: 100%;

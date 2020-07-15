@@ -99,6 +99,7 @@ initModel();
 loadMidiFiles();
 initSounds();
 initCanvas();
+addImages();
 
 function initSounds() {
   Tone.Transport.bpm.value = bpm;
@@ -238,57 +239,221 @@ function initCanvas() {
     console.log(`x: ${mouseX} y: ${mouseY}`);
   });
 
-  // add images
-  let img = new Image();
-  img.src = "./assets/bed.png";
-  img.classList.add("large-on-hover");
-  img.style.position = "absolute";
-  img.style.width = "30%";
-  img.style.left = "65%";
-  img.style.bottom = "5%";
-  img.style.zIndex = "2";
-  canvasDiv.appendChild(img);
-
-  img = new Image();
-  img.src = "./assets/snow.gif";
-  img.style.position = "absolute";
-  img.style.width = "40%";
-  img.style.left = "15%";
-  img.style.bottom = "0%";
-  img.style.zIndex = "-2";
-  canvasDiv.appendChild(img);
-
-  img = new Image();
-  img.src = "./assets/bass.png";
-  img.classList.add("large-on-hover");
-  img.style.position = "absolute";
-  img.style.height = "60%";
-  img.style.left = "5%";
-  img.style.bottom = "20%";
-  img.style.zIndex = "1";
-  canvasDiv.appendChild(img);
-
-  img = new Image();
-  img.src = "./assets/electric-guitar.png";
-  img.classList.add("large-on-hover");
-  img.style.position = "absolute";
-  img.style.height = "50%";
-  img.style.right = "20%";
-  img.style.bottom = "30%";
-  img.style.zIndex = "1";
-  canvasDiv.appendChild(img);
-
-  img = new Image();
-  img.src = "./assets/acoustic-guitar.png";
-  img.classList.add("large-on-hover");
-  img.style.position = "absolute";
-  img.style.height = "50%";
-  img.style.right = "5%";
-  img.style.bottom = "30%";
-  img.style.zIndex = "1";
-  canvasDiv.appendChild(img);
-
   draw();
+}
+
+function addImages() {
+  addImageToCanvasDiv("./assets/snow.gif", {
+    width: "45%",
+    left: "15%",
+    zIndex: "-2",
+    botto: "0",
+  });
+
+  const avatar = addImageToCanvasDiv("./assets/avatar-2.png", {
+    class: "large-on-hover",
+    height: "55%",
+    left: "20%",
+    zIndex: "4",
+  });
+
+  avatar.addEventListener("click", () => {
+    if (avatar.src === `${window.location}/assets/avatar-2.png`) {
+      avatar.src = `${window.location}/assets/avatar.png`;
+    } else {
+      avatar.src = `${window.location}/assets/avatar-2.png`;
+    }
+  });
+
+  addImageToCanvasDiv("./assets/cactus.png", {
+    class: "large-on-hover",
+    width: "3%",
+    bottom: "39%",
+    left: "40%",
+  });
+  addImageToCanvasDiv("./assets/chair-red.png", {
+    class: "large-on-hover",
+    width: "10%",
+    left: "10%",
+  });
+
+  addImageToCanvasDiv("./assets/desk.png", {
+    class: "large-on-hover",
+    // width: "22%",
+    height: "25%",
+    left: "0%",
+  });
+
+  const synthImg = addImageToCanvasDiv("./assets/synth.png", {
+    class: "large-on-hover",
+    left: "2%",
+    width: "13%",
+    bottom: "30%",
+    zIndex: "3",
+  });
+  addImageToCanvasDiv("./assets/piano.png", {
+    class: "large-on-hover",
+    left: "-2%",
+    width: "13%",
+    bottom: "2%",
+    zIndex: "3",
+  });
+
+  // synthImg.style.transform = "rotate(100deg)";
+
+  addImageToCanvasDiv("./assets/lamp-on.png", {
+    class: "large-on-hover",
+    width: "5%",
+    left: "5%",
+    bottom: "30%",
+    zIndex: "4",
+  });
+
+  addImageToCanvasDiv("./assets/shelf.png", {
+    class: "large-on-hover",
+    width: "12%",
+    left: "3%",
+    bottom: "60%",
+  });
+
+  addImageToCanvasDiv("./assets/shelf.png", {
+    class: "large-on-hover",
+    width: "12%",
+    right: "10%",
+    bottom: "60%",
+  });
+
+  addImageToCanvasDiv("./assets/tv-table.png", {
+    width: "20%",
+    left: "35%",
+    zIndex: "3",
+  });
+
+  addImageToCanvasDiv("./assets/sofa-red.png", {
+    width: "35%",
+    right: "5%",
+    zIndex: "2",
+  });
+
+  addImageToCanvasDiv("./assets/cabinet-1.png", {
+    height: "35%",
+    right: "30%",
+    bottom: "10%",
+    zIndex: "1",
+  });
+
+  addImageToCanvasDiv("./assets/tv-on.png", {
+    class: "large-on-hover",
+    width: "10%",
+    right: "30%",
+    bottom: "45%",
+    zIndex: "1",
+  });
+
+  addImageToCanvasDiv("./assets/cabinet-2.png", {
+    height: "35%",
+    right: "15%",
+    bottom: "10%",
+    zIndex: "1",
+  });
+
+  addImageToCanvasDiv("./assets/clock.png", {
+    class: "large-on-hover",
+    width: "5%",
+    right: "17%",
+    bottom: "45%",
+    zIndex: "1",
+  });
+
+  addImageToCanvasDiv("./assets/bass.png", {
+    class: "large-on-hover",
+    height: "40%",
+    right: "10%",
+    bottom: "2%",
+    zIndex: "3",
+  });
+
+  addImageToCanvasDiv("./assets/acoustic-guitar.png", {
+    class: "large-on-hover",
+    height: "30%",
+    right: "18%",
+    bottom: "2%",
+    zIndex: "3",
+  });
+
+  addImageToCanvasDiv("./assets/electric-guitar.png", {
+    class: "large-on-hover",
+    height: "35%",
+    right: "25%",
+    bottom: "2%",
+    zIndex: "3",
+  });
+
+  const ampImg = addImageToCanvasDiv("./assets/amp.png", {
+    class: "large-on-hover",
+    height: "12%",
+    right: "33%",
+    bottom: "3%",
+    zIndex: "3",
+  });
+
+  const input = document.createElement("INPUT");
+  input.classList.add("nes-progress");
+  input.style.display = "none";
+  input.style.position = "absolute";
+  input.style.right = `${33 - 6}%`;
+  input.style.bottom = `${3 + 12 + 2}%`;
+  input.style.height = "4%";
+  input.style.width = "15%";
+  input.style.zIndex = "3";
+  input.setAttribute("type", "range");
+  canvasDiv.appendChild(input);
+
+  ampImg.addEventListener("click", () => {
+    if (input.style.display === "none") {
+      input.style.display = "block";
+    } else {
+      input.style.display = "none";
+    }
+  });
+
+  addImageToCanvasDiv("./assets/magenta-logo.png", {
+    class: "large-on-hover",
+    width: "12%",
+    left: "3%",
+    top: "15%",
+  });
+}
+
+function addImageToCanvasDiv(src, params) {
+  const img = new Image();
+  img.src = src;
+  if (params.class) {
+    img.classList.add(params.class);
+  }
+  img.style.position = "absolute";
+
+  if (!params.height) {
+    img.style.width = params.width ? params.width : "25%";
+  } else {
+    img.style.height = params.height;
+  }
+
+  if (!params.right) {
+    img.style.left = params.left ? params.left : "5%";
+  } else {
+    img.style.right = params.right;
+  }
+
+  if (!params.top) {
+    img.style.bottom = params.bottom ? params.bottom : "5%";
+  } else {
+    img.style.top = params.top;
+  }
+
+  img.style.zIndex = params.zIndex ? params.zIndex : "0";
+  canvasDiv.appendChild(img);
+  return img;
 }
 
 function draw() {
@@ -302,8 +467,9 @@ function draw() {
   // progress;
   if (Tone.Transport.state === "started") {
     // ctx.fillStyle = "rgba(255, 11, 174, 1)";
-    ctx.fillStyle = "rgba(200, 200, 200, 0.3)";
-    ctx.fillRect(width * Tone.Transport.progress, 0, 10, height);
+    ctx.fillStyle = "rgba(200, 200, 200, 1)";
+    ctx.fillRect(0, 0, width * Tone.Transport.progress, height * 0.05);
+    // ctx.fillRect(width * Tone.Transport.progress, 0, 10, height);
   }
 
   // if (melodyMidis) {
@@ -495,7 +661,7 @@ function onFinishLoading() {
     }
   });
 
-  switchScreenButton.addEventListener("click", () => {
+  function switchCallback() {
     if (data.showPanel) {
       switchScreenButton.textContent = "music";
       canvasDiv.style.display = "block";
@@ -508,7 +674,8 @@ function onFinishLoading() {
       controlDiv.style.display = "flex";
       data.showPanel = true;
     }
-  });
+  }
+  switchScreenButton.addEventListener("click", switchCallback);
 
   bpmInput.value = bpm;
   bpmInput.addEventListener("input", (e) => {
@@ -592,6 +759,14 @@ function onFinishLoading() {
 
     canvas.width = canvasDiv.clientWidth;
     canvas.height = canvasDiv.clientHeight;
+  });
+
+  window.addEventListener("keydown", (e) => {
+    // TAB
+    if (e.keyCode === 9) {
+      e.preventDefault();
+      switchCallback();
+    }
   });
 
   // model
