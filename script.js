@@ -48,7 +48,7 @@ let drumMute = false;
 let drumPatternIndex = 0;
 
 const data = {
-  showPanel: true,
+  showPanel: false,
   backgroundSounds: {},
   melody: {
     gain: 1,
@@ -820,7 +820,7 @@ function checkFinishLoading() {
 }
 
 function onFinishLoading() {
-  controlDiv.style.display = "flex";
+  // controlDiv.style.display = "flex";
   startButton.textContent = "start";
   startButton.addEventListener("click", () => {
     if (ac.state !== "started") {
