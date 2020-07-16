@@ -30,7 +30,10 @@ label {
 
 body {
   font-family: helvetica, arial, sans-serif;
-  margin: 2em;
+  width: 90%;
+  max-width: 900px;
+
+  margin: 2rem auto 2rem auto;
   background-color: var(--background-color);
   /* background-color: var(--text-color); */
 }
@@ -43,7 +46,7 @@ body {
   background-color: var(--text-background-color);
   border: solid var(--text-color) var(--border-width);
   padding: 0.5rem;
-  margin-bottom: 1rem;
+  margin: 0 0 1rem 0;
 }
 
 button {
@@ -172,7 +175,7 @@ input[type="range"]::-ms-thumb {
     font-size: 1.2rem;
     border: solid var(--text-color) var(--border-width);
     padding: 0.2rem;
-    margin-bottom: 0.1rem;
+    margin-bottom: 0.2rem;
   }
 
   body {
@@ -193,7 +196,6 @@ input[type="range"]::-ms-thumb {
     font-size: 0.7rem;
   }
   #canvas-div {
-    display: none;
     margin: 0.2rem 0 0.1rem 0;
   }
 
