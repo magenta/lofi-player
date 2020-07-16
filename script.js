@@ -17,7 +17,7 @@ const drumPatternsSelect = document.getElementById("drum-patterns-select");
 const drumToggle = document.getElementById("drum-toggle");
 const chordsSelect = document.getElementById("chords-select");
 const chordsInstrumentSelect = document.getElementById("chords-instrument-select");
-const backgroundSamplesSelect = document.getElementById("background-samples-select");
+const backgroundSoundsSelect = document.getElementById("background-samples-select");
 const firstMelodySelect = document.getElementById("first-melody-select");
 const secondMelodySelect = document.getElementById("second-melody-select");
 const melodyInteractionSelect = document.getElementById("melody-interaction-select");
@@ -49,12 +49,13 @@ let drumPatternIndex = 0;
 
 const data = {
   showPanel: true,
-  backgroundSample: {},
+  backgroundSounds: {},
   melody: {
     gain: 1,
     changeGain: (v) => {
       data.melody.gain = v;
     },
+    instrumentIndex: 1,
     waitingInterpolation: true,
   },
   chords: {
@@ -77,9 +78,9 @@ const data = {
     },
   },
 };
-let backgroundSamples = [];
-let backgroundSampleNames = ["rain", "waves", "street", "kids"];
-let backgroundSampleIndex = 0;
+let backgroundSounds = [];
+let backgroundSoundsNames = ["rain", "waves", "street", "kids"];
+let backgroundSoundsIndex = 0;
 
 let melodyMidis;
 let melodyMidi;
@@ -98,10 +99,14 @@ let electricGuitar;
 let synth;
 let chordsInstruments;
 
-// visual callbacks
+const assets = {
+  catIndex: 0,
+};
 let switchAvatar;
 const drinkingUrl = `${window.location}/assets/avatar-2.png`;
 const notDrinkingUrl = `${window.location}/assets/avatar.png`;
+// const catsUrls = ["./assets/cat-60.gif", "./assets/cat-75-purple.gif", "./assets/cat-100.gif"];
+const catsUrls = ["./assets/cat-75-purple.gif", "./assets/cat-90.gif", "./assets/dog-100.gif"];
 let ampSlider;
 
 addImages();
@@ -123,18 +128,18 @@ function initSounds() {
     checkFinishLoading();
   }).toMaster();
 
-  data.backgroundSample.gain = new Tone.Gain(1).toMaster();
-  // data.backgroundSample.hpf = new Tone.Filter(0, "highpass").connect(data.backgroundSample.gain);
-  data.backgroundSample.hpf = new Tone.Filter(20000, "lowpass").connect(data.backgroundSample.gain);
+  data.backgroundSounds.gain = new Tone.Gain(1).toMaster();
+  // data.backgroundSounds.hpf = new Tone.Filter(0, "highpass").connect(data.backgroundSounds.gain);
+  data.backgroundSounds.hpf = new Tone.Filter(20000, "lowpass").connect(data.backgroundSounds.gain);
   const sampleUrls = {};
-  backgroundSampleNames.forEach((n) => (sampleUrls[n] = `${samplesBaseUrl}/fx/${n}.mp3`));
-  backgroundSamples = new Tone.Players(sampleUrls, () => {
+  backgroundSoundsNames.forEach((n) => (sampleUrls[n] = `${samplesBaseUrl}/fx/${n}.mp3`));
+  backgroundSounds = new Tone.Players(sampleUrls, () => {
     console.log("background sounds loaded");
     checkFinishLoading();
-  }).connect(data.backgroundSample.hpf);
+  }).connect(data.backgroundSounds.hpf);
 
-  backgroundSampleNames.forEach((name) => {
-    backgroundSamples.get(name).loop = true;
+  backgroundSoundsNames.forEach((name) => {
+    backgroundSounds.get(name).loop = true;
   });
   seq = new Tone.Sequence(
     seqCallback,
@@ -252,20 +257,199 @@ function initCanvas() {
 }
 
 function addImages() {
-  addImageToCanvasDiv("./assets/snow.gif", {
+  const rainGif = addImageToCanvasDiv("./assets/snow.gif", {
     width: "45%",
     left: "15%",
     zIndex: "-2",
-    botto: "0",
+    bottom: "0",
   });
 
-  const avatar = addImageToCanvasDiv(notDrinkingUrl, {
+  const wavesGif = addImageToCanvasDiv("./assets/waves.gif", {
+    width: "38%",
+    left: "21%",
+    zIndex: "-2",
+    top: "23%",
+  });
+
+  const streetGif = addImageToCanvasDiv("./assets/city-2.gif", {
+    width: "50%",
+    left: "5%",
+    zIndex: "-2",
+    top: "-20%",
+  });
+
+  const kidsGif = addImageToCanvasDiv("./assets/city.gif", {
+    width: "33%",
+    left: "20%",
+    zIndex: "-2",
+    top: "14%",
+  });
+
+  streetGif.style.display = "none";
+  wavesGif.style.display = "none";
+  kidsGif.style.display = "none";
+
+  assets.windowGifs = [rainGif, wavesGif, kidsGif, streetGif];
+
+  assets.cat = addImageToCanvasDiv(catsUrls[assets.catIndex], {
+    class: "large-on-hover",
+    width: "6%",
+    bottom: "33%",
+    left: "43%",
+  });
+
+  assets.avatar = addImageToCanvasDiv(notDrinkingUrl, {
     class: "large-on-hover",
     height: "55%",
     left: "20%",
     zIndex: "4",
   });
 
+  assets.cactus = addImageToCanvasDiv("./assets/cactus.png", {
+    class: "large-on-hover",
+    width: "3%",
+    bottom: "39%",
+    left: "38%",
+  });
+
+  assets.chair = addImageToCanvasDiv("./assets/chair-red.png", {
+    width: "10%",
+    left: "10%",
+  });
+
+  assets.desk = addImageToCanvasDiv("./assets/desk.png", {
+    // width: "22%",
+    height: "25%",
+    left: "0%",
+  });
+
+  // addImageToCanvasDiv("./assets/synth.png", {
+  //   left: "2%",
+  //   width: "13%",
+  //   bottom: "30%",
+  //   zIndex: "3",
+  // });
+
+  assets.lamp = addImageToCanvasDiv("./assets/lamp-on.png", {
+    class: "large-on-hover",
+    width: "5%",
+    left: "5%",
+    bottom: "30%",
+    zIndex: "4",
+  });
+  assets.lampOn = true;
+
+  assets.shelfWithBooks = addImageToCanvasDiv("./assets/shelf.png", {
+    class: "large-on-hover",
+    width: "12%",
+    left: "3%",
+    bottom: "60%",
+  });
+
+  assets.synth = addImageToCanvasDiv("./assets/synth.png", {
+    class: "large-on-hover",
+    right: "25%",
+    width: "12%",
+    bottom: "64.9%",
+    zIndex: "3",
+  });
+  assets.synthShelf = addImageToCanvasDiv("./assets/shelf-blank-1.png", {
+    // class: "large-on-hover",
+    width: "12%",
+    right: "25%",
+    bottom: "60%",
+  });
+  assets.piano = addImageToCanvasDiv("./assets/piano.png", {
+    class: "large-on-hover",
+    right: "10%",
+    width: "12%",
+    bottom: "64.9%",
+    zIndex: "3",
+  });
+  assets.pianoShelf = addImageToCanvasDiv("./assets/shelf-blank-1.png", {
+    // class: "large-on-hover",
+    width: "12%",
+    right: "10%",
+    bottom: "60%",
+  });
+
+  assets.tvTable = addImageToCanvasDiv("./assets/tv-table.png", {
+    class: "large-on-hover",
+    width: "18%",
+    left: "35%",
+    zIndex: "3",
+  });
+
+  assets.sofa = addImageToCanvasDiv("./assets/sofa-1.png", {
+    width: "35%",
+    right: "3%",
+    zIndex: "2",
+  });
+
+  assets.cabinetLeft = addImageToCanvasDiv("./assets/cabinet-1.png", {
+    height: "35%",
+    right: "30%",
+    bottom: "9%",
+    zIndex: "1",
+  });
+
+  assets.tv = addImageToCanvasDiv("./assets/tv-on.png", {
+    class: "large-on-hover",
+    width: "10%",
+    right: "30%",
+    bottom: "44%",
+    zIndex: "1",
+  });
+
+  assets.cabinetRight = addImageToCanvasDiv("./assets/cabinet-2.png", {
+    height: "35%",
+    right: "15%",
+    bottom: "9%",
+    zIndex: "1",
+  });
+
+  assets.clock = addImageToCanvasDiv("./assets/clock.png", {
+    class: "large-on-hover",
+    width: "5%",
+    right: "17%",
+    bottom: "44%",
+    zIndex: "1",
+  });
+
+  assets.bass = addImageToCanvasDiv("./assets/bass.png", {
+    class: "large-on-hover",
+    height: "40%",
+    right: "10%",
+    bottom: "2%",
+    zIndex: "3",
+  });
+
+  assets.acousticGuitar = addImageToCanvasDiv("./assets/acoustic-guitar.png", {
+    class: "large-on-hover",
+    height: "30%",
+    right: "17%",
+    bottom: "2%",
+    zIndex: "3",
+  });
+
+  assets.electricGuitar = addImageToCanvasDiv("./assets/electric-guitar.png", {
+    class: "large-on-hover",
+    height: "35%",
+    right: "25%",
+    bottom: "2%",
+    zIndex: "3",
+  });
+
+  assets.lamp.addEventListener("click", () => {
+    assets.lampOn = !assets.lampOn;
+    if (assets.lampOn) {
+      assets.lamp.src = `${window.location}/assets/lamp-off.png`;
+    } else {
+      assets.lamp.src = `${window.location}/assets/lamp-on.png`;
+    }
+  });
+
+  const avatar = assets.avatar;
   switchAvatar = (drinking) => {
     if (drinking === undefined) {
       if (avatar.src === drinkingUrl) {
@@ -281,128 +465,57 @@ function addImages() {
     toggleDrumMute();
   });
 
-  addImageToCanvasDiv("./assets/cactus.png", {
-    class: "large-on-hover",
-    width: "3%",
-    bottom: "39%",
-    left: "40%",
-  });
-  addImageToCanvasDiv("./assets/chair-red.png", {
-    class: "large-on-hover",
-    width: "10%",
-    left: "10%",
-  });
+  assets.cat.addEventListener("click", () => {
+    assets.cat.style.display = "none";
+    assets.catIndex = (assets.catIndex + 1) % catsUrls.length;
+    assets.cat.src = catsUrls[assets.catIndex];
+    if (assets.catIndex === 0) {
+      changeBpm(75);
+      changeDrumPattern(2);
+    } else if (assets.catIndex === 1) {
+      changeBpm(90);
+      changeDrumPattern(0);
+    } else {
+      changeBpm(100);
+      changeDrumPattern(1);
+    }
 
-  addImageToCanvasDiv("./assets/desk.png", {
-    class: "large-on-hover",
-    // width: "22%",
-    height: "25%",
-    left: "0%",
-  });
+    if (assets.catIndex === 2) {
+      assets.cat.style.left = "41.5%";
+      assets.cat.style.width = "9%";
+      assets.cat.style.bottom = "39%";
+    } else {
+      assets.cat.style.left = "43%";
+      assets.cat.style.width = "6%";
+      assets.cat.style.bottom = "33%";
+    }
 
-  const synthImg = addImageToCanvasDiv("./assets/synth.png", {
-    class: "large-on-hover",
-    left: "2%",
-    width: "13%",
-    bottom: "30%",
-    zIndex: "3",
-  });
-  addImageToCanvasDiv("./assets/piano.png", {
-    class: "large-on-hover",
-    left: "-2%",
-    width: "13%",
-    bottom: "2%",
-    zIndex: "3",
-  });
+    // MACRO
+    if (assets.catIndex === 0) {
+      changeChords(0);
+      changeMelodyInstrument(1);
+      changeMelodyByIndex(0);
+      changeChordsInstrument(0);
+      data.backgroundSounds.gain.gain.value = 1.0;
+    } else if (assets.catIndex === 1) {
+      changeChords(1);
+      changeChordsInstrument(2);
+      changeMelodyByIndex(1);
+      changeMelodyInstrument(3);
+      data.backgroundSounds.switch(1);
+      data.backgroundSounds.gain.gain.value = 0.5;
+    } else {
+      changeChords(2);
+      changeChordsInstrument(2);
+      changeMelodyByIndex(2);
+      changeMelodyInstrument(0); // electric guitar
+      data.backgroundSounds.switch(3);
+      data.backgroundSounds.gain.gain.value = 1.0;
+    }
 
-  // synthImg.style.transform = "rotate(100deg)";
-
-  addImageToCanvasDiv("./assets/lamp-on.png", {
-    class: "large-on-hover",
-    width: "5%",
-    left: "5%",
-    bottom: "30%",
-    zIndex: "4",
-  });
-
-  addImageToCanvasDiv("./assets/shelf.png", {
-    class: "large-on-hover",
-    width: "12%",
-    left: "3%",
-    bottom: "60%",
-  });
-
-  addImageToCanvasDiv("./assets/shelf.png", {
-    class: "large-on-hover",
-    width: "12%",
-    right: "10%",
-    bottom: "60%",
-  });
-
-  addImageToCanvasDiv("./assets/tv-table.png", {
-    width: "20%",
-    left: "35%",
-    zIndex: "3",
-  });
-
-  addImageToCanvasDiv("./assets/sofa-red.png", {
-    width: "35%",
-    right: "5%",
-    zIndex: "2",
-  });
-
-  addImageToCanvasDiv("./assets/cabinet-1.png", {
-    height: "35%",
-    right: "30%",
-    bottom: "10%",
-    zIndex: "1",
-  });
-
-  addImageToCanvasDiv("./assets/tv-on.png", {
-    class: "large-on-hover",
-    width: "10%",
-    right: "30%",
-    bottom: "45%",
-    zIndex: "1",
-  });
-
-  addImageToCanvasDiv("./assets/cabinet-2.png", {
-    height: "35%",
-    right: "15%",
-    bottom: "10%",
-    zIndex: "1",
-  });
-
-  addImageToCanvasDiv("./assets/clock.png", {
-    class: "large-on-hover",
-    width: "5%",
-    right: "17%",
-    bottom: "45%",
-    zIndex: "1",
-  });
-
-  addImageToCanvasDiv("./assets/bass.png", {
-    class: "large-on-hover",
-    height: "40%",
-    right: "10%",
-    bottom: "2%",
-    zIndex: "3",
-  });
-
-  addImageToCanvasDiv("./assets/acoustic-guitar.png", {
-    class: "large-on-hover",
-    height: "30%",
-    right: "18%",
-    bottom: "2%",
-    zIndex: "3",
-  });
-
-  addImageToCanvasDiv("./assets/electric-guitar.png", {
-    class: "large-on-hover",
-    height: "35%",
-    right: "25%",
-    bottom: "2%",
-    zIndex: "3",
+    assets.cat.onload = () => {
+      assets.cat.style.display = "block";
+    };
   });
 
   const ampImg = addImageToCanvasDiv("./assets/amp.png", {
@@ -411,6 +524,11 @@ function addImages() {
     right: "33%",
     bottom: "3%",
     zIndex: "3",
+  });
+
+  assets.cactus.addEventListener("click", () => {
+    const n = backgroundSoundsNames.length;
+    data.backgroundSounds.switch((backgroundSoundsIndex + 1) % n);
   });
 
   const input = document.createElement("INPUT");
@@ -428,8 +546,14 @@ function addImages() {
     data.melody.changeGain(input.value / 100);
   });
   ampSlider = input;
-
   canvasDiv.appendChild(input);
+
+  assets.logo = addImageToCanvasDiv("./assets/magenta-logo.png", {
+    class: "large-on-hover",
+    width: "12%",
+    left: "3%",
+    top: "15%",
+  });
 
   ampImg.addEventListener("click", () => {
     if (input.style.display === "none") {
@@ -439,12 +563,42 @@ function addImages() {
     }
   });
 
-  addImageToCanvasDiv("./assets/magenta-logo.png", {
-    class: "large-on-hover",
-    width: "12%",
-    left: "3%",
-    top: "15%",
+  assets.logo.addEventListener("click", () => {
+    changeChords(chordsIndex + 1);
   });
+
+  assets.bass.addEventListener("click", () => {
+    data.bass.gain.gain.value = data.bass.gain.gain.value > 0.5 ? 0 : 1;
+  });
+  assets.synth.addEventListener("click", () => {
+    changeChordsInstrument(0);
+  });
+  assets.piano.addEventListener("click", () => {
+    changeChordsInstrument(1);
+  });
+  assets.acousticGuitar.addEventListener("click", () => {
+    changeChordsInstrument(2);
+  });
+
+  assets.electricGuitar.addEventListener("click", () => {
+    changeChordsInstrument(3);
+  });
+
+  data.backgroundSounds.switch = function (index) {
+    backgroundSounds.get(backgroundSoundsNames[backgroundSoundsIndex]).stop();
+    backgroundSoundsIndex = index;
+    backgroundSoundsSelect.value = index;
+    backgroundSounds.get(backgroundSoundsNames[backgroundSoundsIndex]).start();
+
+    // change background
+    for (let i = 0; i < assets.windowGifs.length; i++) {
+      if (i === index || i.toString() === index) {
+        assets.windowGifs[i].style.display = "block";
+      } else {
+        assets.windowGifs[i].style.display = "none";
+      }
+    }
+  };
 }
 
 function addImageToCanvasDiv(src, params) {
@@ -699,18 +853,17 @@ function onFinishLoading() {
   }
   switchScreenButton.addEventListener("click", switchCallback);
 
-  bpmInput.value = bpm;
+  changeBpm(bpm);
   bpmInput.addEventListener("input", (e) => {
-    bpmValueSpan.textContent = `${e.target.value}`;
-    bpm = e.target.value;
-    Tone.Transport.bpm.value = e.target.value;
+    changeBpm(bpmInput.value);
   });
 
   drumToggle.addEventListener("change", (e) => {
     toggleDrumMute(!e.target.checked);
   });
   drumPatternsSelect.addEventListener("change", () => {
-    drumPatternIndex = parseInt(drumPatternsSelect.value, 10);
+    changeDrumPattern(parseInt(drumPatternsSelect.value, 10));
+    // drumPatternIndex = parseInt(drumPatternsSelect.value, 10);
   });
 
   chordsSelect.addEventListener("change", () => {
@@ -730,15 +883,12 @@ function onFinishLoading() {
     sendInterpolationMessage();
   });
 
-  backgroundSamplesSelect.addEventListener("change", () => {
-    backgroundSamples.get(backgroundSampleNames[backgroundSampleIndex]).stop();
-    backgroundSampleIndex = backgroundSamplesSelect.value;
-    backgroundSamples.get(backgroundSampleNames[backgroundSampleIndex]).start();
+  backgroundSoundsSelect.addEventListener("change", () => {
+    data.backgroundSounds.switch(backgroundSoundsSelect.value);
   });
 
   melodyInstrumentSelect.addEventListener("change", () => {
-    const index = melodyInstrumentSelect.value;
-    data.melody.instrument = chordsInstruments[index];
+    changeMelodyInstrument(melodyInstrumentSelect.value);
   });
 
   melodyInteractionSelect.addEventListener("change", () => {
@@ -767,12 +917,12 @@ function onFinishLoading() {
     data.bass.lpf.frequency.value = frq;
   });
   backgroundVolumeSlider.addEventListener("input", () => {
-    data.backgroundSample.gain.gain.value = backgroundVolumeSlider.value / 100;
+    data.backgroundSounds.gain.gain.value = backgroundVolumeSlider.value / 100;
   });
 
   backgroundToneSlider.addEventListener("input", () => {
     const frq = backgroundToneSlider.value * 200;
-    data.backgroundSample.hpf.frequency.value = frq;
+    data.backgroundSounds.hpf.frequency.value = frq;
   });
 
   window.addEventListener("resize", () => {
@@ -803,11 +953,11 @@ function onFinishLoading() {
 }
 
 function onTransportStart() {
-  backgroundSamples.get(backgroundSampleNames[backgroundSampleIndex]).start();
+  backgroundSounds.get(backgroundSoundsNames[backgroundSoundsIndex]).start();
 }
 
 function onTransportStop() {
-  backgroundSamples.get(backgroundSampleNames[backgroundSampleIndex]).stop();
+  backgroundSounds.get(backgroundSoundsNames[backgroundSoundsIndex]).stop();
 }
 
 function toggleDrumMute(value) {
@@ -823,6 +973,7 @@ function toggleDrumMute(value) {
 }
 
 function changeChords(index = 0) {
+  index = index % chordsMidis.length;
   if (chordsPart) {
     chordsPart.cancel(0);
   }
@@ -835,6 +986,8 @@ function changeChords(index = 0) {
       note.velocity * data.chords.gain
     );
   }, midiToToneNotes(chordsMidis[chordsIndex])).start(0);
+
+  backgroundImage.src = `${window.location}/assets/room-${chordsIndex}.png`;
 }
 
 function changeMelodyByIndex(index = 0) {
@@ -888,6 +1041,24 @@ function sendInterpolationMessage() {
 
 function changeChordsInstrument(index) {
   chordsInstrumentIndex = index;
+}
+
+function changeMelodyInstrument(index) {
+  melodyInstrumentSelect.value = index;
+  data.melody.instrumentIndex = index;
+  data.melody.instrument = chordsInstruments[index];
+}
+
+function changeBpm(v) {
+  bpmInput.value = v;
+  bpmValueSpan.textContent = `${v}`;
+  bpm = v;
+  Tone.Transport.bpm.value = v;
+}
+
+function changeDrumPattern(index) {
+  drumPatternIndex = index;
+  drumPatternsSelect.value = index;
 }
 
 // utils

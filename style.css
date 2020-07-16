@@ -154,3 +154,6 @@ input[type="range"]::-ms-thumb {
   background: #000000;
   cursor: pointer;
 }
+
+@media only screen and (max-width: 680px) {
+}

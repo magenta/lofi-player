@@ -27,7 +27,7 @@
 
     <div>
       <div id="canvas-div">
-        <img src="./assets/room-4.png" alt="room" id="background-image" />
+        <img src="./assets/room-0.png" alt="room" id="background-image" />
         <canvas id="main-canvas"></canvas>
       </div>
     </div>
@@ -42,7 +42,7 @@
 
       <div id="bpm-div" class="block nes-container is-rounded">
         <h3><span id="bpm-value">75</span> bpm</h3>
-        <input type="range" class="nes-progress" id="bpm-input" value="75" min="60" max="120" step="5" />
+        <input type="range" class="nes-progress" id="bpm-input" value="75" min="60" max="100" step="5" />
       </div>
 
       <div class="block nes-container is-rounded">
@@ -52,7 +52,7 @@
           <span>on/off</span>
         </label>
         <div>
-          <select name="drums" id="drum-patterns-select">
+          <select id="drum-patterns-select">
             <option value="0">classic</option>
             <option value="1">lazy</option>
             <option value="2">dense</option>
