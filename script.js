@@ -442,7 +442,7 @@ function addImages() {
 
   assets.lamp.addEventListener("click", () => {
     assets.lampOn = !assets.lampOn;
-    if (assets.lampOn) {
+    if (!assets.lampOn) {
       assets.lamp.src = `${window.location}/assets/lamp-off.png`;
     } else {
       assets.lamp.src = `${window.location}/assets/lamp-on.png`;
