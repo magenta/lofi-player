@@ -14,6 +14,13 @@
   font-family: "Press Start 2P", cursive;
 }
 
+h3 {
+  font-size: 1.2rem;
+}
+button {
+  font-size: 1rem;
+}
+
 span,
 p,
 option,
@@ -156,4 +163,53 @@ input[type="range"]::-ms-thumb {
 }
 
 @media only screen and (max-width: 680px) {
+  :root {
+    --input-thumb-size: 8px;
+    --border-width: 5px;
+  }
+  #title {
+    width: 260px;
+    font-size: 1.2rem;
+    border: solid var(--text-color) var(--border-width);
+    padding: 0.2rem;
+    margin-bottom: 0.1rem;
+  }
+
+  body {
+    margin: 0.5rem;
+  }
+
+  span,
+  p,
+  option,
+  select,
+  label {
+    font-size: 0.5rem;
+  }
+  h3 {
+    font-size: 0.7rem;
+  }
+  button {
+    font-size: 0.7rem;
+  }
+  #canvas-div {
+    /* display: none; */
+    margin: 0.2rem 0 0.1rem 0;
+  }
+
+  #control-div .block {
+    margin: 5px 8px 5px 0;
+    padding: 2px;
+    min-width: 150px;
+    min-height: 90px;
+  }
+
+  #time-progress {
+    width: 80%;
+  }
+  .nes-progress {
+    width: auto;
+    height: 8px;
+    color: var(--text-color);
+  }
 }
