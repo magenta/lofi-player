@@ -15,6 +15,7 @@ const bpmInput = document.getElementById("bpm-input");
 const bpmValueSpan = document.getElementById("bpm-value");
 const drumPatternsSelect = document.getElementById("drum-patterns-select");
 const drumToggle = document.getElementById("drum-toggle");
+const drumAutoToggle = document.getElementById("drum-auto-toggle");
 const chordsSelect = document.getElementById("chords-select");
 const chordsInstrumentSelect = document.getElementById("chords-instrument-select");
 const backgroundSoundsSelect = document.getElementById("background-samples-select");
@@ -71,6 +72,7 @@ const data = {
   },
   canvas: {},
   drum: {
+    auto: true,
     scale: {
       kk: 1,
       sn: 1,
@@ -777,14 +779,16 @@ function seqCallback(time, b) {
   }
 
   // Markov chain
-  if (b % 32 === 31) {
-    if (drumMute) {
-      if (Math.random() > 0.05) {
-        toggleDrumMute(false);
-      }
-    } else {
-      if (Math.random() > 0.7) {
-        toggleDrumMute(true);
+  if (data.drum.auto) {
+    if (b % 32 === 31) {
+      if (drumMute) {
+        if (Math.random() > 0.05) {
+          toggleDrumMute(false);
+        }
+      } else {
+        if (Math.random() > 0.7) {
+          toggleDrumMute(true);
+        }
       }
     }
   }
@@ -868,6 +872,10 @@ function onFinishLoading() {
   drumToggle.addEventListener("change", (e) => {
     toggleDrumMute(!e.target.checked);
   });
+  drumAutoToggle.addEventListener('change', (e) => {
+    data.drum.auto = e.target.checked
+  })
+
   drumPatternsSelect.addEventListener("change", () => {
     changeDrumPattern(parseInt(drumPatternsSelect.value, 10));
     // drumPatternIndex = parseInt(drumPatternsSelect.value, 10);
