@@ -105,7 +105,6 @@ const assets = {
 let switchAvatar;
 const drinkingUrl = `${window.location}/assets/avatar-2.png`;
 const notDrinkingUrl = `${window.location}/assets/avatar.png`;
-// const catsUrls = ["./assets/cat-60.gif", "./assets/cat-75-purple.gif", "./assets/cat-100.gif"];
 const catsUrls = ["./assets/cat-75-purple.gif", "./assets/cat-90.gif", "./assets/dog-100.gif"];
 let ampSlider;
 
@@ -259,16 +258,24 @@ function initCanvas() {
 function addImages() {
   const rainGif = addImageToCanvasDiv("./assets/snow.gif", {
     width: "45%",
-    left: "15%",
+    left: "20%",
     zIndex: "-2",
     bottom: "0",
   });
 
+  assets.window = addImageToCanvasDiv("./assets/window.png", {
+    class: "large-on-hover-micro",
+    width: "38%",
+    left: "17%",
+    zIndex: "0",
+    top: "20.3%",
+  });
+
   const wavesGif = addImageToCanvasDiv("./assets/waves.gif", {
     width: "38%",
-    left: "21%",
+    left: "20%",
     zIndex: "-2",
-    top: "23%",
+    top: "21%",
   });
 
   const streetGif = addImageToCanvasDiv("./assets/city-2.gif", {
@@ -526,7 +533,7 @@ function addImages() {
     zIndex: "3",
   });
 
-  assets.cactus.addEventListener("click", () => {
+  assets.window.addEventListener("click", () => {
     const n = backgroundSoundsNames.length;
     data.backgroundSounds.switch((backgroundSoundsIndex + 1) % n);
   });
@@ -987,7 +994,7 @@ function changeChords(index = 0) {
     );
   }, midiToToneNotes(chordsMidis[chordsIndex])).start(0);
 
-  backgroundImage.src = `${window.location}/assets/room-${chordsIndex}.png`;
+  backgroundImage.src = `${window.location}/assets/rooom-${chordsIndex}.png`;
 }
 
 function changeMelodyByIndex(index = 0) {

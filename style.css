@@ -124,6 +124,15 @@ button {
   transform: scale(1.05);
 }
 
+.large-on-hover-micro {
+  /* opacity: 0.3; */
+  transform: scale(1);
+}
+.large-on-hover-micro:hover {
+  /* opacity: 1; */
+  transform: scale(1.02);
+}
+
 /* NES */
 #time-progress {
   width: 100%;
