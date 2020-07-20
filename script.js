@@ -17,19 +17,34 @@ const drumPatternsSelect = document.getElementById("drum-patterns-select");
 const drumToggle = document.getElementById("drum-toggle");
 const drumAutoToggle = document.getElementById("drum-auto-toggle");
 const chordsSelect = document.getElementById("chords-select");
-const chordsInstrumentSelect = document.getElementById("chords-instrument-select");
-const backgroundSoundsSelect = document.getElementById("background-samples-select");
+const chordsInstrumentSelect = document.getElementById(
+  "chords-instrument-select"
+);
+const backgroundSoundsSelect = document.getElementById(
+  "background-samples-select"
+);
 const firstMelodySelect = document.getElementById("first-melody-select");
 const secondMelodySelect = document.getElementById("second-melody-select");
-const melodyInteractionSelect = document.getElementById("melody-interaction-select");
-const melodyInteractionDivs = [document.getElementById("interpolation-div"), document.getElementById("mixing-div")];
-const melodyInstrumentSelect = document.getElementById("melody-instrument-select");
+const melodyInteractionSelect = document.getElementById(
+  "melody-interaction-select"
+);
+const melodyInteractionDivs = [
+  document.getElementById("interpolation-div"),
+  document.getElementById("mixing-div"),
+];
+const melodyInstrumentSelect = document.getElementById(
+  "melody-instrument-select"
+);
 const interpolationSlider = document.getElementById("interpolation-slider");
-const backgroundVolumeSlider = document.getElementById("background-volume-slider");
+const backgroundVolumeSlider = document.getElementById(
+  "background-volume-slider"
+);
 const backgroundToneSlider = document.getElementById("background-tone-slider");
 const canvasDiv = document.getElementById("canvas-div");
 const timeProgress = document.getElementById("time-progress");
 const backgroundImage = document.getElementById("background-image");
+const linkInput = document.getElementById("youtube-link-input");
+const submitLinkButton = document.getElementById("submit-youtube-link-button");
 
 const bassVolumeSlider = document.getElementById("bass-volume-slider");
 const bassToneSlider = document.getElementById("bass-tone-slider");
@@ -107,7 +122,11 @@ const assets = {
 let switchAvatar;
 const drinkingUrl = `${window.location}/assets/avatar-2.png`;
 const notDrinkingUrl = `${window.location}/assets/avatar.png`;
-const catsUrls = ["./assets/cat-75-purple.gif", "./assets/cat-90.gif", "./assets/dog-100.gif"];
+const catsUrls = [
+  "./assets/cat-75-purple.gif",
+  "./assets/cat-90.gif",
+  "./assets/dog-100.gif",
+];
 let ampSlider;
 
 addImages();
@@ -131,9 +150,13 @@ function initSounds() {
 
   data.backgroundSounds.gain = new Tone.Gain(1).toMaster();
   // data.backgroundSounds.hpf = new Tone.Filter(0, "highpass").connect(data.backgroundSounds.gain);
-  data.backgroundSounds.hpf = new Tone.Filter(20000, "lowpass").connect(data.backgroundSounds.gain);
+  data.backgroundSounds.hpf = new Tone.Filter(20000, "lowpass").connect(
+    data.backgroundSounds.gain
+  );
   const sampleUrls = {};
-  backgroundSoundsNames.forEach((n) => (sampleUrls[n] = `${samplesBaseUrl}/fx/${n}.mp3`));
+  backgroundSoundsNames.forEach(
+    (n) => (sampleUrls[n] = `${samplesBaseUrl}/fx/${n}.mp3`)
+  );
   backgroundSounds = new Tone.Players(sampleUrls, () => {
     console.log("background sounds loaded");
     checkFinishLoading();
@@ -198,7 +221,12 @@ function initSounds() {
     },
   }).connect(bass.lpf);
   bass.part = new Tone.Part((time, note) => {
-    bass.instrument.triggerAttackRelease(note.note, note.duration, time, note.velocity);
+    bass.instrument.triggerAttackRelease(
+      note.note,
+      note.duration,
+      time,
+      note.velocity
+    );
   }, bass.notes).start(0);
   bass.part.loop = true;
   bass.part.loopEnd = "4:0:0";
@@ -228,7 +256,9 @@ function initModel() {
       // console.log("interpolation result", result);
       interpolationMidis = result.map(modelFormatToToneNotes);
       interpolationMidis[0] = midiToToneNotes(melodyMidis[melodyIndex]);
-      interpolationMidis[interpolationMidis.length - 1] = midiToToneNotes(melodyMidis[secondMelodyIndex]);
+      interpolationMidis[interpolationMidis.length - 1] = midiToToneNotes(
+        melodyMidis[secondMelodyIndex]
+      );
 
       data.melody.waitingInterpolation = false;
       melodyInteractionDivs[0].classList.remove("disabledbutton");
@@ -265,7 +295,7 @@ function addImages() {
     bottom: "0",
   });
 
-  assets.window = addImageToCanvasDiv("./assets/window.png", {
+  assets.window = addImageToCanvasDiv("./assets/window-1.png", {
     class: "large-on-hover-micro",
     width: "38%",
     left: "17%",
@@ -294,6 +324,7 @@ function addImages() {
     top: "14%",
   });
 
+  // rainGif.style.display = 'none';
   streetGif.style.display = "none";
   wavesGif.style.display = "none";
   kidsGif.style.display = "none";
@@ -409,6 +440,31 @@ function addImages() {
     bottom: "44%",
     zIndex: "1",
   });
+
+  const ifrm = document.createElement("iframe");
+  // ifrm.setAttribute("src", "https://www.youtube.com/embed/EhBSXFidyUU?autoplay=1&showinfo=0&controls=0&mute=1&vq=tiny");
+  ifrm.src =
+    "https://www.youtube.com/embed/EhBSXFidyUU?autoplay=1&showinfo=0&controls=0&mute=1&vq=tiny";
+  ifrm.setAttribute("frameborder", "0");
+  ifrm.style.position = "absolute";
+  ifrm.style.bottom = "50.4%";
+  ifrm.style.right = "31.3%";
+  ifrm.style.width = "8.1%";
+  ifrm.style.height = "10.2%";
+  ifrm.style.zIndex = "2";
+  canvasDiv.appendChild(ifrm);
+  assets.youtube = ifrm;
+
+  // var ifrm = document.createElement("iframe");
+  // ifrm.setAttribute("src", "https://www.youtube.com/embed/EhBSXFidyUU?autoplay=1&showinfo=0&controls=0&mute=1");
+  // ifrm.setAttribute('frameborder', "0")
+  // ifrm.style.position = 'absolute'
+  // ifrm.style.bottom = '0%'
+  // ifrm.style.right = '0%'
+  // ifrm.style.width = "90%";
+  // ifrm.style.height = "90%";
+  // ifrm.style.zIndex= '2'
+  // assets.tv.appendChild(ifrm);
 
   assets.cabinetRight = addImageToCanvasDiv("./assets/cabinet-2.png", {
     height: "35%",
@@ -536,8 +592,12 @@ function addImages() {
   });
 
   assets.window.addEventListener("click", () => {
-    const n = backgroundSoundsNames.length;
-    data.backgroundSounds.switch((backgroundSoundsIndex + 1) % n);
+    if (checkStarted()) {
+      const n = backgroundSoundsNames.length;
+      data.backgroundSounds.switch((backgroundSoundsIndex + 1) % n);
+    } else {
+      triggerStart();
+    }
   });
 
   const input = document.createElement("INPUT");
@@ -830,22 +890,28 @@ function checkFinishLoading() {
   }
 }
 
+function triggerStart() {
+  if (ac.state !== "started") {
+    ac.resume();
+  }
+
+  if (Tone.Transport.state === "started") {
+    Tone.Transport.stop();
+    onTransportStop();
+    startButton.textContent = "start";
+    assets.window.src = "./assets/window-1.png";
+  } else {
+    Tone.Transport.start();
+    onTransportStart();
+    startButton.textContent = "stop";
+    assets.window.src = "./assets/window-0.png";
+  }
+}
 function onFinishLoading() {
   // controlDiv.style.display = "flex";
   startButton.textContent = "start";
   startButton.addEventListener("click", () => {
-    if (ac.state !== "started") {
-      ac.resume();
-    }
-    if (Tone.Transport.state === "started") {
-      Tone.Transport.stop();
-      onTransportStop();
-      startButton.textContent = "start";
-    } else {
-      Tone.Transport.start();
-      onTransportStart();
-      startButton.textContent = "stop";
-    }
+    triggerStart();
   });
 
   function switchCallback() {
@@ -872,9 +938,9 @@ function onFinishLoading() {
   drumToggle.addEventListener("change", (e) => {
     toggleDrumMute(!e.target.checked);
   });
-  drumAutoToggle.addEventListener('change', (e) => {
-    data.drum.auto = e.target.checked
-  })
+  drumAutoToggle.addEventListener("change", (e) => {
+    data.drum.auto = e.target.checked;
+  });
 
   drumPatternsSelect.addEventListener("change", () => {
     changeDrumPattern(parseInt(drumPatternsSelect.value, 10));
@@ -938,6 +1004,20 @@ function onFinishLoading() {
   backgroundToneSlider.addEventListener("input", () => {
     const frq = backgroundToneSlider.value * 200;
     data.backgroundSounds.hpf.frequency.value = frq;
+  });
+
+  linkInput.value = "https://www.youtube.com/watch?v=EhBSXFidyUU";
+  linkInput.addEventListener("click", () => {
+    linkInput.select();
+  });
+  submitLinkButton.addEventListener("click", (e) => {
+    const id = parseYoutubeId(linkInput.value);
+    if (id) {
+      console.log(`youtube id:${id}`);
+      assets.youtube.src = `https://www.youtube.com/embed/${id}?autoplay=1&showinfo=0&controls=0&mute=1&vq=tiny`;
+    } else {
+      console.log("wrong format");
+    }
   });
 
   window.addEventListener("resize", () => {
@@ -1077,6 +1157,10 @@ function changeDrumPattern(index) {
 }
 
 // utils
+function checkStarted() {
+  return Tone.Transport.state === "started";
+}
+
 function midiToToneNotes(midi) {
   // console.log("parse this midi", midi);
   const ticksPerBeat = TICKS_PER_BAR / BEATS_PER_BAR;
@@ -1084,9 +1168,9 @@ function midiToToneNotes(midi) {
 
   return midi.tracks[0].notes.map((note) => {
     return {
-      time: `${Math.floor(note.ticks / TICKS_PER_BAR)}:${Math.floor(note.ticks / ticksPerBeat) % BEATS_PER_BAR}:${
-        (note.ticks / ticksPerFourthNote) % 4
-      }`,
+      time: `${Math.floor(note.ticks / TICKS_PER_BAR)}:${
+        Math.floor(note.ticks / ticksPerBeat) % BEATS_PER_BAR
+      }:${(note.ticks / ticksPerFourthNote) % 4}`,
       pitch: note.midi,
       duration: note.duration,
       velocity: note.velocity,
@@ -1102,8 +1186,12 @@ function midiToModelFormat(midi) {
   const totalTicks = TOTAL_BAR_COUNTS * TICKS_PER_BAR;
   const notes = midi.tracks[0].notes.map((note) => ({
     pitch: note.midi,
-    quantizedStartStep: Math.floor((note.ticks / totalTicks) * totalQuantizedSteps),
-    quantizedEndStep: Math.floor(((note.ticks + note.durationTicks) / totalTicks) * totalQuantizedSteps),
+    quantizedStartStep: Math.floor(
+      (note.ticks / totalTicks) * totalQuantizedSteps
+    ),
+    quantizedEndStep: Math.floor(
+      ((note.ticks + note.durationTicks) / totalTicks) * totalQuantizedSteps
+    ),
   }));
 
   return {
@@ -1120,9 +1208,9 @@ function modelFormatToToneNotes(data) {
     const { pitch, quantizedStartStep, quantizedEndStep } = note;
 
     return {
-      time: `${Math.floor(quantizedStartStep / 8)}:${Math.floor((quantizedStartStep % 8) / 2)}:${
-        (quantizedStartStep % 2) * 2
-      }`,
+      time: `${Math.floor(quantizedStartStep / 8)}:${Math.floor(
+        (quantizedStartStep % 8) / 2
+      )}:${(quantizedStartStep % 2) * 2}`,
       pitch,
       duration: (quantizedEndStep - quantizedStartStep) * (bpm / 60) * (1 / 4),
       velocity: 0.7,
@@ -1132,4 +1220,11 @@ function modelFormatToToneNotes(data) {
 
 function toFreq(m) {
   return Tone.Frequency(m, "midi");
+}
+
+// https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
+function parseYoutubeId(url) {
+  var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+  var match = url.match(regExp);
+  return match && match[7].length == 11 ? match[7] : false;
 }

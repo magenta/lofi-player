@@ -21,11 +21,24 @@ button {
   font-size: 1rem;
 }
 
+p {
+  margin: 0;
+}
+
 span,
 p,
 option,
 label {
   font-size: 0.8rem;
+}
+
+input {
+  font-size: 0.8rem;
+  height: var(--input-thumb-size);
+}
+
+iframe {
+  pointer-events: none;
 }
 
 body {
@@ -55,8 +68,15 @@ button {
   border: solid var(--text-color) var(--border-width);
 }
 
+.small-button {
+  width: 60px;
+  height: 25px;
+  font-size: 0.7rem;
+  padding: 0;
+}
+
 #control-div {
-  display: none;
+  /* display: none; */
   align-items: stretch;
   align-content: stretch;
   flex-wrap: wrap;

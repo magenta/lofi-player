@@ -35,14 +35,32 @@
     <div id="control-div">
       <div id="time-div" class="block nes-container is-rounded">
         <!-- <button id="check-time-button">check time</button> -->
-        <h3 class="title">time</h3>
+        <h3 class="title">Master</h3>
+
+        <span>bpm</span>
+        <span id="bpm-value">75</span>
+        <br/>
+        <input type="range" class="nes-progress" id="bpm-input" value="75" min="60" max="100" step="5" />
+
+        <br/>
+        <span>time</span>
         <p id="check-time-text">0:0:0</p>
         <progress id="time-progress" class="nes-progress" value="0" max="100"></progress>
-      </div>
 
-      <div id="bpm-div" class="block nes-container is-rounded">
-        <h3><span id="bpm-value">75</span> bpm</h3>
-        <input type="range" class="nes-progress" id="bpm-input" value="75" min="60" max="100" step="5" />
+
+        <hr />
+        <label>reverb</label>
+        <input id="master-reverb-slider" type="range" class="nes-progress" min="0" max="100" value="100" />
+
+        <hr />
+
+        <div class="nes-field">
+          <label for="name_field">tv embed</label>
+          <input type="text" id="youtube-link-input" class="nes-input">
+          <button class="nes-btn small-button" id="submit-youtube-link-button">send</button>
+          
+        </div>
+
       </div>
 
       <div class="block nes-container is-rounded">
