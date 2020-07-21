@@ -8,8 +8,14 @@
     <title>Lo-Fi Player</title>
 
     <!-- import the webpage's stylesheet -->
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
-    <link href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="./style.css" />
 
     <!-- import the webpage's javascript file -->
@@ -29,6 +35,49 @@
       <div id="canvas-div">
         <img src="./assets/rooom-0.png" alt="room" id="background-image" />
         <canvas id="main-canvas"></canvas>
+        <div id="canvas-overlay"></div>
+        <div id="melody-panel-div">
+          <div id="melody-panel">
+            <h3 class="nes-text">melody panel</h3>
+            <div id="interpolation-div">
+              <label>1st</label>
+              <select id="first-melody-select">
+                <option value="0">chill</option>
+                <option value="1">dense</option>
+                <option value="2">sad</option>
+                <option value="3">moody</option>
+              </select>
+
+              <label>2nd</label>
+              <select id="second-melody-select">
+                <option value="0">chill</option>
+                <option value="1" selected>dense</option>
+                <option value="2">sad</option>
+                <option value="3">moody</option>
+              </select>
+
+              <br />
+
+              <label>1st</label>
+              <input
+                id="interpolation-slider"
+                type="range"
+                class="nes-progress"
+                min="0"
+                max="4"
+                step="1"
+                value="0"
+              />
+              <label>2nd</label>
+            </div>
+            <div>
+              <canvas id="melody-canvas"></canvas>
+            </div>
+            <button id="melody-panel-close">
+              X
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -39,38 +88,67 @@
 
         <span>bpm</span>
         <span id="bpm-value">75</span>
-        <br/>
-        <input type="range" class="nes-progress" id="bpm-input" value="75" min="60" max="100" step="5" />
+        <br />
+        <input
+          type="range"
+          class="nes-progress"
+          id="bpm-input"
+          value="75"
+          min="60"
+          max="100"
+          step="5"
+        />
 
-        <br/>
+        <br />
         <span>time</span>
         <p id="check-time-text">0:0:0</p>
-        <progress id="time-progress" class="nes-progress" value="0" max="100"></progress>
-
+        <progress
+          id="time-progress"
+          class="nes-progress"
+          value="0"
+          max="100"
+        ></progress>
 
         <hr />
         <label>reverb</label>
-        <input id="master-reverb-slider" type="range" class="nes-progress" min="0" max="100" value="100" />
+        <input
+          id="master-reverb-slider"
+          type="range"
+          class="nes-progress"
+          min="0"
+          max="100"
+          value="100"
+        />
 
         <hr />
 
         <div class="nes-field">
           <label for="name_field">tv embed</label>
-          <input type="text" id="youtube-link-input" class="nes-input">
-          <button class="nes-btn small-button" id="submit-youtube-link-button">send</button>
-          
+          <input type="text" id="youtube-link-input" class="nes-input" />
+          <button class="nes-btn small-button" id="submit-youtube-link-button">
+            send
+          </button>
         </div>
-
       </div>
 
       <div class="block nes-container is-rounded">
         <h3>Drum</h3>
         <label>
-          <input type="checkbox" id="drum-toggle" class="nes-checkbox" checked />
+          <input
+            type="checkbox"
+            id="drum-toggle"
+            class="nes-checkbox"
+            checked
+          />
           <span>on/off</span>
         </label>
         <label>
-          <input type="checkbox" id="drum-auto-toggle" class="nes-checkbox" checked />
+          <input
+            type="checkbox"
+            id="drum-auto-toggle"
+            class="nes-checkbox"
+            checked
+          />
           <span>auto</span>
         </label>
         <div>
@@ -84,15 +162,36 @@
       <div class="block nes-container is-rounded">
         <h3>Bass</h3>
         <label>volume</label>
-        <input id="bass-volume-slider" type="range" class="nes-progress" min="0" max="100" value="100" />
+        <input
+          id="bass-volume-slider"
+          type="range"
+          class="nes-progress"
+          min="0"
+          max="100"
+          value="100"
+        />
         <br />
         <label>tone</label>
-        <input id="bass-tone-slider" type="range" class="nes-progress" min="0" max="100" value="100" />
+        <input
+          id="bass-tone-slider"
+          type="range"
+          class="nes-progress"
+          min="0"
+          max="100"
+          value="100"
+        />
       </div>
       <div class="block nes-container is-rounded">
         <h3>Chords</h3>
         <label>volume</label>
-        <input id="chords-volume-slider" type="range" class="nes-progress" min="0" max="100" value="100" />
+        <input
+          id="chords-volume-slider"
+          type="range"
+          class="nes-progress"
+          min="0"
+          max="100"
+          value="100"
+        />
         <br />
         <label>vibe</label>
         <select name="chords" id="chords-select">
@@ -122,7 +221,14 @@
         <h3>Melody</h3>
         <div>
           <label>volume</label>
-          <input id="melody-volume-slider" type="range" class="nes-progress" min="0" max="100" value="100" />
+          <input
+            id="melody-volume-slider"
+            type="range"
+            class="nes-progress"
+            min="0"
+            max="100"
+            value="100"
+          />
           <br />
 
           <label>instrument</label>
@@ -135,13 +241,13 @@
 
           <br />
 
-          <label>interaction mode</label>
+          <!-- <label>interaction mode</label>
           <select id="melody-interaction-select">
             <option value="0">interpolation</option>
             <option value="1">cooking</option>
-          </select>
+          </select> -->
         </div>
-        <hr />
+        <!-- <hr /> -->
         <div id="mixing-div">
           <label>main melody</label>
           <select id="main-melody-select">
@@ -162,13 +268,19 @@
 
           <br />
           <label>amount</label>
-          <input type="range" class="nes-progress" min="1" max="100" value="50" />
+          <input
+            type="range"
+            class="nes-progress"
+            min="1"
+            max="100"
+            value="50"
+          />
 
           <br />
           <button>add</button>
           <button>reset</button>
         </div>
-        <div id="interpolation-div">
+        <!-- <div id="interpolation-div">
           <label>1st</label>
           <select id="first-melody-select">
             <option value="0">chill</option>
@@ -188,9 +300,17 @@
           <br />
 
           <label>1st</label>
-          <input id="interpolation-slider" type="range" class="nes-progress" min="0" max="4" step="1" value="0" />
+          <input
+            id="interpolation-slider"
+            type="range"
+            class="nes-progress"
+            min="0"
+            max="4"
+            step="1"
+            value="0"
+          />
           <label>2nd</label>
-        </div>
+        </div> -->
 
         <div>
           <p></p>
@@ -213,10 +333,24 @@
         <!-- <h4>effects</h4> -->
         <hr />
         <label>volume</label>
-        <input id="background-volume-slider" type="range" class="nes-progress" min="0" max="100" value="100" />
+        <input
+          id="background-volume-slider"
+          type="range"
+          class="nes-progress"
+          min="0"
+          max="100"
+          value="100"
+        />
         <br />
         <label>tone</label>
-        <input id="background-tone-slider" type="range" class="nes-progress" min="0" max="100" value="100" />
+        <input
+          id="background-tone-slider"
+          type="range"
+          class="nes-progress"
+          min="0"
+          max="100"
+          value="100"
+        />
       </div>
     </div>
     <footer>

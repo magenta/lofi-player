@@ -76,7 +76,7 @@ button {
 }
 
 #control-div {
-  /* display: none; */
+  display: none;
   align-items: stretch;
   align-content: stretch;
   flex-wrap: wrap;
@@ -129,6 +129,63 @@ button {
   border: solid var(--text-color) var(--border-width);
   overflow: hidden;
 }
+
+#canvas-overlay {
+  pointer-events: none;
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.5);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+}
+
+/* melody panel */
+
+#melody-panel-div {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.5);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 5;
+
+  /* display: flex; */
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+#melody-panel {
+  position: relative;
+  background-color: var(--text-background-color);
+  border: solid var(--text-color) var(--border-width);
+  width: 60%;
+  height: 80%;
+  padding: 0;
+  overflow: hidden;
+}
+
+#melody-panel-close {
+  font-size: 2rem;
+  padding: 0;
+  position: absolute;
+  top: 0;
+  right: 0;
+  opacity: 0.8;
+
+  color: rgba(0, 0, 0, 1);
+  border: none;
+  background-color: transparent;
+}
+
+#melody-panel-close:hover {
+  opacity: 1;
+}
+
+/* buttons */
 
 .disabledbutton {
   pointer-events: none;

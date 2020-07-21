@@ -41,6 +41,9 @@ const backgroundVolumeSlider = document.getElementById(
 );
 const backgroundToneSlider = document.getElementById("background-tone-slider");
 const canvasDiv = document.getElementById("canvas-div");
+const canvasOverlay = document.getElementById("canvas-overlay");
+const melodyPanelDiv = document.getElementById("melody-panel-div");
+const melodyPanelCloseSpan = document.getElementById("melody-panel-close");
 const timeProgress = document.getElementById("time-progress");
 const backgroundImage = document.getElementById("background-image");
 const linkInput = document.getElementById("youtube-link-input");
@@ -73,6 +76,7 @@ const data = {
     },
     instrumentIndex: 1,
     waitingInterpolation: true,
+    interpolationIndex: 0,
   },
   chords: {
     gain: 1,
@@ -283,6 +287,9 @@ function initCanvas() {
 
     console.log(`x: ${mouseX} y: ${mouseY}`);
   });
+
+  const melodyCanvas = document.getElementById("melody-canvas");
+  data.canvas.melodyCanvas = melodyCanvas;
 
   draw();
 }
@@ -514,6 +521,14 @@ function addImages() {
     }
   });
 
+  assets.tvTable.addEventListener("click", () => {
+    melodyPanelDiv.style.display = "flex";
+  });
+
+  melodyPanelCloseSpan.addEventListener("click", () => {
+    melodyPanelDiv.style.display = "none";
+  });
+
   const avatar = assets.avatar;
   switchAvatar = (drinking) => {
     if (drinking === undefined) {
@@ -702,6 +717,15 @@ function addImageToCanvasDiv(src, params) {
 }
 
 function draw() {
+  drawMainCanvas();
+  drawMelodyCanvas();
+
+  requestAnimationFrame(() => {
+    draw();
+  });
+}
+
+function drawMainCanvas() {
   let ctx = data.canvas.canvas.getContext("2d");
   const { width, height } = ctx.canvas;
   ctx.clearRect(0, 0, width, height);
@@ -727,10 +751,28 @@ function draw() {
   // }
 
   // ctx.translate(470, 166);
+}
 
-  requestAnimationFrame(() => {
-    draw();
-  });
+function drawMelodyCanvas() {
+  let ctx = data.canvas.melodyCanvas.getContext("2d");
+  const { width, height } = ctx.canvas;
+  ctx.clearRect(0, 0, width, height);
+
+  if (melodyMidis) {
+    drawRect(ctx, 0, 0, width, height, "rgba(255, 11, 174, 0.8)");
+    drawMidi(ctx, 0, 0, width, height, melodyMidis[melodyIndex]);
+  }
+  // if (interpolationMidis) {
+  //   drawRect(ctx, 0, 0, width, height, "rgba(255, 11, 174, 1.0)");
+  //   drawMidi(
+  //     ctx,
+  //     0,
+  //     0,
+  //     width,
+  //     height,
+  //     interpolationMidis[data.melody.interpolationIndex]
+  //   );
+  // }
 }
 
 function drawRect(ctx, x, y, w, h, col) {
@@ -742,7 +784,31 @@ function drawRect(ctx, x, y, w, h, col) {
 }
 
 function drawMidi(ctx, x, y, w, h, m) {
-  const notes = m.tracks[0].notes;
+  let notes = m.tracks[0].notes;
+  // const hh = h / 16;
+  const hh = h / 32;
+  ctx.save();
+  ctx.translate(x, y);
+  for (let i = 0; i < notes.length; i++) {
+    const { midi, ticks, durationTicks } = notes[i];
+    ctx.save();
+    const xpos = (w * ticks) / TOTAL_TICKS;
+    const ypos = h * (1 - (midi - 64) / 32);
+    const ww = (w * durationTicks) / TOTAL_TICKS;
+
+    ctx.fillStyle = "rgba(255, 255, 255, 1)";
+    ctx.fillRect(xpos, ypos, ww, hh);
+    ctx.restore();
+  }
+
+  if (Tone.Transport.state === "started") {
+    ctx.fillStyle = "#373fff";
+    ctx.fillRect(w * Tone.Transport.progress, 0, -5, h);
+  }
+  ctx.restore();
+}
+
+function drawToneNotes(ctx, x, y, w, h, notes) {
   // const hh = h / 16;
   const hh = h / 32;
   ctx.save();
@@ -896,15 +962,19 @@ function triggerStart() {
   }
 
   if (Tone.Transport.state === "started") {
+    // stop
     Tone.Transport.stop();
     onTransportStop();
     startButton.textContent = "start";
     assets.window.src = "./assets/window-1.png";
+    canvasOverlay.style.display = "block";
   } else {
+    // start
     Tone.Transport.start();
     onTransportStart();
     startButton.textContent = "stop";
     assets.window.src = "./assets/window-0.png";
+    canvasOverlay.style.display = "none";
   }
 }
 function onFinishLoading() {
@@ -972,14 +1042,15 @@ function onFinishLoading() {
     changeMelodyInstrument(melodyInstrumentSelect.value);
   });
 
-  melodyInteractionSelect.addEventListener("change", () => {
-    const mode = melodyInteractionSelect.value;
-    melodyInteractionDivs[mode].style.display = "block";
-    melodyInteractionDivs[1 - mode].style.display = "none";
-  });
+  // melodyInteractionSelect.addEventListener("change", () => {
+  //   const mode = melodyInteractionSelect.value;
+  //   melodyInteractionDivs[mode].style.display = "block";
+  //   melodyInteractionDivs[1 - mode].style.display = "none";
+  // });
 
   interpolationSlider.addEventListener("change", () => {
     const index = Math.floor(interpolationSlider.value);
+    data.melody.interpolationIndex = index;
     changeMelody(interpolationMidis[index]);
   });
 
