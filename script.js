@@ -449,9 +449,6 @@ function addImages() {
   });
 
   const ifrm = document.createElement("iframe");
-  // ifrm.setAttribute("src", "https://www.youtube.com/embed/EhBSXFidyUU?autoplay=1&showinfo=0&controls=0&mute=1&vq=tiny");
-  ifrm.src =
-    "https://www.youtube.com/embed/EhBSXFidyUU?autoplay=1&showinfo=0&controls=0&mute=1&vq=tiny";
   ifrm.setAttribute("frameborder", "0");
   ifrm.style.position = "absolute";
   ifrm.style.bottom = "50.4%";
@@ -461,17 +458,6 @@ function addImages() {
   ifrm.style.zIndex = "2";
   canvasDiv.appendChild(ifrm);
   assets.youtube = ifrm;
-
-  // var ifrm = document.createElement("iframe");
-  // ifrm.setAttribute("src", "https://www.youtube.com/embed/EhBSXFidyUU?autoplay=1&showinfo=0&controls=0&mute=1");
-  // ifrm.setAttribute('frameborder', "0")
-  // ifrm.style.position = 'absolute'
-  // ifrm.style.bottom = '0%'
-  // ifrm.style.right = '0%'
-  // ifrm.style.width = "90%";
-  // ifrm.style.height = "90%";
-  // ifrm.style.zIndex= '2'
-  // assets.tv.appendChild(ifrm);
 
   assets.cabinetRight = addImageToCanvasDiv("./assets/cabinet-2.png", {
     height: "35%",
@@ -1085,7 +1071,7 @@ function onFinishLoading() {
     const id = parseYoutubeId(linkInput.value);
     if (id) {
       console.log(`youtube id:${id}`);
-      assets.youtube.src = `https://www.youtube.com/embed/${id}?autoplay=1&showinfo=0&controls=0&mute=1&vq=tiny`;
+      assets.youtube.src = getYoutubeEmbedUrlFromId(id);
     } else {
       console.log("wrong format");
     }
@@ -1116,6 +1102,9 @@ function onFinishLoading() {
     melodyVolumeSlider.value = v * 100;
     ampSlider.value = v * 100;
   };
+
+  // start youtube video
+  assets.youtube.src = getYoutubeEmbedUrlFromId();
 }
 
 function onTransportStart() {
@@ -1298,4 +1287,8 @@ function parseYoutubeId(url) {
   var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
   var match = url.match(regExp);
   return match && match[7].length == 11 ? match[7] : false;
+}
+
+function getYoutubeEmbedUrlFromId(id = "EhBSXFidyUU") {
+  return `https://www.youtube.com/embed/${id}?&loop=1&autoplay=1&controls=0&mute=1&vq=tiny`;
 }
