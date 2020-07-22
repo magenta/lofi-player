@@ -5,6 +5,7 @@ const BEATS_PER_BAR = 4;
 const TOTAL_TICKS = TOTAL_BAR_COUNTS * TICKS_PER_BAR;
 const MODEL_BAR_COUNT = 2;
 const MAIN_CANVAS_PADDING = 0;
+const NUM_INTERPOLATIONS = 5;
 
 const controlDiv = document.getElementById("control-div");
 const startButton = document.getElementById("start-button");
@@ -76,6 +77,8 @@ const data = {
     },
     instrumentIndex: 1,
     waitingInterpolation: true,
+    interpolationToneNotes: [],
+    interpolationData: [],
     interpolationIndex: 0,
   },
   chords: {
@@ -108,7 +111,6 @@ let melodyMidi;
 let melodyPart;
 let melodyIndex = 0;
 let secondMelodyIndex = 1;
-let interpolationMidis = [];
 let chordsMidis;
 let chordsPart;
 let chordsIndex = 0;
@@ -256,15 +258,28 @@ function initModel() {
       checkFinishLoading();
     }
     if (e.data.msg === "interpolate") {
-      const { id, result } = e.data;
+      let { id, result } = e.data;
       // console.log("interpolation result", result);
-      interpolationMidis = result.map(modelFormatToToneNotes);
-      interpolationMidis[0] = midiToToneNotes(melodyMidis[melodyIndex]);
-      interpolationMidis[interpolationMidis.length - 1] = midiToToneNotes(
-        melodyMidis[secondMelodyIndex]
+      result = filterNotesInScale(result);
+      data.melody.interpolationData.splice(
+        1,
+        NUM_INTERPOLATIONS - 2,
+        ...result.slice(1, NUM_INTERPOLATIONS - 1)
       );
+      // data.melody.interpolationData = result;
+
+      data.melody.interpolationToneNotes = result.map(modelFormatToToneNotes);
+      data.melody.interpolationToneNotes[0] = midiToToneNotes(
+        melodyMidis[melodyIndex]
+      );
+      data.melody.interpolationToneNotes[
+        data.melody.interpolationToneNotes.length - 1
+      ] = midiToToneNotes(melodyMidis[secondMelodyIndex]);
 
       data.melody.waitingInterpolation = false;
+
+      console.log("interpolationData", data.melody.interpolationData);
+      console.log("interpolationToneNotes", data.melody.interpolationToneNotes);
       melodyInteractionDivs[0].classList.remove("disabledbutton");
     }
   };
@@ -748,21 +763,25 @@ function drawMelodyCanvas() {
   const { width, height } = ctx.canvas;
   ctx.clearRect(0, 0, width, height);
 
-  if (melodyMidis) {
-    drawRect(ctx, 0, 0, width, height, "rgba(255, 11, 174, 0.8)");
-    drawMidi(ctx, 0, 0, width, height, melodyMidis[melodyIndex]);
-  }
-  // if (interpolationMidis) {
-  //   drawRect(ctx, 0, 0, width, height, "rgba(255, 11, 174, 1.0)");
-  //   drawMidi(
-  //     ctx,
-  //     0,
-  //     0,
-  //     width,
-  //     height,
-  //     interpolationMidis[data.melody.interpolationIndex]
-  //   );
+  // if (melodyMidis) {
+  //   drawRect(ctx, 0, 0, width, height, "rgba(255, 11, 174, 0.8)");
+  //   drawMidi(ctx, 0, 0, width, height, melodyMidis[melodyIndex]);
   // }
+
+  if (
+    data.melody.interpolationData &&
+    data.melody.interpolationData[data.melody.interpolationIndex]
+  ) {
+    drawRect(ctx, 0, 0, width, height, "rgba(255, 11, 174, 1.0)");
+    drawModelData(
+      ctx,
+      0,
+      0,
+      width,
+      height,
+      data.melody.interpolationData[data.melody.interpolationIndex]
+    );
+  }
 }
 
 function drawRect(ctx, x, y, w, h, col) {
@@ -798,17 +817,24 @@ function drawMidi(ctx, x, y, w, h, m) {
   ctx.restore();
 }
 
-function drawToneNotes(ctx, x, y, w, h, notes) {
-  // const hh = h / 16;
-  const hh = h / 32;
+function drawModelData(ctx, x, y, w, h, data) {
+  const { notes } = data;
+  const hh = h / 64;
   ctx.save();
   ctx.translate(x, y);
+
+  // console.log(notes);
   for (let i = 0; i < notes.length; i++) {
-    const { midi, ticks, durationTicks } = notes[i];
+    // const { midi, ticks, durationTicks } = notes[i];
+
+    const totalQuantizedSteps = 32;
+    const { pitch, quantizedStartStep, quantizedEndStep } = notes[i];
+
     ctx.save();
-    const xpos = (w * ticks) / TOTAL_TICKS;
-    const ypos = h * (1 - (midi - 64) / 32);
-    const ww = (w * durationTicks) / TOTAL_TICKS;
+    const xpos = (w * quantizedStartStep) / totalQuantizedSteps;
+    const ypos = h * (1 - (pitch - 64) / 64);
+    const ww =
+      (w * (quantizedEndStep - quantizedStartStep)) / totalQuantizedSteps;
 
     ctx.fillStyle = "rgba(255, 255, 255, 1)";
     ctx.fillRect(xpos, ypos, ww, hh);
@@ -817,7 +843,7 @@ function drawToneNotes(ctx, x, y, w, h, notes) {
 
   if (Tone.Transport.state === "started") {
     ctx.fillStyle = "#373fff";
-    ctx.fillRect(w * Tone.Transport.progress, 0, -5, h);
+    ctx.fillRect(w * ((Tone.Transport.progress * 2) % 1), 0, -5, h);
   }
   ctx.restore();
 }
@@ -1016,7 +1042,6 @@ function onFinishLoading() {
 
   firstMelodySelect.addEventListener("change", () => {
     changeMelodyByIndex(firstMelodySelect.value);
-    sendInterpolationMessage();
   });
 
   secondMelodySelect.addEventListener("change", () => {
@@ -1041,7 +1066,7 @@ function onFinishLoading() {
   interpolationSlider.addEventListener("change", () => {
     const index = Math.floor(interpolationSlider.value);
     data.melody.interpolationIndex = index;
-    changeMelody(interpolationMidis[index]);
+    changeMelody(data.melody.interpolationToneNotes[index]);
   });
 
   melodyVolumeSlider.addEventListener("input", (e) => {
@@ -1154,6 +1179,7 @@ function changeMelodyByIndex(index = 0) {
     melodyPart.cancel(0);
   }
   melodyIndex = index;
+
   melodyPart = new Tone.Part((time, note) => {
     data.melody.instrument.triggerAttackRelease(
       toFreq(note.pitch - 12),
@@ -1164,6 +1190,9 @@ function changeMelodyByIndex(index = 0) {
   }, midiToToneNotes(melodyMidis[melodyIndex])).start(0);
 
   melodyPart.loop = false;
+
+  firstMelodySelect.value = index;
+  sendInterpolationMessage();
 }
 
 function changeMelody(readyMidi) {
@@ -1186,10 +1215,15 @@ function sendInterpolationMessage() {
   data.melody.waitingInterpolation = true;
   melodyInteractionDivs[0].classList.add("disabledbutton");
 
+  console.log(`interpolate ${melodyIndex} ${secondMelodyIndex}`);
   const firstMelody = melodyMidis[melodyIndex];
   const secondMelody = melodyMidis[secondMelodyIndex];
   const left = midiToModelFormat(firstMelody);
   const right = midiToModelFormat(secondMelody);
+
+  data.melody.interpolationData[0] = left;
+  data.melody.interpolationData[NUM_INTERPOLATIONS - 1] = right;
+
   worker.postMessage({
     id: 0,
     msg: "interpolate",
@@ -1242,18 +1276,27 @@ function midiToToneNotes(midi) {
   });
 }
 
-function midiToModelFormat(midi) {
-  const modelBarCounts = MODEL_BAR_COUNT;
-  const totalQuantizedSteps = modelBarCounts * 16;
+function midiToModelFormat(midi, resolution = 2) {
+  const totalQuantizedSteps = MODEL_BAR_COUNT * 16;
 
   // console.log("parse this midi", midi);
-  const totalTicks = TOTAL_BAR_COUNTS * TICKS_PER_BAR;
+  const totalTicks = (TOTAL_BAR_COUNTS * TICKS_PER_BAR) / resolution;
+
+  // const notes = midi.tracks[0].notes.map((note) => ({
+  //   pitch: note.midi,
+  //   quantizedStartStep: Math.floor(
+  //     (note.ticks / totalTicks) * totalQuantizedSteps
+  //   ),
+  //   quantizedEndStep: Math.floor(
+  //     ((note.ticks + note.durationTicks) / totalTicks) * totalQuantizedSteps
+  //   ),
+  // }));
   const notes = midi.tracks[0].notes.map((note) => ({
     pitch: note.midi,
-    quantizedStartStep: Math.floor(
+    quantizedStartStep: Math.round(
       (note.ticks / totalTicks) * totalQuantizedSteps
     ),
-    quantizedEndStep: Math.floor(
+    quantizedEndStep: Math.round(
       ((note.ticks + note.durationTicks) / totalTicks) * totalQuantizedSteps
     ),
   }));
@@ -1295,6 +1338,16 @@ function parseYoutubeId(url) {
 
 function getYoutubeEmbedUrlFromId(id = "EhBSXFidyUU") {
   return `https://www.youtube.com/embed/${id}?&loop=1&autoplay=1&controls=0&mute=1&vq=tiny`;
+}
+
+function filterNotesInScale(data) {
+  return data.map((d) => {
+    d.notes = d.notes.filter(({ pitch }) => {
+      const p = pitch % 12;
+      return [0, 2, 4, 5, 7, 9, 11].includes(p);
+    });
+    return d;
+  });
 }
 
 // drag
