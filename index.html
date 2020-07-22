@@ -38,44 +38,56 @@
         <div id="canvas-overlay"></div>
         <div id="melody-panel-div">
           <div id="melody-panel">
-            <h3 class="nes-text">melody panel</h3>
+            <h3 class="nes-text">Create Your Melody!</h3>
             <div id="interpolation-div">
-              <label>1st</label>
-              <select id="first-melody-select">
-                <option value="0">chill</option>
-                <option value="1">dense</option>
-                <option value="2">sad</option>
-                <option value="3">moody</option>
-              </select>
+              <div>
+                <button id="melody-panel-close">
+                  X
+                </button>
+                <label>1st</label>
+                <select id="first-melody-select">
+                  <option value="0">chill</option>
+                  <option value="1">dense</option>
+                  <option value="2">sad</option>
+                  <option value="3">moody</option>
+                </select>
 
-              <label>2nd</label>
-              <select id="second-melody-select">
-                <option value="0">chill</option>
-                <option value="1" selected>dense</option>
-                <option value="2">sad</option>
-                <option value="3">moody</option>
-              </select>
+                <label>2nd</label>
+                <select id="second-melody-select">
+                  <option value="0">chill</option>
+                  <option value="1" selected>dense</option>
+                  <option value="2">sad</option>
+                  <option value="3">moody</option>
+                </select>
+              </div>
 
-              <br />
+              <!-- <br /> -->
 
-              <label>1st</label>
-              <input
-                id="interpolation-slider"
-                type="range"
-                class="nes-progress"
-                min="0"
-                max="4"
-                step="1"
-                value="0"
-              />
-              <label>2nd</label>
+              <div>
+                <label>1st</label>
+                <input
+                  id="interpolation-slider"
+                  type="range"
+                  class="nes-progress"
+                  min="0"
+                  max="4"
+                  step="1"
+                  value="0"
+                />
+                <input
+                  id="interpolation-slider-2"
+                  type="range"
+                  class="nes-progress"
+                  min="0"
+                  max="4"
+                  step="1"
+                  value="0"
+                />
+                <label>2nd</label>
+              </div>
             </div>
-            <div>
-              <canvas id="melody-canvas"></canvas>
-            </div>
-            <button id="melody-panel-close">
-              X
-            </button>
+
+            <canvas id="melody-canvas"></canvas>
           </div>
         </div>
       </div>

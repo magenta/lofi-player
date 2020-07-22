@@ -37,6 +37,9 @@ const melodyInstrumentSelect = document.getElementById(
   "melody-instrument-select"
 );
 const interpolationSlider = document.getElementById("interpolation-slider");
+const secondInterpolationSlider = document.getElementById(
+  "interpolation-slider-2"
+);
 const backgroundVolumeSlider = document.getElementById(
   "background-volume-slider"
 );
@@ -44,6 +47,7 @@ const backgroundToneSlider = document.getElementById("background-tone-slider");
 const canvasDiv = document.getElementById("canvas-div");
 const canvasOverlay = document.getElementById("canvas-overlay");
 const melodyPanelDiv = document.getElementById("melody-panel-div");
+const interpolationDiv = document.getElementById("interpolation-div");
 const melodyPanelCloseSpan = document.getElementById("melody-panel-close");
 const timeProgress = document.getElementById("time-progress");
 const backgroundImage = document.getElementById("background-image");
@@ -133,7 +137,6 @@ const catsUrls = [
   "./assets/cat-90.gif",
   "./assets/dog-100.gif",
 ];
-let ampSlider;
 
 addImages();
 initModel();
@@ -278,8 +281,8 @@ function initModel() {
 
       data.melody.waitingInterpolation = false;
 
-      console.log("interpolationData", data.melody.interpolationData);
-      console.log("interpolationToneNotes", data.melody.interpolationToneNotes);
+      // console.log("interpolationData", data.melody.interpolationData);
+      // console.log("interpolationToneNotes", data.melody.interpolationToneNotes);
       melodyInteractionDivs[0].classList.remove("disabledbutton");
     }
   };
@@ -300,11 +303,35 @@ function initCanvas() {
     const mouseX = clientX - canvasRect.left - MAIN_CANVAS_PADDING;
     const mouseY = clientY - canvasRect.top - MAIN_CANVAS_PADDING;
 
-    console.log(`x: ${mouseX} y: ${mouseY}`);
+    // console.log(`x: ${mouseX} y: ${mouseY}`);
   });
 
   const melodyCanvas = document.getElementById("melody-canvas");
   data.canvas.melodyCanvas = melodyCanvas;
+  data.canvas.moveMelodyCanvasToPanel = function () {
+    removeElement(melodyCanvas);
+    melodyCanvas.style.position = "static";
+    melodyCanvas.style.width = "100%";
+    melodyCanvas.style.height = "100%";
+    melodyCanvas.style.opacity = 1.0;
+    interpolationDiv.append(melodyCanvas);
+  };
+
+  data.canvas.moveMelodyCanvasToRoom = function () {
+    melodyCanvas.style.position = "absolute";
+    // melodyCanvas.style.top = "12%";
+    // melodyCanvas.style.left = "23%";
+    // melodyCanvas.style.width = "45%";
+    // melodyCanvas.style.height = "41%";
+    melodyCanvas.style.top = "16.6%";
+    melodyCanvas.style.left = "7.5%";
+    melodyCanvas.style.width = "78%";
+    melodyCanvas.style.height = "51%";
+
+    melodyCanvas.style.zIndex = 1;
+    melodyCanvas.style.opacity = 0.93;
+    assets.tvTable.append(melodyCanvas);
+  };
 
   draw();
 }
@@ -315,6 +342,14 @@ function addImages() {
     left: "20%",
     zIndex: "-2",
     bottom: "0",
+  });
+
+  assets.light = addImageToCanvasDiv("./assets/light-off.png", {
+    class: "large-on-hover",
+    width: "8%",
+    left: "50%",
+    top: "-2%",
+    zIndex: "1",
   });
 
   assets.window = addImageToCanvasDiv("./assets/window-1.png", {
@@ -437,12 +472,54 @@ function addImages() {
     bottom: "60%",
   });
 
-  assets.tvTable = addImageToCanvasDiv("./assets/tv-table.png", {
-    class: "large-on-hover",
-    width: "18%",
+  assets.tvStand = addImageToCanvasDiv("./assets/tv-stand.png", {
+    width: "20%",
     left: "35%",
     zIndex: "3",
+    group: true,
   });
+  assets.tvTable = addImageToCanvasDiv("./assets/tv-color.png", {
+    class: "large-on-hover",
+    width: "50%",
+    bottom: "95%",
+    left: "15%",
+    zIndex: "1",
+    group: true,
+  });
+  assets.radio = addImageToCanvasDiv("./assets/radio.png", {
+    class: "large-on-hover",
+    width: "18%",
+    bottom: "95%",
+    right: "10%",
+    zIndex: "1",
+    group: true,
+  });
+
+  let radioSlider = secondInterpolationSlider;
+  removeElement(radioSlider);
+  radioSlider.style.display = "block";
+  radioSlider.style.position = "absolute";
+  radioSlider.style.left = "2%";
+  radioSlider.style.bottom = "30%";
+  radioSlider.style.height = "5%";
+  radioSlider.style.width = "80%";
+  radioSlider.style.opacity = 0.6;
+  radioSlider.setAttribute("type", "range");
+  radioSlider.addEventListener("input", () => {
+    data.melody.changeGain(input.value / 100);
+  });
+
+  assets.radio.addEventListener("click", () => {
+    if (radioSlider.style.display === "none") {
+      radioSlider.style.display = "block";
+    } else {
+      radioSlider.style.display = "none";
+    }
+  });
+
+  assets.tvStand.append(assets.tvTable);
+  assets.tvStand.append(assets.radio);
+  assets.tvStand.append(radioSlider);
 
   assets.sofa = addImageToCanvasDiv("./assets/sofa-1.png", {
     width: "35%",
@@ -463,17 +540,27 @@ function addImages() {
     right: "30%",
     bottom: "44%",
     zIndex: "1",
+    group: true,
   });
 
   const ifrm = document.createElement("iframe");
   ifrm.setAttribute("frameborder", "0");
+  // ifrm.style.position = "absolute";
+  // ifrm.style.bottom = "50.4%";
+  // ifrm.style.right = "31.3%";
+  // ifrm.style.width = "8.1%";
+  // ifrm.style.height = "10.5%";
+  // ifrm.style.zIndex = "2";
+  // canvasDiv.appendChild(ifrm);
+
   ifrm.style.position = "absolute";
-  ifrm.style.bottom = "50.4%";
-  ifrm.style.right = "31.3%";
-  ifrm.style.width = "8.1%";
-  ifrm.style.height = "10.2%";
-  ifrm.style.zIndex = "2";
-  canvasDiv.appendChild(ifrm);
+  ifrm.style.top = "16.6%";
+  ifrm.style.left = "7.5%";
+  ifrm.style.width = "78%";
+  ifrm.style.height = "51%";
+  ifrm.style.zIndex = "1";
+  assets.tv.appendChild(ifrm);
+
   assets.youtube = ifrm;
 
   assets.cabinetRight = addImageToCanvasDiv("./assets/cabinet-2.png", {
@@ -526,10 +613,14 @@ function addImages() {
 
   assets.tvTable.addEventListener("click", () => {
     melodyPanelDiv.style.display = "flex";
+    data.canvas.moveMelodyCanvasToPanel();
   });
 
   melodyPanelCloseSpan.addEventListener("click", () => {
     melodyPanelDiv.style.display = "none";
+
+    // move canvas to outside
+    data.canvas.moveMelodyCanvasToRoom();
   });
 
   const avatar = assets.avatar;
@@ -617,6 +708,9 @@ function addImages() {
       triggerStart();
     }
   });
+  assets.light.addEventListener("click", () => {
+    triggerStart();
+  });
 
   const input = document.createElement("INPUT");
   input.classList.add("nes-progress");
@@ -632,7 +726,7 @@ function addImages() {
   input.addEventListener("input", () => {
     data.melody.changeGain(input.value / 100);
   });
-  ampSlider = input;
+  assets.ampSlider = input;
   canvasDiv.appendChild(input);
 
   assets.logo = addImageToCanvasDiv("./assets/magenta-logo.png", {
@@ -673,6 +767,14 @@ function addImages() {
     changeChordsInstrument(3);
   });
 
+  assets.tv.addEventListener("click", () => {
+    if (assets.youtube.style.display === "block") {
+      assets.youtube.style.display = "none";
+    } else {
+      assets.youtube.style.display = "block";
+    }
+  });
+
   data.backgroundSounds.switch = function (index) {
     backgroundSounds.get(backgroundSoundsNames[backgroundSoundsIndex]).stop();
     backgroundSoundsIndex = index;
@@ -691,8 +793,19 @@ function addImages() {
 }
 
 function addImageToCanvasDiv(src, params) {
-  const img = new Image();
+  let img = new Image();
   img.src = src;
+
+  if (params.group) {
+    const div = document.createElement("DIV");
+    div.style.position = "absolute";
+    img.style.width = "100%";
+    div.appendChild(img);
+    img = div;
+  } else {
+    img.style.position = "absolute";
+  }
+
   if (params.class) {
     img.classList.add(params.class);
   }
@@ -717,6 +830,7 @@ function addImageToCanvasDiv(src, params) {
   }
 
   img.style.zIndex = params.zIndex ? params.zIndex : "0";
+
   canvasDiv.appendChild(img);
   return img;
 }
@@ -763,16 +877,18 @@ function drawMelodyCanvas() {
   const { width, height } = ctx.canvas;
   ctx.clearRect(0, 0, width, height);
 
-  // if (melodyMidis) {
-  //   drawRect(ctx, 0, 0, width, height, "rgba(255, 11, 174, 0.8)");
-  //   drawMidi(ctx, 0, 0, width, height, melodyMidis[melodyIndex]);
-  // }
-
   if (
     data.melody.interpolationData &&
     data.melody.interpolationData[data.melody.interpolationIndex]
   ) {
-    drawRect(ctx, 0, 0, width, height, "rgba(255, 11, 174, 1.0)");
+    ctx.save();
+    ctx.fillStyle = "rgba(255, 255, 255, 1)";
+    ctx.fillRect(0, 0, width, height);
+    ctx.strokeStyle = "rgba(0, 0, 0, 1)";
+    ctx.lineWidth = 10;
+    ctx.strokeRect(0, 0, width, height);
+    ctx.restore();
+
     drawModelData(
       ctx,
       0,
@@ -836,7 +952,7 @@ function drawModelData(ctx, x, y, w, h, data) {
     const ww =
       (w * (quantizedEndStep - quantizedStartStep)) / totalQuantizedSteps;
 
-    ctx.fillStyle = "rgba(255, 255, 255, 1)";
+    ctx.fillStyle = "rgba(0, 0, 0, 1)";
     ctx.fillRect(xpos, ypos, ww, hh);
     ctx.restore();
   }
@@ -983,6 +1099,7 @@ function triggerStart() {
     onTransportStop();
     startButton.textContent = "start";
     assets.window.src = "./assets/window-1.png";
+    assets.light.src = "./assets/light-off.png";
     canvasOverlay.style.display = "block";
   } else {
     // start
@@ -990,6 +1107,7 @@ function triggerStart() {
     onTransportStart();
     startButton.textContent = "stop";
     assets.window.src = "./assets/window-0.png";
+    assets.light.src = "./assets/light-on.png";
     canvasOverlay.style.display = "none";
   }
 }
@@ -1065,8 +1183,12 @@ function onFinishLoading() {
 
   interpolationSlider.addEventListener("change", () => {
     const index = Math.floor(interpolationSlider.value);
-    data.melody.interpolationIndex = index;
-    changeMelody(data.melody.interpolationToneNotes[index]);
+    changeInterpolationIndex(index);
+  });
+
+  secondInterpolationSlider.addEventListener("change", () => {
+    const index = Math.floor(secondInterpolationSlider.value);
+    changeInterpolationIndex(index);
   });
 
   melodyVolumeSlider.addEventListener("input", (e) => {
@@ -1122,6 +1244,9 @@ function onFinishLoading() {
     }
   });
 
+  // show canvas
+  data.canvas.moveMelodyCanvasToRoom();
+
   // model
   sendInterpolationMessage();
 
@@ -1129,7 +1254,7 @@ function onFinishLoading() {
   data.melody.changeGain = function (v) {
     data.melody.gain = v;
     melodyVolumeSlider.value = v * 100;
-    ampSlider.value = v * 100;
+    assets.ampSlider.value = v * 100;
   };
 
   // start youtube video
@@ -1211,11 +1336,19 @@ function changeMelody(readyMidi) {
   melodyPart.loopEnd = "4:0:0";
 }
 
+function changeInterpolationIndex(index) {
+  data.melody.interpolationIndex = index;
+  changeMelody(data.melody.interpolationToneNotes[index]);
+
+  interpolationSlider.value = index;
+  secondInterpolationSlider.value = index;
+}
+
 function sendInterpolationMessage() {
   data.melody.waitingInterpolation = true;
   melodyInteractionDivs[0].classList.add("disabledbutton");
 
-  console.log(`interpolate ${melodyIndex} ${secondMelodyIndex}`);
+  // console.log(`interpolate ${melodyIndex} ${secondMelodyIndex}`);
   const firstMelody = melodyMidis[melodyIndex];
   const secondMelody = melodyMidis[secondMelodyIndex];
   const left = midiToModelFormat(firstMelody);
@@ -1350,7 +1483,10 @@ function filterNotesInScale(data) {
   });
 }
 
-// drag
+function removeElement(el) {
+  el.parentNode.removeChild(el);
+}
+
 function dragElement(elmnt) {
   var pos1 = 0,
     pos2 = 0,
