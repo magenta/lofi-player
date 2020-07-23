@@ -1,4 +1,4 @@
-const LOAD_EVENTS_COUNTS_THRESHOLD = 6;
+const LOAD_EVENTS_COUNTS_THRESHOLD = 7;
 const TOTAL_BAR_COUNTS = 8;
 const TICKS_PER_BAR = 384;
 const BEATS_PER_BAR = 4;
@@ -105,6 +105,7 @@ const data = {
       hh: 1,
     },
   },
+  effects: {},
 };
 let backgroundSounds = [];
 let backgroundSoundsNames = ["rain", "waves", "street", "kids"];
@@ -170,6 +171,13 @@ function initSounds() {
     console.log("background sounds loaded");
     checkFinishLoading();
   }).connect(data.backgroundSounds.hpf);
+
+  data.effects.beep = new Tone.Player(
+    `${samplesBaseUrl}/effects/beep.mp3`,
+    () => {
+      checkFinishLoading();
+    }
+  ).toMaster();
 
   backgroundSoundsNames.forEach((name) => {
     backgroundSounds.get(name).loop = true;
@@ -414,6 +422,8 @@ function addImages() {
     left: "10%",
   });
 
+  dragElement(assets.chair);
+
   assets.desk = addImageToCanvasDiv("./assets/desk.png", {
     // width: "22%",
     height: "25%",
@@ -499,11 +509,11 @@ function addImages() {
   removeElement(radioSlider);
   radioSlider.style.display = "block";
   radioSlider.style.position = "absolute";
-  radioSlider.style.left = "2%";
-  radioSlider.style.bottom = "30%";
+  radioSlider.style.left = "0%";
+  radioSlider.style.bottom = "36%";
   radioSlider.style.height = "5%";
   radioSlider.style.width = "80%";
-  radioSlider.style.opacity = 0.6;
+  radioSlider.style.opacity = 1.0;
   radioSlider.setAttribute("type", "range");
   radioSlider.addEventListener("input", () => {
     data.melody.changeGain(input.value / 100);
@@ -603,6 +613,7 @@ function addImages() {
   });
 
   assets.lamp.addEventListener("click", () => {
+    data.effects.beep.start();
     assets.lampOn = !assets.lampOn;
     if (!assets.lampOn) {
       assets.lamp.src = `${window.location}/assets/lamp-off.png`;
@@ -1469,7 +1480,7 @@ function parseYoutubeId(url) {
   return match && match[7].length == 11 ? match[7] : false;
 }
 
-function getYoutubeEmbedUrlFromId(id = "EhBSXFidyUU") {
+function getYoutubeEmbedUrlFromId(id = "0HYq9kTOT70") {
   return `https://www.youtube.com/embed/${id}?&loop=1&autoplay=1&controls=0&mute=1&vq=tiny`;
 }
 
