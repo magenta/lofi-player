@@ -66,11 +66,17 @@
         <div id="melody-panel-div">
           <div id="melody-panel">
             <h3 class="nes-text">Create Your Melody!</h3>
+            <button class="melody-panel-button" id="melody-panel-close">
+              X
+            </button>
+            <button class="melody-panel-button" id="melody-panel-right">
+              >
+            </button>
+            <button class="melody-panel-button" id="melody-panel-left">
+              &lt;
+            </button>
             <div id="interpolation-div">
               <div>
-                <button id="melody-panel-close">
-                  X
-                </button>
                 <label>1st</label>
                 <select id="first-melody-select">
                   <option value="0">chill</option>
@@ -152,6 +158,16 @@
         <label>reverb</label>
         <input
           id="master-reverb-slider"
+          type="range"
+          class="nes-progress"
+          min="0"
+          max="100"
+          value="0"
+        />
+        <br />
+        <label>tone</label>
+        <input
+          id="master-tone-slider"
           type="range"
           class="nes-progress"
           min="0"

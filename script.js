@@ -1,4 +1,4 @@
-const LOAD_EVENTS_COUNTS_THRESHOLD = 7;
+const LOAD_EVENTS_COUNTS_THRESHOLD = 8;
 const TOTAL_BAR_COUNTS = 8;
 const TICKS_PER_BAR = 384;
 const BEATS_PER_BAR = 4;
@@ -58,6 +58,8 @@ const bassVolumeSlider = document.getElementById("bass-volume-slider");
 const bassToneSlider = document.getElementById("bass-tone-slider");
 const melodyVolumeSlider = document.getElementById("melody-volume-slider");
 const chordsVolumeSlider = document.getElementById("chords-volume-slider");
+const masterReverbSlider = document.getElementById("master-reverb-slider");
+const masterToneSlider = document.getElementById("master-tone-slider");
 
 const worker = new Worker("worker.js");
 const samplesBaseUrl = "./samples";
@@ -106,6 +108,17 @@ const data = {
     },
   },
   effects: {},
+  master: {
+    masterCompressor: new Tone.Compressor({
+      threshold: -15,
+      ratio: 7,
+    }),
+    lpf: new Tone.Filter(20000, "lowpass"),
+    reverb: new Tone.Reverb({
+      decay: 1.0,
+      preDelay: 0.01,
+    }),
+  },
 };
 let backgroundSounds = [];
 let backgroundSoundsNames = ["rain", "waves", "street", "kids"];
@@ -150,6 +163,17 @@ function initSounds() {
   Tone.Transport.loop = true;
   Tone.Transport.loopStart = "0:0:0";
   Tone.Transport.loopEnd = "8:0:0";
+
+  Tone.Master.chain(
+    data.master.masterCompressor,
+    data.master.reverb,
+    data.master.lpf
+  );
+  data.master.reverb.generate().then(() => {
+    console.log("master reverb ready");
+    checkFinishLoading();
+  });
+  data.master.reverb.wet.value = 0;
 
   const drumUrls = {};
   drumNames.forEach((n) => (drumUrls[n] = `${samplesBaseUrl}/drums/${n}.mp3`));
@@ -1053,10 +1077,16 @@ function seqCallback(time, b) {
       if (drumMute) {
         if (Math.random() > 0.05) {
           toggleDrumMute(false);
+
+          // transition
+          data.master.lpf.frequency.linearRampTo(20000, 1, time);
         }
       } else {
-        if (Math.random() > 0.7) {
+        if (Math.random() > 0.8) {
           toggleDrumMute(true);
+
+          // transition
+          data.master.lpf.frequency.linearRampTo(200, 1.5, time);
         }
       }
     }
@@ -1237,6 +1267,16 @@ function onFinishLoading() {
     } else {
       console.log("wrong format");
     }
+  });
+
+  masterReverbSlider.addEventListener("input", () => {
+    const wet = masterReverbSlider.value / 100;
+    data.master.reverb.wet.value = wet;
+  });
+
+  masterToneSlider.addEventListener("input", () => {
+    const frq = masterToneSlider.value * 198 + 200;
+    data.master.lpf.frequency.value = frq;
   });
 
   window.addEventListener("resize", () => {

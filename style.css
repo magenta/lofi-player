@@ -165,7 +165,6 @@ button {
   border: solid var(--text-color) var(--border-width);
   width: 60%;
   height: 80%;
-  padding: 0;
   overflow: hidden;
 
   display: flex;
@@ -175,19 +174,31 @@ button {
 }
 
 #melody-panel-close {
+  top: 0;
+  right: 0;
+}
+
+#melody-panel-right {
+  top: "40%";
+  right: 5px;
+}
+#melody-panel-left {
+  top: "40%";
+  left: 5px;
+}
+
+.melody-panel-button {
   font-size: 2rem;
   padding: 0;
   position: absolute;
-  top: 0;
-  right: 0;
-  opacity: 0.8;
+  opacity: 0.7;
 
   color: rgba(0, 0, 0, 1);
   border: none;
   background-color: transparent;
 }
 
-#melody-panel-close:hover {
+.melody-panel-button:hover {
   opacity: 1;
 }
 
