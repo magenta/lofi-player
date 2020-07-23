@@ -323,10 +323,10 @@ function initCanvas() {
     // melodyCanvas.style.left = "23%";
     // melodyCanvas.style.width = "45%";
     // melodyCanvas.style.height = "41%";
-    melodyCanvas.style.top = "16.6%";
+    melodyCanvas.style.top = "16%";
     melodyCanvas.style.left = "7.5%";
     melodyCanvas.style.width = "78%";
-    melodyCanvas.style.height = "51%";
+    melodyCanvas.style.height = "52%";
 
     melodyCanvas.style.zIndex = 1;
     melodyCanvas.style.opacity = 0.93;
