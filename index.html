@@ -70,64 +70,70 @@
             <div class="panel" id="master-div">
               <h3 class="title">Master</h3>
 
-              <p>
-                <span>bpm</span>
-                <span id="bpm-value">75</span>
-              </p>
-              <input
-                type="range"
-                class="nes-progress"
-                id="bpm-input"
-                value="75"
-                min="60"
-                max="100"
-                step="5"
-              />
+              <div>
+                <p>
+                  <span>bpm</span>
+                  <span id="bpm-value">75</span>
+                </p>
+                <input
+                  type="range"
+                  class="nes-progress"
+                  id="bpm-input"
+                  value="75"
+                  min="60"
+                  max="100"
+                  step="5"
+                />
 
-              <br />
-              <p>
-                <span>time</span>
-                <span id="check-time-text">0:0:0</span>
-              </p>
-              <progress
-                id="time-progress"
-                class="nes-progress"
-                value="0"
-                max="100"
-              ></progress>
+                <br />
+                <p>
+                  <span>time</span>
+                  <span id="check-time-text">0:0:0</span>
+                </p>
+                <progress
+                  id="time-progress"
+                  class="nes-progress"
+                  value="0"
+                  max="100"
+                ></progress>
 
-              <hr />
-              <label>reverb</label>
-              <input
-                id="master-reverb-slider"
-                type="range"
-                class="nes-progress"
-                min="0"
-                max="100"
-                value="0"
-              />
-              <br />
-              <label>tone</label>
-              <input
-                id="master-tone-slider"
-                type="range"
-                class="nes-progress"
-                min="0"
-                max="100"
-                value="100"
-              />
+                <hr />
+                <label>reverb</label>
+                <input
+                  id="master-reverb-slider"
+                  type="range"
+                  class="nes-progress"
+                  min="0"
+                  max="100"
+                  value="0"
+                />
+                <br />
+                <label>tone</label>
+                <input
+                  id="master-tone-slider"
+                  type="range"
+                  class="nes-progress"
+                  min="0"
+                  max="100"
+                  value="100"
+                />
 
-              <hr />
+                <hr />
 
-              <div class="nes-field">
-                <label for="name_field">tv embed</label>
-                <input type="text" id="youtube-link-input" class="nes-input" />
-                <button
-                  class="nes-btn small-button"
-                  id="submit-youtube-link-button"
-                >
-                  send
-                </button>
+                <div class="nes-field">
+                  <label for="name_field">tv embed</label>
+                  <input
+                    type="text"
+                    id="youtube-link-input"
+                    class="nes-input"
+                  />
+                  <button
+                    class="nes-btn small-button"
+                    id="submit-youtube-link-button"
+                  >
+                    send
+                  </button>
+                </div>
               </div>
             </div>
             <div class="panel" id="interpolation-div">
@@ -179,25 +185,27 @@
             </div>
             <div class="panel" id="bass-div">
               <h3>Bass</h3>
-              <label>volume</label>
-              <input
-                id="bass-volume-slider"
-                type="range"
-                class="nes-progress"
-                min="0"
-                max="100"
-                value="100"
-              />
-              <br />
-              <label>tone</label>
-              <input
-                id="bass-tone-slider"
-                type="range"
-                class="nes-progress"
-                min="0"
-                max="100"
-                value="100"
-              />
+              <div>
+                <label>volume</label>
+                <input
+                  id="bass-volume-slider"
+                  type="range"
+                  class="nes-progress"
+                  min="0"
+                  max="100"
+                  value="100"
+                />
+                <br />
+                <label>tone</label>
+                <input
+                  id="bass-tone-slider"
+                  type="range"
+                  class="nes-progress"
+                  min="0"
+                  max="100"
+                  value="100"
+                />
+              </div>
             </div>
             <div class="panel" id="melody-div">
               <h3>Melody</h3>
@@ -224,34 +232,36 @@
             </div>
             <div class="panel" id="chords-div">
               <h3>Chords</h3>
-              <label>volume</label>
-              <input
-                id="chords-volume-slider"
-                type="range"
-                class="nes-progress"
-                min="0"
-                max="100"
-                value="100"
-              />
-              <br />
-              <label>vibe</label>
-              <select name="chords" id="chords-select">
-                <option value="0">mellow</option>
-                <option value="1">sad</option>
-                <option value="2">basic</option>
-                <!-- <option value="2">warm</option> -->
-                <!-- <option value="3">ninja</option> -->
-              </select>
+              <div>
+                <label>volume</label>
+                <input
+                  id="chords-volume-slider"
+                  type="range"
+                  class="nes-progress"
+                  min="0"
+                  max="100"
+                  value="100"
+                />
+                <br />
+                <label>vibe</label>
+                <select name="chords" id="chords-select">
+                  <option value="0">mellow</option>
+                  <option value="1">sad</option>
+                  <option value="2">basic</option>
+                  <!-- <option value="2">warm</option> -->
+                  <!-- <option value="3">ninja</option> -->
+                </select>
 
-              <br />
+                <br />
 
-              <label>instrument</label>
-              <select name="chords-instrument" id="chords-instrument-select">
-                <option value="0">synths</option>
-                <option value="1">piano</option>
-                <option value="2">acoustic guitar</option>
-                <option value="3">electric guitar</option>
-              </select>
+                <label>instrument</label>
+                <select name="chords-instrument" id="chords-instrument-select">
+                  <option value="0">synths</option>
+                  <option value="1">piano</option>
+                  <option value="2">acoustic guitar</option>
+                  <option value="3">electric guitar</option>
+                </select>
+              </div>
             </div>
 
             <div class="panel" id="background-div">
