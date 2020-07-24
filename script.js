@@ -486,8 +486,6 @@ function addImages() {
     bottom: "60%",
   });
 
-  dragElement(assets.shelfWithBooks);
-
   assets.synthShelf = addImageToCanvasDiv("./assets/shelf-blank-1.png", {
     // class: "large-on-hover",
     width: "12%",
@@ -598,7 +596,7 @@ function addImages() {
     // class: "large-on-hover",
     height: "20%",
     right: "20%",
-    top: "-20%",
+    bottom: "100%",
   });
   assets.cabinetRight.appendChild(assets.clock);
 
@@ -689,15 +687,14 @@ function addImages() {
   for (let i = 0; i < NUM_INSTRUMENTS; i++) {
     const mi = assets.melodyInstruments[i];
     assets.sofa.appendChild(mi);
-
-    mi.addEventListener("click", () => {
+    dragElement(mi, () => {
       switchPanel("melody");
       togglePanel();
     });
 
     const ci = assets.chordsInstruments[i];
     assets.sofa.appendChild(ci);
-    ci.addEventListener("click", () => {
+    dragElement(ci, () => {
       switchPanel("chords");
       togglePanel();
     });
@@ -829,9 +826,7 @@ function addImages() {
     top: "15%",
   });
 
-  dragElement(assets.logo);
-
-  assets.logo.addEventListener("click", () => {
+  dragElement(assets.logo, () => {
     changeChords(chordsIndex + 1);
   });
 
@@ -844,11 +839,12 @@ function addImages() {
     switchPanel("background");
     togglePanel();
   });
-  assets.clock.addEventListener("click", () => {
+
+  dragElement(assets.clock, () => {
     switchPanel("drum");
     togglePanel();
   });
-  assets.shelfWithBooks.addEventListener("click", () => {
+  dragElement(assets.shelfWithBooks, () => {
     switchPanel("master");
     togglePanel();
   });
@@ -1631,18 +1627,19 @@ function removeElement(el) {
   el.parentNode.removeChild(el);
 }
 
-function dragElement(elmnt) {
-  var pos1 = 0,
-    pos2 = 0,
-    pos3 = 0,
-    pos4 = 0;
-  if (document.getElementById(elmnt.id + "header")) {
-    // if present, the header is where you move the DIV from:
-    document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
-  } else {
-    // otherwise, move the DIV from anywhere inside the DIV:
-    elmnt.onmousedown = dragMouseDown;
-  }
+function dragElement(elmnt, onClickCallback) {
+  let pos1 = 0;
+  let pos2 = 0;
+  let pos3 = 0;
+  let pos4 = 0;
+  let dragging = false;
+  elmnt.onmousedown = dragMouseDown;
+  elmnt.addEventListener("click", (e) => {
+    if (!dragging) {
+      onClickCallback(e);
+    }
+    dragging = false;
+  });
 
   function dragMouseDown(e) {
     e = e || window.event;
@@ -1656,6 +1653,7 @@ function dragElement(elmnt) {
   }
 
   function elementDrag(e) {
+    dragging = true;
     e = e || window.event;
     e.preventDefault();
     // calculate the new cursor position:
