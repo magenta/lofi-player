@@ -9,6 +9,7 @@
 
   --input-thumb-size: 10px;
   --border-width: 8px;
+  --bright-green: rgba(127, 246, 102, 1);
 }
 
 * {
@@ -264,6 +265,14 @@ button {
 .large-on-hover-micro:hover {
   /* opacity: 1; */
   transform: scale(1.02);
+}
+
+#clock-text {
+  position: absolute;
+  top: 37%;
+  left: 8%;
+  color: var(--bright-green);
+  font-size: 0.65rem;
 }
 
 /* NES */

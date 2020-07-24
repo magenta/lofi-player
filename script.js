@@ -493,13 +493,6 @@ function addImages() {
     bottom: "60%",
   });
 
-  assets.pianoShelf = addImageToCanvasDiv("./assets/shelf-blank-1.png", {
-    // class: "large-on-hover",
-    width: "12%",
-    right: "10%",
-    bottom: "60%",
-  });
-
   assets.tvStand = addImageToCanvasDiv("./assets/tv-stand.png", {
     width: "20%",
     left: "35%",
@@ -592,19 +585,23 @@ function addImages() {
     group: true,
   });
 
-  assets.clock = addImageToCanvasDiv("./assets/clock.png", {
-    // class: "large-on-hover",
-    height: "20%",
-    right: "20%",
+  assets.time = setClock();
+
+  assets.clock = addImageToCanvasDiv("./assets/clock-3.png", {
+    class: "large-on-hover",
+    width: "78%",
+    right: "10%",
     bottom: "100%",
+    group: true,
   });
+  assets.clock.appendChild(assets.time);
   assets.cabinetRight.appendChild(assets.clock);
 
-  assets.bass = addImageToCanvasDiv("./assets/bass.png", {
+  assets.bass = addImageToCanvasDiv("./assets/bass-wall.png", {
     class: "large-on-hover",
     height: "40%",
     right: "10%",
-    bottom: "2%",
+    top: "10%",
     zIndex: "3",
   });
 
@@ -655,7 +652,7 @@ function addImages() {
       class: "large-on-hover",
       width: "30%",
       right: "52%",
-      bottom: "50%",
+      bottom: "45%",
       zIndex: "3",
       display: "none",
     }),
@@ -663,7 +660,7 @@ function addImages() {
       class: "large-on-hover",
       width: "30%",
       right: "52%",
-      bottom: "50%",
+      bottom: "45%",
       zIndex: "3",
     }),
     addImageToCanvasDiv("./assets/acoustic-guitar.png", {
@@ -830,7 +827,7 @@ function addImages() {
     changeChords(chordsIndex + 1);
   });
 
-  assets.bass.addEventListener("click", () => {
+  dragElement(assets.bass, () => {
     // data.bass.gain.gain.value = data.bass.gain.gain.value > 0.5 ? 0 : 1;
     switchPanel("bass");
     togglePanel();
@@ -1600,6 +1597,34 @@ function modelFormatToToneNotes(data) {
 
 function toFreq(m) {
   return Tone.Frequency(m, "midi");
+}
+
+function setClock() {
+  function checkTime(i) {
+    if (i < 10) {
+      i = "0" + i;
+    }
+    return i;
+  }
+
+  const time = document.createElement("P");
+  time.textContent = "00:00";
+  time.id = "clock-text";
+  assets.timeIntervalID = setInterval(() => {
+    var today = new Date();
+    var h = today.getHours();
+    var m = today.getMinutes();
+    var s = today.getSeconds();
+    // add a zero in front of numbers<10
+    m = checkTime(m);
+    s = checkTime(s);
+    if (time.textContent.includes(":")) {
+      time.textContent = h + " " + m;
+    } else {
+      time.textContent = h + ":" + m;
+    }
+  }, 500);
+  return time;
 }
 
 // https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
