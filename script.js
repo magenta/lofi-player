@@ -1614,14 +1614,14 @@ function setClock() {
     var today = new Date();
     var h = today.getHours();
     var m = today.getMinutes();
-    var s = today.getSeconds();
+    // var s = today.getSeconds();
     // add a zero in front of numbers<10
     m = checkTime(m);
-    s = checkTime(s);
+    h = checkTime(h);
     if (time.textContent.includes(":")) {
-      time.textContent = h + " " + m;
+      time.textContent = `${h} ${m}`;
     } else {
-      time.textContent = h + ":" + m;
+      time.textContent = `${h}:${m}`;
     }
   }, 500);
   return time;
