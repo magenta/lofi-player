@@ -15,6 +15,32 @@
   font-family: "Press Start 2P", cursive;
 }
 
+html {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  font-family: helvetica, arial, sans-serif;
+  max-width: 900px;
+
+  margin: 0 auto 0 auto;
+  background-color: var(--background-color);
+  /* background-color: var(--text-color); */
+
+  position: relative;
+  height: 100%;
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#container {
+  width: 100%;
+}
+
 h3 {
   font-size: 1.2rem;
 }
@@ -40,16 +66,6 @@ input {
 
 iframe {
   pointer-events: none;
-}
-
-body {
-  font-family: helvetica, arial, sans-serif;
-  width: 90%;
-  max-width: 900px;
-
-  margin: 2rem auto 2rem auto;
-  background-color: var(--background-color);
-  /* background-color: var(--text-color); */
 }
 
 #title {
@@ -122,17 +138,17 @@ button {
 
 #canvas-div {
   /* display: none; */
-  margin: 1rem 0 0.5rem 0;
+  /* margin: 1rem 0 0.5rem 0; */
   position: relative;
   width: 100%;
-  max-width: 800px;
+  /* max-width: 800px; */
   /* height: 435px; */
   border: solid var(--text-color) var(--border-width);
   overflow: hidden;
 }
 
 #canvas-overlay {
-  pointer-events: none;
+  /* pointer-events: none; */
   position: absolute;
   background-color: rgba(0, 0, 0, 0.5);
   top: 0;
@@ -140,6 +156,11 @@ button {
   width: 100%;
   height: 100%;
   z-index: 5;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 /* melody panel */
@@ -155,6 +176,7 @@ button {
 
   /* display: flex; */
   display: none;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
 }
@@ -165,12 +187,14 @@ button {
   border: solid var(--text-color) var(--border-width);
   width: 60%;
   height: 80%;
-  overflow: hidden;
+  padding: 1rem;
 
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+
+  overflow: hidden;
 }
 
 #melody-panel-close {
@@ -179,11 +203,11 @@ button {
 }
 
 #melody-panel-right {
-  top: "40%";
+  top: 40%;
   right: 5px;
 }
 #melody-panel-left {
-  top: "40%";
+  top: 40%;
   left: 5px;
 }
 
@@ -202,11 +226,20 @@ button {
   opacity: 1;
 }
 
-#interpolation-div {
+.panel {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  /* align-items: center; */
+  width: 100%;
+  height: 100%;
+  overflow: scroll;
+  padding: 0 10%;
+  /* align-items: center; */
+}
+
+#interpolation-div canvas {
+  width: 100%;
+  height: 30%;
 }
 /* buttons */
 
@@ -274,6 +307,14 @@ input[type="range"]::-ms-thumb {
   cursor: pointer;
 }
 
+#buttons-div {
+  display: none;
+}
+
+footer {
+  text-align: center;
+}
+
 @media only screen and (max-width: 680px) {
   :root {
     --input-thumb-size: 8px;
@@ -288,7 +329,7 @@ input[type="range"]::-ms-thumb {
   }
 
   body {
-    margin: 0.5rem;
+    padding: 0.5rem;
   }
 
   span,
@@ -305,7 +346,7 @@ input[type="range"]::-ms-thumb {
     font-size: 0.7rem;
   }
   #canvas-div {
-    margin: 0.2rem 0 0.1rem 0;
+    /* margin: 0.2rem 0 0.1rem 0; */
   }
 
   #control-div .block {

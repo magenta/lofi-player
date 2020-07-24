@@ -7,6 +7,12 @@ const MODEL_BAR_COUNT = 2;
 const MAIN_CANVAS_PADDING = 0;
 const NUM_INTERPOLATIONS = 5;
 
+const SYNTHS = 0;
+const PIANO = 1;
+const ACOUSTIC_GUITAR = 2;
+const ELETRIC_GUITAR = 3;
+const NUM_INSTRUMENTS = 4;
+
 const controlDiv = document.getElementById("control-div");
 const startButton = document.getElementById("start-button");
 const switchScreenButton = document.getElementById("switch-screen-button");
@@ -61,6 +67,8 @@ const chordsVolumeSlider = document.getElementById("chords-volume-slider");
 const masterReverbSlider = document.getElementById("master-reverb-slider");
 const masterToneSlider = document.getElementById("master-tone-slider");
 
+const controlPanels = document.getElementsByClassName("panel");
+
 const worker = new Worker("worker.js");
 const samplesBaseUrl = "./samples";
 const ac = Tone.context._context;
@@ -74,6 +82,7 @@ let drumMute = false;
 let drumPatternIndex = 0;
 
 const data = {
+  loading: true,
   showPanel: false,
   backgroundSounds: {},
   melody: {
@@ -479,26 +488,13 @@ function addImages() {
 
   dragElement(assets.shelfWithBooks);
 
-  assets.synth = addImageToCanvasDiv("./assets/synth.png", {
-    class: "large-on-hover",
-    right: "25%",
-    width: "12%",
-    bottom: "64.9%",
-    zIndex: "3",
-  });
   assets.synthShelf = addImageToCanvasDiv("./assets/shelf-blank-1.png", {
     // class: "large-on-hover",
     width: "12%",
     right: "25%",
     bottom: "60%",
   });
-  assets.piano = addImageToCanvasDiv("./assets/piano.png", {
-    class: "large-on-hover",
-    right: "10%",
-    width: "12%",
-    bottom: "64.9%",
-    zIndex: "3",
-  });
+
   assets.pianoShelf = addImageToCanvasDiv("./assets/shelf-blank-1.png", {
     // class: "large-on-hover",
     width: "12%",
@@ -559,58 +555,52 @@ function addImages() {
     width: "35%",
     right: "3%",
     zIndex: "2",
-  });
-
-  assets.cabinetLeft = addImageToCanvasDiv("./assets/cabinet-1.png", {
-    height: "35%",
-    right: "30%",
-    bottom: "9%",
-    zIndex: "1",
-  });
-
-  assets.tv = addImageToCanvasDiv("./assets/tv-on.png", {
-    class: "large-on-hover",
-    width: "10%",
-    right: "30%",
-    bottom: "44%",
-    zIndex: "1",
     group: true,
   });
 
-  const ifrm = document.createElement("iframe");
-  ifrm.setAttribute("frameborder", "0");
-  // ifrm.style.position = "absolute";
-  // ifrm.style.bottom = "50.4%";
-  // ifrm.style.right = "31.3%";
-  // ifrm.style.width = "8.1%";
-  // ifrm.style.height = "10.5%";
-  // ifrm.style.zIndex = "2";
-  // canvasDiv.appendChild(ifrm);
+  // assets.cabinetLeft = addImageToCanvasDiv("./assets/cabinet-1.png", {
+  //   height: "35%",
+  //   right: "30%",
+  //   bottom: "9%",
+  //   zIndex: "1",
+  // });
 
-  ifrm.style.position = "absolute";
-  ifrm.style.top = "16.6%";
-  ifrm.style.left = "7.5%";
-  ifrm.style.width = "78%";
-  ifrm.style.height = "51%";
-  ifrm.style.zIndex = "1";
-  assets.tv.appendChild(ifrm);
+  // assets.tv = addImageToCanvasDiv("./assets/tv-on.png", {
+  //   class: "large-on-hover",
+  //   width: "10%",
+  //   right: "30%",
+  //   bottom: "44%",
+  //   zIndex: "1",
+  //   group: true,
+  // });
+
+  const ifrm = document.createElement("iframe");
+  // ifrm.setAttribute("frameborder", "0");
+  // ifrm.style.position = "absolute";
+  // ifrm.style.top = "16.6%";
+  // ifrm.style.left = "7.5%";
+  // ifrm.style.width = "78%";
+  // ifrm.style.height = "51%";
+  // ifrm.style.zIndex = "1";
+  // assets.tv.appendChild(ifrm);
 
   assets.youtube = ifrm;
 
   assets.cabinetRight = addImageToCanvasDiv("./assets/cabinet-2.png", {
-    height: "35%",
-    right: "15%",
+    width: "10%",
+    right: "30%",
     bottom: "9%",
     zIndex: "1",
+    group: true,
   });
 
   assets.clock = addImageToCanvasDiv("./assets/clock.png", {
-    class: "large-on-hover",
-    width: "5%",
-    right: "17%",
-    bottom: "44%",
-    zIndex: "1",
+    // class: "large-on-hover",
+    height: "20%",
+    right: "20%",
+    top: "-20%",
   });
+  assets.cabinetRight.appendChild(assets.clock);
 
   assets.bass = addImageToCanvasDiv("./assets/bass.png", {
     class: "large-on-hover",
@@ -620,21 +610,105 @@ function addImages() {
     zIndex: "3",
   });
 
-  assets.acousticGuitar = addImageToCanvasDiv("./assets/acoustic-guitar.png", {
-    class: "large-on-hover",
-    height: "30%",
-    right: "17%",
-    bottom: "2%",
-    zIndex: "3",
-  });
+  // assets.acousticGuitar = addImageToCanvasDiv("./assets/acoustic-guitar.png", {
+  //   class: "large-on-hover",
+  //   height: "30%",
+  //   right: "17%",
+  //   bottom: "2%",
+  //   zIndex: "3",
+  // });
 
-  assets.electricGuitar = addImageToCanvasDiv("./assets/electric-guitar.png", {
-    class: "large-on-hover",
-    height: "35%",
-    right: "25%",
-    bottom: "2%",
-    zIndex: "3",
-  });
+  assets.chordsInstruments = [
+    addImageToCanvasDiv("./assets/synth.png", {
+      class: "large-on-hover",
+      height: "28%",
+      right: "30%",
+      top: "-28%",
+      zIndex: "2",
+    }),
+    addImageToCanvasDiv("./assets/piano.png", {
+      class: "large-on-hover",
+      height: "28%",
+      right: "30%",
+      top: "-28%",
+      zIndex: "2",
+      display: "none",
+    }),
+    addImageToCanvasDiv("./assets/acoustic-guitar.png", {
+      class: "large-on-hover",
+      height: "120%",
+      left: "40%",
+      bottom: "-10%",
+      zIndex: "3",
+      display: "none",
+    }),
+    addImageToCanvasDiv("./assets/electric-guitar.png", {
+      class: "large-on-hover",
+      height: "130%",
+      left: "40%",
+      bottom: "-10%",
+      zIndex: "3",
+      display: "none",
+    }),
+  ];
+
+  assets.melodyInstruments = [
+    addImageToCanvasDiv("./assets/synth.png", {
+      class: "large-on-hover",
+      width: "30%",
+      right: "52%",
+      bottom: "50%",
+      zIndex: "3",
+      display: "none",
+    }),
+    addImageToCanvasDiv("./assets/piano.png", {
+      class: "large-on-hover",
+      width: "30%",
+      right: "52%",
+      bottom: "50%",
+      zIndex: "3",
+    }),
+    addImageToCanvasDiv("./assets/acoustic-guitar.png", {
+      class: "large-on-hover",
+      height: "120%",
+      left: "15%",
+      bottom: "-10%",
+      zIndex: "3",
+      display: "none",
+    }),
+    addImageToCanvasDiv("./assets/electric-guitar.png", {
+      class: "large-on-hover",
+      height: "130%",
+      left: "15%",
+      bottom: "-10%",
+      zIndex: "3",
+      display: "none",
+    }),
+  ];
+
+  for (let i = 0; i < NUM_INSTRUMENTS; i++) {
+    const mi = assets.melodyInstruments[i];
+    assets.sofa.appendChild(mi);
+
+    mi.addEventListener("click", () => {
+      switchPanel("melody");
+      togglePanel();
+    });
+
+    const ci = assets.chordsInstruments[i];
+    assets.sofa.appendChild(ci);
+    ci.addEventListener("click", () => {
+      switchPanel("chords");
+      togglePanel();
+    });
+  }
+  // assets.electricGuitar = addImageToCanvasDiv("./assets/electric-guitar.png", {
+  //   class: "large-on-hover",
+  //   height: "35%",
+  //   right: "17%",
+  //   bottom: "2%",
+  //   zIndex: "3",
+  // });
 
   assets.lamp.addEventListener("click", () => {
     data.effects.beep.start();
@@ -647,8 +721,9 @@ function addImages() {
   });
 
   assets.tvTable.addEventListener("click", () => {
-    melodyPanelDiv.style.display = "flex";
     data.canvas.moveMelodyCanvasToPanel();
+    switchPanel();
+    togglePanel();
   });
 
   melodyPanelCloseSpan.addEventListener("click", () => {
@@ -727,13 +802,13 @@ function addImages() {
     };
   });
 
-  const ampImg = addImageToCanvasDiv("./assets/amp.png", {
-    class: "large-on-hover",
-    height: "12%",
-    right: "33%",
-    bottom: "3%",
-    zIndex: "3",
-  });
+  // const amp = addImageToCanvasDiv("./assets/amp.png", {
+  //   class: "large-on-hover",
+  //   height: "12%",
+  //   right: "25%",
+  //   bottom: "3%",
+  //   zIndex: "3",
+  // });
 
   assets.window.addEventListener("click", () => {
     if (checkStarted()) {
@@ -747,23 +822,6 @@ function addImages() {
     triggerStart();
   });
 
-  const input = document.createElement("INPUT");
-  input.classList.add("nes-progress");
-  input.style.display = "none";
-  input.style.position = "absolute";
-  input.style.right = `${33 - 6}%`;
-  input.style.bottom = `${3 + 12 + 2}%`;
-  input.style.height = "4%";
-  input.style.width = "15%";
-  input.style.zIndex = "3";
-  input.setAttribute("type", "range");
-
-  input.addEventListener("input", () => {
-    data.melody.changeGain(input.value / 100);
-  });
-  assets.ampSlider = input;
-  canvasDiv.appendChild(input);
-
   assets.logo = addImageToCanvasDiv("./assets/magenta-logo.png", {
     class: "large-on-hover",
     width: "12%",
@@ -773,43 +831,33 @@ function addImages() {
 
   dragElement(assets.logo);
 
-  ampImg.addEventListener("click", () => {
-    if (input.style.display === "none") {
-      input.style.display = "block";
-    } else {
-      input.style.display = "none";
-    }
-  });
-
   assets.logo.addEventListener("click", () => {
     changeChords(chordsIndex + 1);
   });
 
   assets.bass.addEventListener("click", () => {
-    data.bass.gain.gain.value = data.bass.gain.gain.value > 0.5 ? 0 : 1;
+    // data.bass.gain.gain.value = data.bass.gain.gain.value > 0.5 ? 0 : 1;
+    switchPanel("bass");
+    togglePanel();
   });
-  assets.synth.addEventListener("click", () => {
-    changeChordsInstrument(0);
+  assets.cactus.addEventListener("click", () => {
+    switchPanel("background");
+    togglePanel();
   });
-  assets.piano.addEventListener("click", () => {
-    changeChordsInstrument(1);
+  assets.clock.addEventListener("click", () => {
+    switchPanel("drum");
+    togglePanel();
   });
-  assets.acousticGuitar.addEventListener("click", () => {
-    changeChordsInstrument(2);
+  assets.shelfWithBooks.addEventListener("click", () => {
+    switchPanel("master");
+    togglePanel();
   });
-
-  assets.electricGuitar.addEventListener("click", () => {
-    changeChordsInstrument(3);
-  });
-
-  assets.tv.addEventListener("click", () => {
-    if (assets.youtube.style.display === "block") {
-      assets.youtube.style.display = "none";
-    } else {
-      assets.youtube.style.display = "block";
-    }
-  });
-
+  // assets.piano.addEventListener("click", () => {
+  //   changeChordsInstrument(1);
+  // });
+  // assets.acousticGuitar.addEventListener("click", () => {
+  //   changeChordsInstrument(2);
+  // });
   data.backgroundSounds.switch = function (index) {
     backgroundSounds.get(backgroundSoundsNames[backgroundSoundsIndex]).stop();
     backgroundSoundsIndex = index;
@@ -825,6 +873,27 @@ function addImages() {
       }
     }
   };
+
+  switchPanel();
+}
+
+function togglePanel() {
+  if (melodyPanelDiv.style.display === "flex") {
+    melodyPanelDiv.style.display = "none";
+  } else {
+    melodyPanelDiv.style.display = "flex";
+  }
+}
+
+function switchPanel(name = "interpolation") {
+  for (let i = 0; i < controlPanels.length; i++) {
+    const el = controlPanels[i];
+    if (el.id === `${name}-div`) {
+      el.style.display = "flex";
+    } else {
+      el.style.display = "none";
+    }
+  }
 }
 
 function addImageToCanvasDiv(src, params) {
@@ -862,6 +931,12 @@ function addImageToCanvasDiv(src, params) {
     img.style.bottom = params.bottom ? params.bottom : "5%";
   } else {
     img.style.top = params.top;
+  }
+
+  if (!params.display) {
+    img.style.display = "block";
+  } else {
+    img.style.display = params.display;
   }
 
   img.style.zIndex = params.zIndex ? params.zIndex : "0";
@@ -1086,7 +1161,7 @@ function seqCallback(time, b) {
           toggleDrumMute(true);
 
           // transition
-          data.master.lpf.frequency.linearRampTo(200, 1.5, time);
+          data.master.lpf.frequency.linearRampTo(200, 0.5, time);
         }
       }
     }
@@ -1123,7 +1198,9 @@ async function loadMidiFiles() {
 
 function checkFinishLoading() {
   loadEventsCounts += 1;
-  if (loadEventsCounts === LOAD_EVENTS_COUNTS_THRESHOLD) {
+  console.log(`[${loadEventsCounts}/${LOAD_EVENTS_COUNTS_THRESHOLD}]`);
+  if (data.loading && loadEventsCounts >= LOAD_EVENTS_COUNTS_THRESHOLD) {
+    data.loading = false;
     console.log("Finish loading!");
     onFinishLoading();
   }
@@ -1141,7 +1218,7 @@ function triggerStart() {
     startButton.textContent = "start";
     assets.window.src = "./assets/window-1.png";
     assets.light.src = "./assets/light-off.png";
-    canvasOverlay.style.display = "block";
+    canvasOverlay.style.display = "flex";
   } else {
     // start
     Tone.Transport.start();
@@ -1309,7 +1386,7 @@ function onFinishLoading() {
   };
 
   // start youtube video
-  assets.youtube.src = getYoutubeEmbedUrlFromId();
+  // assets.youtube.src = getYoutubeEmbedUrlFromId();
 }
 
 function onTransportStart() {
@@ -1417,10 +1494,26 @@ function sendInterpolationMessage() {
 }
 
 function changeChordsInstrument(index) {
+  for (let j = 0; j < NUM_INSTRUMENTS; j++) {
+    if (j === parseInt(index)) {
+      assets.chordsInstruments[j].style.display = "block";
+    } else {
+      assets.chordsInstruments[j].style.display = "none";
+    }
+  }
+
   chordsInstrumentIndex = index;
 }
 
 function changeMelodyInstrument(index) {
+  for (let j = 0; j < NUM_INSTRUMENTS; j++) {
+    if (j === parseInt(index)) {
+      assets.melodyInstruments[j].style.display = "block";
+    } else {
+      assets.melodyInstruments[j].style.display = "none";
+    }
+  }
+
   melodyInstrumentSelect.value = index;
   data.melody.instrumentIndex = index;
   data.melody.instrument = chordsInstruments[index];
