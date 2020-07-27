@@ -66,6 +66,7 @@ const melodyVolumeSlider = document.getElementById("melody-volume-slider");
 const chordsVolumeSlider = document.getElementById("chords-volume-slider");
 const masterReverbSlider = document.getElementById("master-reverb-slider");
 const masterToneSlider = document.getElementById("master-tone-slider");
+const masterVolumeSlider = document.getElementById("master-volume-slider");
 
 const controlPanels = document.getElementsByClassName("panel");
 
@@ -127,6 +128,7 @@ const data = {
       decay: 1.0,
       preDelay: 0.01,
     }),
+    gain: new Tone.Gain(1),
   },
 };
 let backgroundSounds = [];
@@ -176,7 +178,8 @@ function initSounds() {
   Tone.Master.chain(
     data.master.masterCompressor,
     data.master.reverb,
-    data.master.lpf
+    data.master.lpf,
+    data.master.gain
   );
   data.master.reverb.generate().then(() => {
     console.log("master reverb ready");
@@ -459,25 +462,30 @@ function addImages() {
 
   assets.desk = addImageToCanvasDiv("./assets/desk.png", {
     // width: "22%",
-    height: "25%",
-    left: "0%",
+    width: "21%",
+    left: "1%",
+    group: true,
   });
-
-  // addImageToCanvasDiv("./assets/synth.png", {
-  //   left: "2%",
-  //   width: "13%",
-  //   bottom: "30%",
-  //   zIndex: "3",
-  // });
 
   assets.lamp = addImageToCanvasDiv("./assets/lamp-on.png", {
     class: "large-on-hover",
-    width: "5%",
-    left: "5%",
-    bottom: "30%",
+    width: "20%",
+    left: "20%",
+    bottom: "100%",
     zIndex: "4",
   });
+  assets.desk.appendChild(assets.lamp);
   assets.lampOn = true;
+
+  assets.pens = addImageToCanvasDiv("./assets/pens.png", {
+    class: "large-on-hover",
+    width: "12%",
+    right: "40%",
+    bottom: "100%",
+    zIndex: "4",
+  });
+
+  assets.desk.appendChild(assets.pens);
 
   assets.shelfWithBooks = addImageToCanvasDiv("./assets/shelf.png", {
     class: "large-on-hover",
@@ -486,12 +494,27 @@ function addImages() {
     bottom: "60%",
   });
 
-  assets.synthShelf = addImageToCanvasDiv("./assets/shelf-blank-1.png", {
-    // class: "large-on-hover",
+  assets.shelf = addImageToCanvasDiv("./assets/shelf-blank-1.png", {
     width: "12%",
     right: "25%",
-    bottom: "60%",
+    top: "30%",
+    group: true,
   });
+  assets.plant = addImageToCanvasDiv("./assets/plant-2.png", {
+    width: "60%",
+    right: "-10%",
+    top: "-280%",
+    zIndex: "4",
+  });
+  assets.secondPlant = addImageToCanvasDiv("./assets/plant-1.png", {
+    width: "45%",
+    left: "-10%",
+    top: "-175%",
+    zIndex: "4",
+  });
+  assets.shelf.appendChild(assets.plant);
+  assets.shelf.appendChild(assets.secondPlant);
+  dragElement(assets.shelf);
 
   assets.tvStand = addImageToCanvasDiv("./assets/tv-stand.png", {
     width: "20%",
@@ -591,7 +614,8 @@ function addImages() {
     class: "large-on-hover",
     width: "78%",
     right: "10%",
-    bottom: "100%",
+    top: "-21%",
+    // bottom: "100%",
     group: true,
   });
   assets.clock.appendChild(assets.time);
@@ -841,7 +865,8 @@ function addImages() {
     switchPanel("drum");
     togglePanel();
   });
-  dragElement(assets.shelfWithBooks, () => {
+  dragElement(assets.shelfWithBooks);
+  dragElement(assets.pens, () => {
     switchPanel("master");
     togglePanel();
   });
@@ -896,7 +921,10 @@ function addImageToCanvasDiv(src, params) {
   if (params.group) {
     const div = document.createElement("DIV");
     div.style.position = "absolute";
+
     img.style.width = "100%";
+    img.style.top = "0";
+    img.style.left = "0";
     div.appendChild(img);
     img = div;
   } else {
@@ -910,6 +938,7 @@ function addImageToCanvasDiv(src, params) {
 
   if (!params.height) {
     img.style.width = params.width ? params.width : "25%";
+    img.style.height = "auto";
   } else {
     img.style.height = params.height;
   }
@@ -1349,6 +1378,11 @@ function onFinishLoading() {
     data.master.lpf.frequency.value = frq;
   });
 
+  masterVolumeSlider.addEventListener("input", () => {
+    const vol = masterVolumeSlider.value / 100;
+    data.master.gain.gain.value = vol;
+  });
+
   window.addEventListener("resize", () => {
     const canvas = data.canvas.canvas;
     canvasDiv.style.height = `${backgroundImage.clientWidth * (435 / 885)}px`;
@@ -1359,9 +1393,17 @@ function onFinishLoading() {
 
   window.addEventListener("keydown", (e) => {
     // TAB
-    if (e.keyCode === 9) {
+    const callbacks = {
+      9: () => {
+        switchCallback();
+      },
+      32: () => {
+        triggerStart();
+      },
+    };
+    if (callbacks[e.keyCode]) {
       e.preventDefault();
-      switchCallback();
+      callbacks[e.keyCode]();
     }
   });
 

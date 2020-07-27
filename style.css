@@ -269,10 +269,13 @@ button {
 
 #clock-text {
   position: absolute;
-  top: 37%;
-  left: 8%;
+  top: 0;
+  left: 0;
+  padding: 0.7rem 0 0 0.3rem;
   color: var(--bright-green);
-  font-size: 0.65rem;
+  width: 100%;
+  font-size: 0.6rem;
+  /* font-size: auto; */
 }
 
 /* NES */
@@ -372,5 +375,9 @@ footer {
     width: auto;
     height: 8px;
     color: var(--text-color);
+  }
+
+  #clock-text {
+    font-size: 0.3rem;
   }
 }
