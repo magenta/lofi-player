@@ -27,6 +27,7 @@ body {
 
   margin: 0 auto 0 auto;
   background-color: var(--background-color);
+  /* background-image: url("./assets/bg-1.png"); */
   /* background-color: var(--text-color); */
 
   position: relative;

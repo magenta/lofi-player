@@ -508,7 +508,7 @@ function addImages() {
   });
   assets.secondPlant = addImageToCanvasDiv("./assets/plant-1.png", {
     width: "45%",
-    left: "-10%",
+    left: "20%",
     top: "-175%",
     zIndex: "4",
   });
