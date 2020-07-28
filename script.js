@@ -1734,14 +1734,14 @@ function removeElement(el) {
   el.parentNode.removeChild(el);
 }
 
-function dragElement(elmnt, onClickCallback = () => {}, params = {}) {
+function dragElement(el, onClickCallback = () => {}, params = {}) {
   let pos1 = 0;
   let pos2 = 0;
   let pos3 = 0;
   let pos4 = 0;
   let dragging = false;
-  elmnt.onmousedown = dragMouseDown;
-  elmnt.addEventListener("click", (e) => {
+  el.onmousedown = dragMouseDown;
+  el.addEventListener("click", (e) => {
     if (!dragging) {
       onClickCallback(e);
     }
@@ -1772,8 +1772,11 @@ function dragElement(elmnt, onClickCallback = () => {}, params = {}) {
     pos3 = e.clientX;
     pos4 = e.clientY;
     // set the element's new position:
-    elmnt.style.top = elmnt.offsetTop - pos2 + "px";
-    elmnt.style.left = elmnt.offsetLeft - pos1 + "px";
+
+    const w = el.parentElement.clientWidth;
+    const h = el.parentElement.clientHeight;
+    el.style.top = `${((el.offsetTop - pos2) / h) * 100}%`;
+    el.style.left = `${((el.offsetLeft - pos1) / w) * 100}%`;
   }
 
   function closeDragElement() {
