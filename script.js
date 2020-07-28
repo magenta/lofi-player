@@ -393,8 +393,15 @@ function addImages() {
     width: "8%",
     left: "50%",
     top: "-2%",
-    zIndex: "1",
+    zIndex: "2",
   });
+  dragElement(
+    assets.light,
+    () => {
+      triggerStart();
+    },
+    { horizontal: true }
+  );
 
   assets.window = addImageToCanvasDiv("./assets/window-1.png", {
     class: "large-on-hover-micro",
@@ -458,10 +465,9 @@ function addImages() {
     left: "10%",
   });
 
-  dragElement(assets.chair);
+  dragElement(assets.chair, undefined, { horizontal: true });
 
   assets.desk = addImageToCanvasDiv("./assets/desk.png", {
-    // width: "22%",
     width: "21%",
     left: "1%",
     group: true,
@@ -482,10 +488,11 @@ function addImages() {
     width: "12%",
     right: "40%",
     bottom: "100%",
-    zIndex: "4",
+    zIndex: "1",
   });
 
   assets.desk.appendChild(assets.pens);
+  dragElement(assets.desk, undefined, { horizontal: true });
 
   assets.shelfWithBooks = addImageToCanvasDiv("./assets/shelf.png", {
     class: "large-on-hover",
@@ -493,28 +500,32 @@ function addImages() {
     left: "3%",
     bottom: "60%",
   });
-
-  assets.shelf = addImageToCanvasDiv("./assets/shelf-blank-1.png", {
+  assets.shelf = addImageToCanvasDiv("./assets/shelf-blank-2.png", {
+    class: "large-on-hover",
     width: "12%",
-    right: "25%",
+    right: "20%",
     top: "30%",
+    zIndex: "1",
     group: true,
   });
   assets.plant = addImageToCanvasDiv("./assets/plant-2.png", {
     width: "60%",
     right: "-10%",
-    top: "-280%",
+    bottom: "100%",
     zIndex: "4",
   });
   assets.secondPlant = addImageToCanvasDiv("./assets/plant-1.png", {
     width: "45%",
     left: "20%",
-    top: "-175%",
+    bottom: "100%",
     zIndex: "4",
   });
+
   assets.shelf.appendChild(assets.plant);
   assets.shelf.appendChild(assets.secondPlant);
-  dragElement(assets.shelf);
+  // dragElement(assets.plant);
+  // dragElement(assets.secondPlant);
+  dragElement(assets.shelf, () => {});
 
   assets.tvStand = addImageToCanvasDiv("./assets/tv-stand.png", {
     width: "20%",
@@ -544,7 +555,7 @@ function addImages() {
   radioSlider.style.display = "block";
   radioSlider.style.position = "absolute";
   radioSlider.style.left = "0%";
-  radioSlider.style.bottom = "36%";
+  radioSlider.style.top = "16%";
   radioSlider.style.height = "5%";
   radioSlider.style.width = "80%";
   radioSlider.style.opacity = 1.0;
@@ -564,6 +575,7 @@ function addImages() {
   assets.tvStand.append(assets.tvTable);
   assets.tvStand.append(assets.radio);
   assets.tvStand.append(radioSlider);
+  dragElement(assets.tvStand, undefined, { horizontal: true });
 
   assets.sofa = addImageToCanvasDiv("./assets/sofa-1.png", {
     width: "35%",
@@ -571,6 +583,7 @@ function addImages() {
     zIndex: "2",
     group: true,
   });
+  dragElement(assets.sofa, undefined, { horizontal: true });
 
   // assets.cabinetLeft = addImageToCanvasDiv("./assets/cabinet-1.png", {
   //   height: "35%",
@@ -607,6 +620,7 @@ function addImages() {
     zIndex: "1",
     group: true,
   });
+  dragElement(assets.cabinetRight, undefined, { horizontal: true });
 
   assets.time = setClock();
 
@@ -626,7 +640,7 @@ function addImages() {
     height: "40%",
     right: "10%",
     top: "10%",
-    zIndex: "3",
+    zIndex: "0",
   });
 
   // assets.acousticGuitar = addImageToCanvasDiv("./assets/acoustic-guitar.png", {
@@ -836,9 +850,6 @@ function addImages() {
       triggerStart();
     }
   });
-  assets.light.addEventListener("click", () => {
-    triggerStart();
-  });
 
   assets.logo = addImageToCanvasDiv("./assets/magenta-logo.png", {
     class: "large-on-hover",
@@ -925,6 +936,7 @@ function addImageToCanvasDiv(src, params) {
     img.style.width = "100%";
     img.style.top = "0";
     img.style.left = "0";
+    img.style.margin = "0";
     div.appendChild(img);
     img = div;
   } else {
@@ -941,6 +953,7 @@ function addImageToCanvasDiv(src, params) {
     img.style.height = "auto";
   } else {
     img.style.height = params.height;
+    img.style.width = "auto";
   }
 
   if (!params.right) {
@@ -1694,7 +1707,7 @@ function removeElement(el) {
   el.parentNode.removeChild(el);
 }
 
-function dragElement(elmnt, onClickCallback) {
+function dragElement(elmnt, onClickCallback = () => {}, params = {}) {
   let pos1 = 0;
   let pos2 = 0;
   let pos3 = 0;
@@ -1711,6 +1724,7 @@ function dragElement(elmnt, onClickCallback) {
   function dragMouseDown(e) {
     e = e || window.event;
     e.preventDefault();
+    e.stopPropagation();
     // get the mouse cursor position at startup:
     pos3 = e.clientX;
     pos4 = e.clientY;
@@ -1725,7 +1739,9 @@ function dragElement(elmnt, onClickCallback) {
     e.preventDefault();
     // calculate the new cursor position:
     pos1 = pos3 - e.clientX;
-    pos2 = pos4 - e.clientY;
+    if (!params.horizontal) {
+      pos2 = pos4 - e.clientY;
+    }
     pos3 = e.clientX;
     pos4 = e.clientY;
     // set the element's new position:
