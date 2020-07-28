@@ -329,6 +329,17 @@ function initModel() {
       // console.log("interpolationToneNotes", data.melody.interpolationToneNotes);
       melodyInteractionDivs[0].classList.remove("disabledbutton");
     }
+    if (e.data.msg === "continue") {
+      let { id, result } = e.data;
+      result.notes = filterNotesInScaleSingle(result.notes);
+      result.notes = result.notes.map((note) => {
+        note.pitch += 24;
+        return note;
+      });
+      const notes = modelFormatToToneNotes(result);
+      sendInterpolationMessage(result);
+      changeMelody(notes);
+    }
   };
 }
 
@@ -525,7 +536,9 @@ function addImages() {
   assets.shelf.appendChild(assets.secondPlant);
   // dragElement(assets.plant);
   // dragElement(assets.secondPlant);
-  dragElement(assets.shelf, () => {});
+  dragElement(assets.shelf, () => {
+    sendContinueMessage();
+  });
 
   assets.tvStand = addImageToCanvasDiv("./assets/tv-stand.png", {
     width: "20%",
@@ -1520,15 +1533,16 @@ function changeInterpolationIndex(index) {
   secondInterpolationSlider.value = index;
 }
 
-function sendInterpolationMessage() {
+function sendInterpolationMessage(m1, m2) {
   data.melody.waitingInterpolation = true;
   melodyInteractionDivs[0].classList.add("disabledbutton");
 
   // console.log(`interpolate ${melodyIndex} ${secondMelodyIndex}`);
   const firstMelody = melodyMidis[melodyIndex];
+  const left = m1 ? m1 : midiToModelFormat(firstMelody);
+
   const secondMelody = melodyMidis[secondMelodyIndex];
-  const left = midiToModelFormat(firstMelody);
-  const right = midiToModelFormat(secondMelody);
+  const right = m2 ? m2 : midiToModelFormat(secondMelody);
 
   data.melody.interpolationData[0] = left;
   data.melody.interpolationData[NUM_INTERPOLATIONS - 1] = right;
@@ -1538,6 +1552,13 @@ function sendInterpolationMessage() {
     msg: "interpolate",
     left,
     right,
+  });
+}
+
+function sendContinueMessage() {
+  worker.postMessage({
+    id: 0,
+    msg: "continue",
   });
 }
 
@@ -1700,6 +1721,12 @@ function filterNotesInScale(data) {
       return [0, 2, 4, 5, 7, 9, 11].includes(p);
     });
     return d;
+  });
+}
+function filterNotesInScaleSingle(notes) {
+  return notes.filter(({ pitch }) => {
+    const p = pitch % 12;
+    return [0, 2, 4, 5, 7, 9, 11].includes(p);
   });
 }
 
