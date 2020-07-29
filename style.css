@@ -375,9 +375,6 @@ footer {
   button {
     font-size: 0.7rem;
   }
-  #canvas-div {
-    /* margin: 0.2rem 0 0.1rem 0; */
-  }
 
   #control-div .block {
     margin: 5px 8px 5px 0;
