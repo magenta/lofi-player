@@ -324,6 +324,23 @@ input[type="range"]::-ms-thumb {
   display: none;
 }
 
+#board-input {
+  position: absolute;
+  top: 6%;
+  left: 5%;
+  width: 89%;
+  height: 83%;
+  font-size: 0.5rem;
+  color: white;
+  resize: none;
+  border: none;
+  background-color: transparent;
+}
+
+#board-input:focus {
+  outline: none;
+}
+
 footer {
   text-align: center;
 }

@@ -458,7 +458,7 @@ function addImages() {
   });
 
   assets.avatar = addImageToCanvasDiv(notDrinkingUrl, {
-    class: "large-on-hover",
+    class: "large-on-hover-micro",
     height: "55%",
     left: "20%",
     zIndex: "4",
@@ -511,26 +511,53 @@ function addImages() {
     left: "3%",
     bottom: "60%",
   });
+
+  assets.board = addImageToCanvasDiv("./assets/board.png", {
+    class: "large-on-hover",
+    width: "12%",
+    right: "20%",
+    top: "34%",
+    zIndex: "1",
+    group: true,
+  });
+  const textInput = document.createElement("textarea");
+  textInput.id = "board-input";
+  textInput.value = "Try play with the cat...";
+  textInput.spellcheck = false;
+  assets.textInput = textInput;
+  assets.board.appendChild(textInput);
+  textInput.addEventListener("mousedown", (e) => {
+    e.stopPropagation();
+  });
+  dragElement(assets.board);
+
   assets.shelf = addImageToCanvasDiv("./assets/shelf-blank-2.png", {
     class: "large-on-hover",
     width: "12%",
     right: "20%",
-    top: "30%",
+    top: "22%",
     zIndex: "1",
     group: true,
   });
-  assets.plant = addImageToCanvasDiv("./assets/plant-2.png", {
+  assets.plant = addImageToCanvasDiv("./assets/vine-2.png", {
+    width: "40%",
+    right: "10%",
+    bottom: "45%",
+    zIndex: "4",
+  });
+  assets.secondPlant = addImageToCanvasDiv("./assets/vine-4.png", {
     width: "60%",
-    right: "-10%",
-    bottom: "100%",
+    left: "0%",
+    bottom: "15%",
     zIndex: "4",
   });
-  assets.secondPlant = addImageToCanvasDiv("./assets/plant-1.png", {
-    width: "45%",
-    left: "20%",
-    bottom: "100%",
-    zIndex: "4",
-  });
+
+  // assets.secondPlant = addImageToCanvasDiv("./assets/plant-1.png", {
+  //   width: "45%",
+  //   left: "0%",
+  //   bottom: "100%",
+  //   zIndex: "4",
+  // });
 
   assets.shelf.appendChild(assets.plant);
   assets.shelf.appendChild(assets.secondPlant);
@@ -1418,21 +1445,20 @@ function onFinishLoading() {
     canvas.height = canvasDiv.clientHeight;
   });
 
-  window.addEventListener("keydown", (e) => {
-    // TAB
-    const callbacks = {
-      9: () => {
-        switchCallback();
-      },
-      32: () => {
-        triggerStart();
-      },
-    };
-    if (callbacks[e.keyCode]) {
-      e.preventDefault();
-      callbacks[e.keyCode]();
-    }
-  });
+  // window.addEventListener("keydown", (e) => {
+  //   const callbacks = {
+  //     9: () => {
+  //       switchCallback();
+  //     },
+  //     32: () => {
+  //       triggerStart();
+  //     },
+  //   };
+  //   if (callbacks[e.keyCode]) {
+  //     e.preventDefault();
+  //     callbacks[e.keyCode]();
+  //   }
+  // });
 
   // show canvas
   data.canvas.moveMelodyCanvasToRoom();
