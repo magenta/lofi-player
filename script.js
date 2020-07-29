@@ -818,7 +818,7 @@ function addImages() {
     toggleDrumMute();
   });
 
-  assets.cat.addEventListener("click", () => {
+  assets.catCallback = function () {
     assets.cat.style.display = "none";
     assets.catIndex = (assets.catIndex + 1) % catsUrls.length;
     assets.cat.src = catsUrls[assets.catIndex];
@@ -869,7 +869,8 @@ function addImages() {
     assets.cat.onload = () => {
       assets.cat.style.display = "block";
     };
-  });
+  };
+  assets.cat.addEventListener("click", assets.catCallback);
 
   // const amp = addImageToCanvasDiv("./assets/amp.png", {
   //   class: "large-on-hover",
@@ -1810,5 +1811,78 @@ function dragElement(el, onClickCallback = () => {}, params = {}) {
     // stop moving when mouse button is released:
     document.onmouseup = null;
     document.onmousemove = null;
+  }
+}
+
+// youtube
+const API = "https://lofi-player.glitch.me/comments";
+const API_KEY_NYU = "AIzaSyA8xd1IFBj6F0XtdzdOkCYXHq-U85jk7kU";
+const API_KEY_PRESONAL = "AIzaSyAeSDpo6Ch50ZdS_UYKbpb2uY7iCq2HZb0";
+const API_KEY = API_KEY_NYU;
+const CHANNEL_ID = "UCizuHuCAHmpTa6EFeZS2Hqg";
+const LIVE_ID = "OsLbspnRtz0";
+const CHAT_ID =
+  "EiEKGFVDaXp1SHVDQUhtcFRhNkVGZVpTMkhxZxIFL2xpdmUqJwoYVUNpenVIdUNBSG1wVGE2RUZlWlMySHFnEgtPc0xic3BuUnR6MA";
+const YOUTUBE_GET_CHAT_API =
+  "https://www.googleapis.com/youtube/v3/videos" +
+  "?part=liveStreamingDetails" +
+  `&id=${LIVE_ID}` +
+  `&key=${API_KEY}`;
+
+const YOUTUBE_CHAT_API =
+  "https://www.googleapis.com/youtube/v3/liveChat/messages" +
+  `?liveChatId=${CHAT_ID}` +
+  "&part=id,snippet,authorDetails" +
+  "&maxResults=2000" +
+  `&key=${API_KEY}`;
+
+let lastReadTime = 0;
+let time = Date.now();
+let interval = setInterval(() => {
+  fetchData();
+}, 10000);
+
+async function fetchData() {
+  try {
+    let res = await fetch(YOUTUBE_CHAT_API);
+    const data = await res.json();
+    console.log("[youtube] comments fetched!");
+    // console.log("response", data);
+
+    for (const item of data.items) {
+      time = new Date(item.snippet.publishedAt).getTime();
+      if (lastReadTime < time) {
+        lastReadTime = time;
+        const msg = item.snippet.displayMessage;
+        console.log(`[new comment]: ${msg}`);
+        handleMessage(msg);
+      }
+    }
+  } catch (err) {
+    alert(err);
+  }
+}
+
+function handleMessage(msg) {
+  const callbacks = {
+    start: () => {
+      triggerStart();
+    },
+    "turn on the light": () => {
+      triggerStart();
+    },
+    "turn off the light": () => {
+      triggerStart();
+    },
+    "click the window": () => {
+      const n = backgroundSoundsNames.length;
+      data.backgroundSounds.switch((backgroundSoundsIndex + 1) % n);
+    },
+    "click the cat": () => {
+      assets.catCallback();
+    },
+  };
+  if (callbacks[msg]) {
+    callbacks[msg]();
   }
 }
