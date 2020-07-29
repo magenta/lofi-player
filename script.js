@@ -571,11 +571,8 @@ function addImages() {
   radioSlider.style.top = "16%";
   radioSlider.style.height = "5%";
   radioSlider.style.width = "80%";
+  radioSlider.style.zIndex = "1";
   radioSlider.style.opacity = 1.0;
-  radioSlider.setAttribute("type", "range");
-  radioSlider.addEventListener("input", () => {
-    data.melody.changeGain(input.value / 100);
-  });
 
   assets.radio.addEventListener("click", () => {
     if (radioSlider.style.display === "none") {
@@ -1347,12 +1344,16 @@ function onFinishLoading() {
   //   melodyInteractionDivs[1 - mode].style.display = "none";
   // });
 
-  interpolationSlider.addEventListener("change", () => {
+  interpolationSlider.addEventListener("change", (e) => {
+    e.stopPropagation();
     const index = Math.floor(interpolationSlider.value);
     changeInterpolationIndex(index);
   });
 
-  secondInterpolationSlider.addEventListener("change", () => {
+  secondInterpolationSlider.addEventListener("mousedown", (e) => {
+    e.stopPropagation();
+  });
+  secondInterpolationSlider.addEventListener("change", (e) => {
     const index = Math.floor(secondInterpolationSlider.value);
     changeInterpolationIndex(index);
   });
