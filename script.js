@@ -13,8 +13,10 @@ const ACOUSTIC_GUITAR = 2;
 const ELETRIC_GUITAR = 3;
 const NUM_INSTRUMENTS = 4;
 
+const warningOverlay = document.getElementById("warning-overlay");
 const controlDiv = document.getElementById("control-div");
 const startButton = document.getElementById("start-button");
+const whateverButton = document.getElementById("whatever-button");
 const switchScreenButton = document.getElementById("switch-screen-button");
 const checkTimeButton = document.getElementById("check-time-button");
 const checkTimeText = document.getElementById("check-time-text");
@@ -173,6 +175,10 @@ initModel();
 loadMidiFiles();
 initSounds();
 initCanvas();
+
+function onClickWhatever() {
+  warningOverlay.style.display = "none";
+}
 
 function initSounds() {
   Tone.Transport.bpm.value = data.master.bpm;
@@ -1290,6 +1296,11 @@ function checkFinishLoading() {
     data.loading = false;
     console.log("Finish loading!");
     onFinishLoading();
+  } else if (data.loading) {
+    const percentage = Math.floor(
+      (loadEventsCounts / LOAD_EVENTS_COUNTS_THRESHOLD) * 100
+    );
+    startButton.textContent = `loading...${percentage}/100%`;
   }
 }
 

@@ -270,11 +270,15 @@ button {
 
 #clock-text {
   position: absolute;
-  top: 0;
+  top: 10%;
   left: 0;
-  padding: 0.7rem 0 0 0.3rem;
+  /* padding: 0.7rem 0 0 0.3rem; */
   color: var(--bright-green);
-  width: 100%;
+  width: 90%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   font-size: 0.6rem;
   /* font-size: auto; */
 }
@@ -287,6 +291,10 @@ button {
   width: auto;
   height: 15px;
   color: var(--text-color);
+}
+
+#warning-overlay {
+  display: none;
 }
 
 /* range input */
@@ -356,7 +364,7 @@ footer {
   text-align: center;
 }
 
-@media only screen and (max-width: 680px) {
+@media only screen and (max-width: 720px) {
   :root {
     --input-thumb-size: 8px;
     --border-width: 5px;
@@ -383,9 +391,6 @@ footer {
   h3 {
     font-size: 0.7rem;
   }
-  button {
-    font-size: 0.7rem;
-  }
 
   #control-div .block {
     margin: 5px 8px 5px 0;
@@ -405,5 +410,37 @@ footer {
 
   #clock-text {
     font-size: 0.3rem;
+  }
+  #board-input {
+    font-size: 0.2rem;
+  }
+
+  #warning-overlay {
+    display: grid;
+    place-items: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 6;
+  }
+  #warning-div {
+    width: 90%;
+    max-width: 500px;
+  }
+  #warning-div p {
+    text-align: center;
+    font-size: 0.8rem;
+  }
+  #warning-div div {
+    padding: 0;
+    margin-top: 2rem;
+    text-align: center;
+  }
+  button {
+    margin: 0;
+    font-size: 0.6rem;
   }
 }

@@ -66,6 +66,34 @@
         <button id="switch-screen-button" class="nes-btn">music</button>
       </div>
 
+      <div id="warning-overlay">
+        <div id="warning-div" class="nes-balloon from-left">
+          <p>
+            Your screen is too small for the optimal experience. It's
+            recommended to play on desktop with window wider than 700px. Watch
+            the shared player on youtube stream where you can play with others
+            together.
+          </p>
+          <div>
+            <a
+              href="https://www.youtube.com/watch?v=Ncukf00ZYu8"
+              target="_blank"
+            >
+              <button id="youtube-button" class="nes-btn is-error">
+                youtube live
+              </button>
+            </a>
+            <button
+              id="whatever-button"
+              class="nes-btn"
+              onclick="onClickWhatever()"
+            >
+              whatever
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div id="canvas-div">
         <img src="./assets/rooom-0.png" alt="room" id="background-image" />
         <canvas id="main-canvas"> </canvas>
