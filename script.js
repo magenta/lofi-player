@@ -90,12 +90,13 @@ const data = {
   melody: {
     gain: 1,
     swing: 0,
-    midis: [],
     changeGain: (v) => {
       data.melody.gain = v;
     },
     instrumentIndex: 1,
     waitingInterpolation: true,
+    midis: [],
+    toneNotes: [],
     interpolationToneNotes: [],
     interpolationData: [],
     interpolationIndex: 0,
@@ -320,12 +321,11 @@ function initModel() {
       // data.melody.interpolationData = result;
 
       data.melody.interpolationToneNotes = result.map(modelFormatToToneNotes);
-      data.melody.interpolationToneNotes[0] = midiToToneNotes(
-        data.melody.midis[melodyIndex]
-      );
+      data.melody.interpolationToneNotes[0] =
+        data.melody.toneNotes[melodyIndex];
       data.melody.interpolationToneNotes[
         data.melody.interpolationToneNotes.length - 1
-      ] = midiToToneNotes(data.melody.midis[secondMelodyIndex]);
+      ] = data.melody.toneNotes[secondMelodyIndex];
 
       data.melody.waitingInterpolation = false;
 
@@ -341,8 +341,12 @@ function initModel() {
         return note;
       });
       const notes = modelFormatToToneNotes(result);
-      sendInterpolationMessage(result);
-      changeMelody(notes);
+      const n = data.melody.toneNotes.length;
+      data.melody.toneNotes[n - 1] = notes; // update toneNotes
+      changeMelody(notes); // change played melody part
+      melodyIndex = n - 1; // change index
+      firstMelodySelect.value = n - 1; // change ui index
+      sendInterpolationMessage(result); // update interpolation
     }
   };
 }
@@ -1256,6 +1260,8 @@ async function loadMidiFiles() {
     Midi.fromUrl("./midi/IV_IV_I_I/melody/m_3_C.mid"),
     Midi.fromUrl("./midi/IV_IV_I_I/melody/m_4_C.mid"),
   ]);
+  data.melody.midis[4] = data.melody.midis[0]; // placeholder
+  data.melody.toneNotes = data.melody.midis.map(midiToToneNotes);
 
   changeMelodyByIndex(melodyIndex);
 
@@ -1531,7 +1537,7 @@ function changeMelodyByIndex(index = 0) {
       time + Math.random() * (75 / data.master.bpm) * 0.3 * data.melody.swing,
       note.velocity * data.melody.gain
     );
-  }, midiToToneNotes(data.melody.midis[melodyIndex])).start(0);
+  }, data.melody.toneNotes[melodyIndex]).start(0);
 
   melodyPart.loop = false;
 
@@ -1563,7 +1569,7 @@ function changeInterpolationIndex(index) {
   secondInterpolationSlider.value = index;
 }
 
-function sendInterpolationMessage(m1, m2) {
+function sendInterpolationMessage(m1, m2, id = 0) {
   data.melody.waitingInterpolation = true;
   melodyInteractionDivs[0].classList.add("disabledbutton");
 
@@ -1578,7 +1584,7 @@ function sendInterpolationMessage(m1, m2) {
   data.melody.interpolationData[NUM_INTERPOLATIONS - 1] = right;
 
   worker.postMessage({
-    id: 0,
+    id,
     msg: "interpolate",
     left,
     right,
@@ -1587,7 +1593,7 @@ function sendInterpolationMessage(m1, m2) {
 
 function sendContinueMessage() {
   worker.postMessage({
-    id: 0,
+    id: 1,
     msg: "continue",
   });
 }
