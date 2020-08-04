@@ -364,6 +364,11 @@ footer {
   text-align: center;
 }
 
+#info-div p,
+li {
+  font-size: 0.7rem;
+}
+
 @media only screen and (max-width: 720px) {
   :root {
     --input-thumb-size: 8px;
@@ -412,7 +417,7 @@ footer {
     font-size: 0.3rem;
   }
   #board-input {
-    font-size: 0.2rem;
+    font-size: 0.25rem;
   }
 
   #warning-overlay {

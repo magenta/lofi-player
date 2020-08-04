@@ -929,7 +929,10 @@ function addImages() {
     switchPanel("drum");
     togglePanel();
   });
-  dragElement(assets.shelfWithBooks);
+  dragElement(assets.shelfWithBooks, () => {
+    switchPanel("info");
+    togglePanel();
+  });
   dragElement(assets.pens, () => {
     switchPanel("master");
     togglePanel();
