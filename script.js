@@ -67,6 +67,7 @@ const chordsVolumeSlider = document.getElementById("chords-volume-slider");
 const masterReverbSlider = document.getElementById("master-reverb-slider");
 const masterToneSlider = document.getElementById("master-tone-slider");
 const masterVolumeSlider = document.getElementById("master-volume-slider");
+const melodySwingSlider = document.getElementById("melody-swing-slider");
 
 const controlPanels = document.getElementsByClassName("panel");
 
@@ -74,7 +75,6 @@ const worker = new Worker("worker.js");
 const samplesBaseUrl = "./samples";
 const ac = Tone.context._context;
 let loadEventsCounts = 0;
-let bpm = 75;
 
 let seq;
 let drumSamples;
@@ -88,6 +88,7 @@ const data = {
   backgroundSounds: {},
   melody: {
     gain: 1,
+    swing: 0,
     changeGain: (v) => {
       data.melody.gain = v;
     },
@@ -128,6 +129,7 @@ const data = {
       decay: 1.0,
       preDelay: 0.01,
     }),
+    bpm: 75,
     gain: new Tone.Gain(1),
   },
 };
@@ -170,7 +172,7 @@ initSounds();
 initCanvas();
 
 function initSounds() {
-  Tone.Transport.bpm.value = bpm;
+  Tone.Transport.bpm.value = data.master.bpm;
   Tone.Transport.loop = true;
   Tone.Transport.loopStart = "0:0:0";
   Tone.Transport.loopEnd = "8:0:0";
@@ -1324,7 +1326,7 @@ function onFinishLoading() {
   }
   switchScreenButton.addEventListener("click", switchCallback);
 
-  changeBpm(bpm);
+  changeBpm(data.master.bpm);
   bpmInput.addEventListener("input", (e) => {
     changeBpm(bpmInput.value);
   });
@@ -1437,6 +1439,10 @@ function onFinishLoading() {
     data.master.gain.gain.value = vol;
   });
 
+  melodySwingSlider.addEventListener("input", () => {
+    data.melody.swing = melodySwingSlider.value / 100;
+  });
+
   window.addEventListener("resize", () => {
     const canvas = data.canvas.canvas;
     canvasDiv.style.height = `${backgroundImage.clientWidth * (435 / 885)}px`;
@@ -1507,6 +1513,7 @@ function changeChords(index = 0) {
     chordsInstruments[chordsInstrumentIndex].triggerAttackRelease(
       toFreq(note.pitch - (chordsInstrumentIndex === 0 ? 0 : 12)),
       note.duration,
+      // time + Math.random() * 0.2,
       time,
       note.velocity * data.chords.gain
     );
@@ -1525,7 +1532,7 @@ function changeMelodyByIndex(index = 0) {
     data.melody.instrument.triggerAttackRelease(
       toFreq(note.pitch - 12),
       note.duration,
-      time,
+      time + Math.random() * (75 / data.master.bpm) * 0.3 * data.melody.swing,
       note.velocity * data.melody.gain
     );
   }, midiToToneNotes(melodyMidis[melodyIndex])).start(0);
@@ -1618,7 +1625,7 @@ function changeMelodyInstrument(index) {
 function changeBpm(v) {
   bpmInput.value = v;
   bpmValueSpan.textContent = `${v}`;
-  bpm = v;
+  data.master.bpm = v;
   Tone.Transport.bpm.value = v;
 }
 
@@ -1682,8 +1689,8 @@ function midiToModelFormat(midi, resolution = 2) {
   };
 }
 
-function modelFormatToToneNotes(data) {
-  const { notes } = data;
+function modelFormatToToneNotes(d) {
+  const { notes } = d;
   return notes.map((note) => {
     const { pitch, quantizedStartStep, quantizedEndStep } = note;
 
@@ -1692,7 +1699,10 @@ function modelFormatToToneNotes(data) {
         (quantizedStartStep % 8) / 2
       )}:${(quantizedStartStep % 2) * 2}`,
       pitch,
-      duration: (quantizedEndStep - quantizedStartStep) * (bpm / 60) * (1 / 4),
+      duration:
+        (quantizedEndStep - quantizedStartStep) *
+        (data.master.bpm / 60) *
+        (1 / 4),
       velocity: 0.7,
     };
   });
