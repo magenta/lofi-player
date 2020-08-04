@@ -14,10 +14,8 @@ const ELETRIC_GUITAR = 3;
 const NUM_INSTRUMENTS = 4;
 
 const warningOverlay = document.getElementById("warning-overlay");
-const controlDiv = document.getElementById("control-div");
 const startButton = document.getElementById("start-button");
 const whateverButton = document.getElementById("whatever-button");
-const switchScreenButton = document.getElementById("switch-screen-button");
 const checkTimeButton = document.getElementById("check-time-button");
 const checkTimeText = document.getElementById("check-time-text");
 const bpmInput = document.getElementById("bpm-input");
@@ -59,8 +57,6 @@ const interpolationDiv = document.getElementById("interpolation-div");
 const melodyPanelCloseSpan = document.getElementById("melody-panel-close");
 const timeProgress = document.getElementById("time-progress");
 const backgroundImage = document.getElementById("background-image");
-const linkInput = document.getElementById("youtube-link-input");
-const submitLinkButton = document.getElementById("submit-youtube-link-button");
 
 const bassVolumeSlider = document.getElementById("bass-volume-slider");
 const bassToneSlider = document.getElementById("bass-tone-slider");
@@ -447,10 +443,10 @@ function addImages() {
   });
 
   const streetGif = addImageToCanvasDiv("./assets/city-2.gif", {
-    width: "50%",
-    left: "5%",
+    width: "60%",
+    left: "20%",
     zIndex: "-2",
-    top: "-20%",
+    top: "-40%",
   });
 
   const kidsGif = addImageToCanvasDiv("./assets/city.gif", {
@@ -1328,27 +1324,11 @@ function triggerStart() {
   }
 }
 function onFinishLoading() {
-  // controlDiv.style.display = "flex";
+  canvasOverlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
   startButton.textContent = "start";
   startButton.addEventListener("click", () => {
     triggerStart();
   });
-
-  function switchCallback() {
-    if (data.showPanel) {
-      switchScreenButton.textContent = "music";
-      canvasDiv.style.display = "block";
-      initCanvas();
-      controlDiv.style.display = "none";
-      data.showPanel = false;
-    } else {
-      switchScreenButton.textContent = "room";
-      canvasDiv.style.display = "none";
-      controlDiv.style.display = "flex";
-      data.showPanel = true;
-    }
-  }
-  switchScreenButton.addEventListener("click", switchCallback);
 
   changeBpm(data.master.bpm);
   bpmInput.addEventListener("input", (e) => {
@@ -1432,20 +1412,6 @@ function onFinishLoading() {
   backgroundToneSlider.addEventListener("input", () => {
     const frq = backgroundToneSlider.value * 200;
     data.backgroundSounds.hpf.frequency.value = frq;
-  });
-
-  linkInput.value = "https://www.youtube.com/watch?v=EhBSXFidyUU";
-  linkInput.addEventListener("click", () => {
-    linkInput.select();
-  });
-  submitLinkButton.addEventListener("click", (e) => {
-    const id = parseYoutubeId(linkInput.value);
-    if (id) {
-      console.log(`youtube id:${id}`);
-      assets.youtube.src = getYoutubeEmbedUrlFromId(id);
-    } else {
-      console.log("wrong format");
-    }
   });
 
   masterReverbSlider.addEventListener("input", () => {
