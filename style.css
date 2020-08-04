@@ -7,7 +7,7 @@
   --text-color: #373fff;
   --text-background-color: rgba(255, 255, 255, 1);
 
-  --input-thumb-size: 10px;
+  --input-thumb-size: 8px;
   --border-width: 8px;
   --bright-green: rgba(127, 246, 102, 1);
 }
@@ -322,6 +322,17 @@ input[type="range"]::-ms-thumb {
 
 #buttons-div {
   display: none;
+}
+
+#interpolation-slider-2 {
+  display: block;
+  position: absolute;
+  left: 5%;
+  top: 25%;
+  height: 5%;
+  width: 75%;
+  margin: 0;
+  z-index: 1;
 }
 
 #board-input {

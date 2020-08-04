@@ -596,14 +596,6 @@ function addImages() {
 
   let radioSlider = secondInterpolationSlider;
   removeElement(radioSlider);
-  radioSlider.style.display = "block";
-  radioSlider.style.position = "absolute";
-  radioSlider.style.left = "0%";
-  radioSlider.style.top = "16%";
-  radioSlider.style.height = "5%";
-  radioSlider.style.width = "80%";
-  radioSlider.style.zIndex = "1";
-  radioSlider.style.opacity = 1.0;
 
   assets.radio.addEventListener("click", () => {
     if (radioSlider.style.display === "none") {
