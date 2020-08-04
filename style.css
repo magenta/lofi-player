@@ -187,7 +187,7 @@ button {
   position: relative;
   background-color: var(--text-background-color);
   border: solid var(--text-color) var(--border-width);
-  width: 60%;
+  width: 70%;
   height: 80%;
   padding: 1rem;
 

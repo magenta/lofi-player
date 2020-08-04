@@ -6,6 +6,7 @@ const TOTAL_TICKS = TOTAL_BAR_COUNTS * TICKS_PER_BAR;
 const MODEL_BAR_COUNT = 2;
 const MAIN_CANVAS_PADDING = 0;
 const NUM_INTERPOLATIONS = 5;
+let NUM_PRESET_MELODIES = 4;
 
 const SYNTHS = 0;
 const PIANO = 1;
@@ -1355,7 +1356,7 @@ function onFinishLoading() {
   });
 
   firstMelodySelect.addEventListener("change", () => {
-    changeMelodyByIndex(firstMelodySelect.value);
+    changeMelodyByIndex(parseInt(firstMelodySelect.value));
   });
 
   secondMelodySelect.addEventListener("change", () => {
@@ -1519,6 +1520,11 @@ function changeMelodyByIndex(index = 0) {
     melodyPart.cancel(0);
   }
   melodyIndex = index;
+  if (index === data.melody.toneNotes.length - 1) {
+    console.log("rnn");
+    sendContinueMessage();
+    return;
+  }
 
   melodyPart = new Tone.Part((time, note) => {
     data.melody.instrument.triggerAttackRelease(
@@ -1582,7 +1588,7 @@ function sendInterpolationMessage(m1, m2, id = 0) {
 }
 
 function sendContinueMessage() {
-  data.canvas.melodyCanvas.style.opacity = 0;
+  data.canvas.melodyCanvas.style.opacity = 0.1;
   worker.postMessage({
     id: 1,
     msg: "continue",
