@@ -68,6 +68,7 @@ const masterReverbSlider = document.getElementById("master-reverb-slider");
 const masterToneSlider = document.getElementById("master-tone-slider");
 const masterVolumeSlider = document.getElementById("master-volume-slider");
 const melodySwingSlider = document.getElementById("melody-swing-slider");
+const chordsSwingSlider = document.getElementById("chords-swing-slider");
 
 const controlPanels = document.getElementsByClassName("panel");
 
@@ -100,6 +101,7 @@ const data = {
   },
   chords: {
     gain: 1,
+    swing: 0,
   },
   bass: {
     notes: [
@@ -1442,6 +1444,9 @@ function onFinishLoading() {
   melodySwingSlider.addEventListener("input", () => {
     data.melody.swing = melodySwingSlider.value / 100;
   });
+  chordsSwingSlider.addEventListener("input", () => {
+    data.chords.swing = chordsSwingSlider.value / 100;
+  });
 
   window.addEventListener("resize", () => {
     const canvas = data.canvas.canvas;
@@ -1513,8 +1518,7 @@ function changeChords(index = 0) {
     chordsInstruments[chordsInstrumentIndex].triggerAttackRelease(
       toFreq(note.pitch - (chordsInstrumentIndex === 0 ? 0 : 12)),
       note.duration,
-      // time + Math.random() * 0.2,
-      time,
+      time + data.chords.swing * (75 / data.master.bpm) * Math.random() * 0.1,
       note.velocity * data.chords.gain
     );
   }, midiToToneNotes(chordsMidis[chordsIndex])).start(0);
