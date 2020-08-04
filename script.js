@@ -571,9 +571,7 @@ function addImages() {
   assets.shelf.appendChild(assets.secondPlant);
   // dragElement(assets.plant);
   // dragElement(assets.secondPlant);
-  dragElement(assets.shelf, () => {
-    sendContinueMessage();
-  });
+  dragElement(assets.shelf);
 
   assets.tvStand = addImageToCanvasDiv("./assets/tv-stand.png", {
     width: "20%",
@@ -595,18 +593,18 @@ function addImages() {
     bottom: "95%",
     right: "10%",
     zIndex: "1",
-    group: true,
   });
 
   let radioSlider = secondInterpolationSlider;
   removeElement(radioSlider);
 
   assets.radio.addEventListener("click", () => {
-    if (radioSlider.style.display === "none") {
-      radioSlider.style.display = "block";
-    } else {
-      radioSlider.style.display = "none";
-    }
+    sendInterpolationMessage();
+    // if (radioSlider.style.display === "none") {
+    //   radioSlider.style.display = "block";
+    // } else {
+    //   radioSlider.style.display = "none";
+    // }
   });
 
   assets.tvStand.append(assets.tvTable);
