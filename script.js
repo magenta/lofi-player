@@ -331,6 +331,7 @@ function initModel() {
 
       // console.log("interpolationData", data.melody.interpolationData);
       // console.log("interpolationToneNotes", data.melody.interpolationToneNotes);
+      data.canvas.melodyCanvas.style.opacity = 1;
       melodyInteractionDivs[0].classList.remove("disabledbutton");
     }
     if (e.data.msg === "continue") {
@@ -340,6 +341,8 @@ function initModel() {
         note.pitch += 24;
         return note;
       });
+
+      data.melody.interpolationData[0] = result[0];
       const notes = modelFormatToToneNotes(result);
       const n = data.melody.toneNotes.length;
       data.melody.toneNotes[n - 1] = notes; // update toneNotes
@@ -599,12 +602,7 @@ function addImages() {
   removeElement(radioSlider);
 
   assets.radio.addEventListener("click", () => {
-    sendInterpolationMessage();
-    // if (radioSlider.style.display === "none") {
-    //   radioSlider.style.display = "block";
-    // } else {
-    //   radioSlider.style.display = "none";
-    // }
+    sendContinueMessage();
   });
 
   assets.tvStand.append(assets.tvTable);
@@ -1354,7 +1352,7 @@ function onFinishLoading() {
 
   secondMelodySelect.addEventListener("change", () => {
     secondMelodyIndex = secondMelodySelect.value;
-    sendInterpolationMessage();
+    sendInterpolationMessage(data.melody.interpolationData[0]);
   });
 
   backgroundSoundsSelect.addEventListener("change", () => {
@@ -1590,6 +1588,7 @@ function sendInterpolationMessage(m1, m2, id = 0) {
 }
 
 function sendContinueMessage() {
+  data.canvas.melodyCanvas.style.opacity = 0;
   worker.postMessage({
     id: 1,
     msg: "continue",
