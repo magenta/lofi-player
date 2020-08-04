@@ -466,6 +466,7 @@ function addImages() {
     width: "6%",
     bottom: "33%",
     left: "43%",
+    zIndex: "4",
   });
 
   assets.avatar = addImageToCanvasDiv(assets.avatarUrls[1], {
@@ -798,8 +799,8 @@ function addImages() {
     data.canvas.moveMelodyCanvasToRoom();
   });
 
-  const avatar = assets.avatar;
   assets.switchAvatar = (drinking) => {
+    const { avatar } = assets;
     if (drinking === undefined) {
       if (avatar.src === assets.avatarUrls[0]) {
         avatar.src = assets.avatarUrls[1];
@@ -810,62 +811,72 @@ function addImages() {
       avatar.src = drinking ? assets.avatarUrls[0] : assets.avatarUrls[1];
     }
   };
-  avatar.addEventListener("click", () => {
-    toggleDrumMute();
-  });
+  dragElement(
+    assets.avatar,
+    () => {
+      toggleDrumMute();
+    },
+    { horizontal: true }
+  );
 
-  assets.cat.addEventListener("click", () => {
-    assets.cat.style.display = "none";
-    assets.catIndex = (assets.catIndex + 1) % assets.catUrls.length;
-    assets.cat.src = assets.catUrls[assets.catIndex];
-    if (assets.catIndex === 0) {
-      changeBpm(75);
-      changeDrumPattern(2);
-    } else if (assets.catIndex === 1) {
-      changeBpm(90);
-      changeDrumPattern(0);
-    } else {
-      changeBpm(100);
-      changeDrumPattern(1);
+  dragElement(
+    assets.cat,
+    () => {
+      assets.cat.style.display = "none";
+      assets.catIndex = (assets.catIndex + 1) % assets.catUrls.length;
+      assets.cat.src = assets.catUrls[assets.catIndex];
+      if (assets.catIndex === 0) {
+        changeBpm(75);
+        changeDrumPattern(2);
+      } else if (assets.catIndex === 1) {
+        changeBpm(90);
+        changeDrumPattern(0);
+      } else {
+        changeBpm(100);
+        changeDrumPattern(1);
+      }
+
+      if (assets.catIndex === 2) {
+        assets.cat.style.left = "41.5%";
+        assets.cat.style.width = "9%";
+        assets.cat.style.bottom = "39%";
+      } else {
+        assets.cat.style.left = "43%";
+        assets.cat.style.width = "6%";
+        assets.cat.style.bottom = "33%";
+      }
+
+      // MACRO
+      if (assets.catIndex === 0) {
+        changeChords(0);
+        changeMelodyInstrument(1);
+        changeMelodyByIndex(0);
+        changeChordsInstrument(0);
+        data.backgroundSounds.gain.gain.value = 1.0;
+      } else if (assets.catIndex === 1) {
+        changeChords(1);
+        changeChordsInstrument(2);
+        changeMelodyByIndex(1);
+        changeMelodyInstrument(3);
+        data.backgroundSounds.switch(1);
+        data.backgroundSounds.gain.gain.value = 0.5;
+      } else {
+        changeChords(2);
+        changeChordsInstrument(2);
+        changeMelodyByIndex(2);
+        changeMelodyInstrument(0); // electric guitar
+        data.backgroundSounds.switch(3);
+        data.backgroundSounds.gain.gain.value = 1.0;
+      }
+
+      assets.cat.onload = () => {
+        assets.cat.style.display = "block";
+      };
+    },
+    {
+      horizontal: false,
     }
-
-    if (assets.catIndex === 2) {
-      assets.cat.style.left = "41.5%";
-      assets.cat.style.width = "9%";
-      assets.cat.style.bottom = "39%";
-    } else {
-      assets.cat.style.left = "43%";
-      assets.cat.style.width = "6%";
-      assets.cat.style.bottom = "33%";
-    }
-
-    // MACRO
-    if (assets.catIndex === 0) {
-      changeChords(0);
-      changeMelodyInstrument(1);
-      changeMelodyByIndex(0);
-      changeChordsInstrument(0);
-      data.backgroundSounds.gain.gain.value = 1.0;
-    } else if (assets.catIndex === 1) {
-      changeChords(1);
-      changeChordsInstrument(2);
-      changeMelodyByIndex(1);
-      changeMelodyInstrument(3);
-      data.backgroundSounds.switch(1);
-      data.backgroundSounds.gain.gain.value = 0.5;
-    } else {
-      changeChords(2);
-      changeChordsInstrument(2);
-      changeMelodyByIndex(2);
-      changeMelodyInstrument(0); // electric guitar
-      data.backgroundSounds.switch(3);
-      data.backgroundSounds.gain.gain.value = 1.0;
-    }
-
-    assets.cat.onload = () => {
-      assets.cat.style.display = "block";
-    };
-  });
+  );
 
   // const amp = addImageToCanvasDiv("./assets/amp.png", {
   //   class: "large-on-hover",
@@ -900,10 +911,16 @@ function addImages() {
     switchPanel("bass");
     togglePanel();
   });
-  assets.cactus.addEventListener("click", () => {
-    switchPanel("background");
-    togglePanel();
-  });
+  dragElement(
+    assets.cactus,
+    () => {
+      switchPanel("background");
+      togglePanel();
+    },
+    {
+      horizontal: true,
+    }
+  );
 
   dragElement(assets.clock, () => {
     switchPanel("drum");
@@ -1549,7 +1566,7 @@ function changeMelody(readyMidi) {
     data.melody.instrument.triggerAttackRelease(
       toFreq(note.pitch - 12),
       note.duration,
-      time,
+      time + Math.random() * (75 / data.master.bpm) * 0.3 * data.melody.swing,
       note.velocity * data.melody.gain
     );
   }, readyMidi).start(0);
