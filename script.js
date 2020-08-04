@@ -90,6 +90,7 @@ const data = {
   melody: {
     gain: 1,
     swing: 0,
+    midis: [],
     changeGain: (v) => {
       data.melody.gain = v;
     },
@@ -139,8 +140,6 @@ let backgroundSounds = [];
 let backgroundSoundsNames = ["rain", "waves", "street", "kids"];
 let backgroundSoundsIndex = 0;
 
-let melodyMidis;
-let melodyMidi;
 let melodyPart;
 let melodyIndex = 0;
 let secondMelodyIndex = 1;
@@ -157,15 +156,16 @@ let chordsInstruments;
 
 const assets = {
   catIndex: 0,
+  avatarUrls: [
+    `${window.location}/assets/avatar-2.png`,
+    `${window.location}/assets/avatar.png`,
+  ],
+  catUrls: [
+    "./assets/cat-75-purple.gif",
+    "./assets/cat-90.gif",
+    "./assets/dog-100.gif",
+  ],
 };
-let switchAvatar;
-const drinkingUrl = `${window.location}/assets/avatar-2.png`;
-const notDrinkingUrl = `${window.location}/assets/avatar.png`;
-const catsUrls = [
-  "./assets/cat-75-purple.gif",
-  "./assets/cat-90.gif",
-  "./assets/dog-100.gif",
-];
 
 addImages();
 initModel();
@@ -321,11 +321,11 @@ function initModel() {
 
       data.melody.interpolationToneNotes = result.map(modelFormatToToneNotes);
       data.melody.interpolationToneNotes[0] = midiToToneNotes(
-        melodyMidis[melodyIndex]
+        data.melody.midis[melodyIndex]
       );
       data.melody.interpolationToneNotes[
         data.melody.interpolationToneNotes.length - 1
-      ] = midiToToneNotes(melodyMidis[secondMelodyIndex]);
+      ] = midiToToneNotes(data.melody.midis[secondMelodyIndex]);
 
       data.melody.waitingInterpolation = false;
 
@@ -454,14 +454,14 @@ function addImages() {
 
   assets.windowGifs = [rainGif, wavesGif, kidsGif, streetGif];
 
-  assets.cat = addImageToCanvasDiv(catsUrls[assets.catIndex], {
+  assets.cat = addImageToCanvasDiv(assets.catUrls[assets.catIndex], {
     class: "large-on-hover",
     width: "6%",
     bottom: "33%",
     left: "43%",
   });
 
-  assets.avatar = addImageToCanvasDiv(notDrinkingUrl, {
+  assets.avatar = addImageToCanvasDiv(assets.avatarUrls[1], {
     class: "large-on-hover-micro",
     height: "55%",
     left: "20%",
@@ -807,15 +807,15 @@ function addImages() {
   });
 
   const avatar = assets.avatar;
-  switchAvatar = (drinking) => {
+  assets.switchAvatar = (drinking) => {
     if (drinking === undefined) {
-      if (avatar.src === drinkingUrl) {
-        avatar.src = notDrinkingUrl;
+      if (avatar.src === assets.avatarUrls[0]) {
+        avatar.src = assets.avatarUrls[1];
       } else {
-        avatar.src = drinkingUrl;
+        avatar.src = assets.avatarUrls[0];
       }
     } else {
-      avatar.src = drinking ? drinkingUrl : notDrinkingUrl;
+      avatar.src = drinking ? assets.avatarUrls[0] : assets.avatarUrls[1];
     }
   };
   avatar.addEventListener("click", () => {
@@ -824,8 +824,8 @@ function addImages() {
 
   assets.cat.addEventListener("click", () => {
     assets.cat.style.display = "none";
-    assets.catIndex = (assets.catIndex + 1) % catsUrls.length;
-    assets.cat.src = catsUrls[assets.catIndex];
+    assets.catIndex = (assets.catIndex + 1) % assets.catUrls.length;
+    assets.cat.src = assets.catUrls[assets.catIndex];
     if (assets.catIndex === 0) {
       changeBpm(75);
       changeDrumPattern(2);
@@ -1046,9 +1046,9 @@ function drawMainCanvas() {
     // ctx.fillRect(width * Tone.Transport.progress, 0, 10, height);
   }
 
-  // if (melodyMidis) {
+  // if (data.melody.midis) {
   //   drawRect(ctx, 357, 102, 111, 61, "rgba(255, 11, 174, 0.8)");
-  //   drawMidi(ctx, 357, 102, 111, 61, melodyMidis[melodyIndex]);
+  //   drawMidi(ctx, 357, 102, 111, 61, data.melody.midis[melodyIndex]);
 
   //   // kick
   //   drawRect(ctx, 519, 131, 52, 190, "rgba(255, 11, 174, 0.8)");
@@ -1258,7 +1258,7 @@ async function loadMidiFiles() {
 
   changeChords(chordsIndex);
 
-  melodyMidis = await Promise.all([
+  data.melody.midis = await Promise.all([
     Midi.fromUrl("./midi/IV_IV_I_I/melody/m_1_C.mid"),
     Midi.fromUrl("./midi/IV_IV_I_I/melody/m_2_C.mid"),
     Midi.fromUrl("./midi/IV_IV_I_I/melody/m_3_C.mid"),
@@ -1268,7 +1268,7 @@ async function loadMidiFiles() {
   changeMelodyByIndex(melodyIndex);
 
   console.log("midi loaded");
-  // console.log("midi loaded", melodyMidis[0]);
+  // console.log("midi loaded", data.melody.midis[0]);
   checkFinishLoading();
 }
 
@@ -1505,7 +1505,7 @@ function toggleDrumMute(value) {
 
   // sync ui
   drumToggle.checked = !drumMute;
-  switchAvatar(drumMute);
+  assets.switchAvatar(drumMute);
 }
 
 function changeChords(index = 0) {
@@ -1539,7 +1539,7 @@ function changeMelodyByIndex(index = 0) {
       time + Math.random() * (75 / data.master.bpm) * 0.3 * data.melody.swing,
       note.velocity * data.melody.gain
     );
-  }, midiToToneNotes(melodyMidis[melodyIndex])).start(0);
+  }, midiToToneNotes(data.melody.midis[melodyIndex])).start(0);
 
   melodyPart.loop = false;
 
@@ -1576,10 +1576,10 @@ function sendInterpolationMessage(m1, m2) {
   melodyInteractionDivs[0].classList.add("disabledbutton");
 
   // console.log(`interpolate ${melodyIndex} ${secondMelodyIndex}`);
-  const firstMelody = melodyMidis[melodyIndex];
+  const firstMelody = data.melody.midis[melodyIndex];
   const left = m1 ? m1 : midiToModelFormat(firstMelody);
 
-  const secondMelody = melodyMidis[secondMelodyIndex];
+  const secondMelody = data.melody.midis[secondMelodyIndex];
   const right = m2 ? m2 : midiToModelFormat(secondMelody);
 
   data.melody.interpolationData[0] = left;
