@@ -7,7 +7,7 @@
   --text-color: #373fff;
   --text-background-color: rgba(255, 255, 255, 1);
 
-  --input-thumb-size: 10px;
+  --input-thumb-size: 8px;
   --border-width: 8px;
   --bright-green: rgba(127, 246, 102, 1);
 }
@@ -152,7 +152,7 @@ button {
 #canvas-overlay {
   /* pointer-events: none; */
   position: absolute;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.95);
   top: 0;
   left: 0;
   width: 100%;
@@ -187,7 +187,7 @@ button {
   position: relative;
   background-color: var(--text-background-color);
   border: solid var(--text-color) var(--border-width);
-  width: 60%;
+  width: 70%;
   height: 80%;
   padding: 1rem;
 
@@ -270,11 +270,15 @@ button {
 
 #clock-text {
   position: absolute;
-  top: 0;
+  top: 10%;
   left: 0;
-  padding: 0.7rem 0 0 0.3rem;
+  /* padding: 0.7rem 0 0 0.3rem; */
   color: var(--bright-green);
-  width: 100%;
+  width: 90%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   font-size: 0.6rem;
   /* font-size: auto; */
 }
@@ -287,6 +291,10 @@ button {
   width: auto;
   height: 15px;
   color: var(--text-color);
+}
+
+#warning-overlay {
+  display: none;
 }
 
 /* range input */
@@ -324,6 +332,17 @@ input[type="range"]::-ms-thumb {
   display: none;
 }
 
+#interpolation-slider-2 {
+  display: block;
+  position: absolute;
+  left: 5%;
+  top: 25%;
+  height: 5%;
+  width: 75%;
+  margin: 0;
+  z-index: 1;
+}
+
 #board-input {
   position: absolute;
   top: 6%;
@@ -345,7 +364,12 @@ footer {
   text-align: center;
 }
 
-@media only screen and (max-width: 680px) {
+#info-div p,
+li {
+  font-size: 0.7rem;
+}
+
+@media only screen and (max-width: 720px) {
   :root {
     --input-thumb-size: 8px;
     --border-width: 5px;
@@ -367,13 +391,10 @@ footer {
   option,
   select,
   label {
-    font-size: 0.5rem;
+    font-size: 0.4rem;
   }
   h3 {
-    font-size: 0.7rem;
-  }
-  button {
-    font-size: 0.7rem;
+    font-size: 0.6rem;
   }
 
   #control-div .block {
@@ -394,5 +415,37 @@ footer {
 
   #clock-text {
     font-size: 0.3rem;
+  }
+  #board-input {
+    font-size: 0.25rem;
+  }
+
+  #warning-overlay {
+    display: grid;
+    place-items: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 6;
+  }
+  #warning-div {
+    width: 90%;
+    max-width: 500px;
+  }
+  #warning-div p {
+    text-align: center;
+    font-size: 0.8rem;
+  }
+  #warning-div div {
+    padding: 0;
+    margin-top: 2rem;
+    text-align: center;
+  }
+  button {
+    margin: 0;
+    font-size: 0.6rem;
   }
 }

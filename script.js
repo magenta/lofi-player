@@ -6,6 +6,7 @@ const TOTAL_TICKS = TOTAL_BAR_COUNTS * TICKS_PER_BAR;
 const MODEL_BAR_COUNT = 2;
 const MAIN_CANVAS_PADDING = 0;
 const NUM_INTERPOLATIONS = 5;
+let NUM_PRESET_MELODIES = 4;
 
 const SYNTHS = 0;
 const PIANO = 1;
@@ -13,9 +14,9 @@ const ACOUSTIC_GUITAR = 2;
 const ELETRIC_GUITAR = 3;
 const NUM_INSTRUMENTS = 4;
 
-const controlDiv = document.getElementById("control-div");
+const warningOverlay = document.getElementById("warning-overlay");
 const startButton = document.getElementById("start-button");
-const switchScreenButton = document.getElementById("switch-screen-button");
+const whateverButton = document.getElementById("whatever-button");
 const checkTimeButton = document.getElementById("check-time-button");
 const checkTimeText = document.getElementById("check-time-text");
 const bpmInput = document.getElementById("bpm-input");
@@ -57,8 +58,6 @@ const interpolationDiv = document.getElementById("interpolation-div");
 const melodyPanelCloseSpan = document.getElementById("melody-panel-close");
 const timeProgress = document.getElementById("time-progress");
 const backgroundImage = document.getElementById("background-image");
-const linkInput = document.getElementById("youtube-link-input");
-const submitLinkButton = document.getElementById("submit-youtube-link-button");
 
 const bassVolumeSlider = document.getElementById("bass-volume-slider");
 const bassToneSlider = document.getElementById("bass-tone-slider");
@@ -67,6 +66,8 @@ const chordsVolumeSlider = document.getElementById("chords-volume-slider");
 const masterReverbSlider = document.getElementById("master-reverb-slider");
 const masterToneSlider = document.getElementById("master-tone-slider");
 const masterVolumeSlider = document.getElementById("master-volume-slider");
+const melodySwingSlider = document.getElementById("melody-swing-slider");
+const chordsSwingSlider = document.getElementById("chords-swing-slider");
 
 const controlPanels = document.getElementsByClassName("panel");
 
@@ -74,7 +75,6 @@ const worker = new Worker("worker.js");
 const samplesBaseUrl = "./samples";
 const ac = Tone.context._context;
 let loadEventsCounts = 0;
-let bpm = 75;
 
 let seq;
 let drumSamples;
@@ -88,17 +88,21 @@ const data = {
   backgroundSounds: {},
   melody: {
     gain: 1,
+    swing: 0,
     changeGain: (v) => {
       data.melody.gain = v;
     },
     instrumentIndex: 1,
     waitingInterpolation: true,
+    midis: [],
+    toneNotes: [],
     interpolationToneNotes: [],
     interpolationData: [],
     interpolationIndex: 0,
   },
   chords: {
     gain: 1,
+    swing: 0,
   },
   bass: {
     notes: [
@@ -128,6 +132,7 @@ const data = {
       decay: 1.0,
       preDelay: 0.01,
     }),
+    bpm: 75,
     gain: new Tone.Gain(1),
   },
 };
@@ -135,8 +140,6 @@ let backgroundSounds = [];
 let backgroundSoundsNames = ["rain", "waves", "street", "kids"];
 let backgroundSoundsIndex = 0;
 
-let melodyMidis;
-let melodyMidi;
 let melodyPart;
 let melodyIndex = 0;
 let secondMelodyIndex = 1;
@@ -153,15 +156,16 @@ let chordsInstruments;
 
 const assets = {
   catIndex: 0,
+  avatarUrls: [
+    `${window.location}/assets/avatar-2.png`,
+    `${window.location}/assets/avatar.png`,
+  ],
+  catUrls: [
+    "./assets/cat-75-purple.gif",
+    "./assets/cat-90.gif",
+    "./assets/dog-100.gif",
+  ],
 };
-let switchAvatar;
-const drinkingUrl = `${window.location}/assets/avatar-2.png`;
-const notDrinkingUrl = `${window.location}/assets/avatar.png`;
-const catsUrls = [
-  "./assets/cat-75-purple.gif",
-  "./assets/cat-90.gif",
-  "./assets/dog-100.gif",
-];
 
 addImages();
 initModel();
@@ -169,8 +173,12 @@ loadMidiFiles();
 initSounds();
 initCanvas();
 
+function onClickWhatever() {
+  warningOverlay.style.display = "none";
+}
+
 function initSounds() {
-  Tone.Transport.bpm.value = bpm;
+  Tone.Transport.bpm.value = data.master.bpm;
   Tone.Transport.loop = true;
   Tone.Transport.loopStart = "0:0:0";
   Tone.Transport.loopEnd = "8:0:0";
@@ -316,17 +324,17 @@ function initModel() {
       // data.melody.interpolationData = result;
 
       data.melody.interpolationToneNotes = result.map(modelFormatToToneNotes);
-      data.melody.interpolationToneNotes[0] = midiToToneNotes(
-        melodyMidis[melodyIndex]
-      );
+      data.melody.interpolationToneNotes[0] =
+        data.melody.toneNotes[melodyIndex];
       data.melody.interpolationToneNotes[
         data.melody.interpolationToneNotes.length - 1
-      ] = midiToToneNotes(melodyMidis[secondMelodyIndex]);
+      ] = data.melody.toneNotes[secondMelodyIndex];
 
       data.melody.waitingInterpolation = false;
 
       // console.log("interpolationData", data.melody.interpolationData);
       // console.log("interpolationToneNotes", data.melody.interpolationToneNotes);
+      data.canvas.melodyCanvas.style.opacity = 1;
       melodyInteractionDivs[0].classList.remove("disabledbutton");
     }
     if (e.data.msg === "continue") {
@@ -336,9 +344,15 @@ function initModel() {
         note.pitch += 24;
         return note;
       });
+
+      data.melody.interpolationData[0] = result[0];
       const notes = modelFormatToToneNotes(result);
-      sendInterpolationMessage(result);
-      changeMelody(notes);
+      const n = data.melody.toneNotes.length;
+      data.melody.toneNotes[n - 1] = notes; // update toneNotes
+      changeMelody(notes); // change played melody part
+      melodyIndex = n - 1; // change index
+      firstMelodySelect.value = n - 1; // change ui index
+      sendInterpolationMessage(result); // update interpolation
     }
   };
 }
@@ -430,10 +444,10 @@ function addImages() {
   });
 
   const streetGif = addImageToCanvasDiv("./assets/city-2.gif", {
-    width: "50%",
-    left: "5%",
+    width: "60%",
+    left: "20%",
     zIndex: "-2",
-    top: "-20%",
+    top: "-40%",
   });
 
   const kidsGif = addImageToCanvasDiv("./assets/city.gif", {
@@ -450,14 +464,15 @@ function addImages() {
 
   assets.windowGifs = [rainGif, wavesGif, kidsGif, streetGif];
 
-  assets.cat = addImageToCanvasDiv(catsUrls[assets.catIndex], {
+  assets.cat = addImageToCanvasDiv(assets.catUrls[assets.catIndex], {
     class: "large-on-hover",
     width: "6%",
     bottom: "33%",
     left: "43%",
+    zIndex: "4",
   });
 
-  assets.avatar = addImageToCanvasDiv(notDrinkingUrl, {
+  assets.avatar = addImageToCanvasDiv(assets.avatarUrls[1], {
     class: "large-on-hover-micro",
     height: "55%",
     left: "20%",
@@ -563,9 +578,7 @@ function addImages() {
   assets.shelf.appendChild(assets.secondPlant);
   // dragElement(assets.plant);
   // dragElement(assets.secondPlant);
-  dragElement(assets.shelf, () => {
-    sendContinueMessage();
-  });
+  dragElement(assets.shelf);
 
   assets.tvStand = addImageToCanvasDiv("./assets/tv-stand.png", {
     width: "20%",
@@ -587,26 +600,13 @@ function addImages() {
     bottom: "95%",
     right: "10%",
     zIndex: "1",
-    group: true,
   });
 
   let radioSlider = secondInterpolationSlider;
   removeElement(radioSlider);
-  radioSlider.style.display = "block";
-  radioSlider.style.position = "absolute";
-  radioSlider.style.left = "0%";
-  radioSlider.style.top = "16%";
-  radioSlider.style.height = "5%";
-  radioSlider.style.width = "80%";
-  radioSlider.style.zIndex = "1";
-  radioSlider.style.opacity = 1.0;
 
   assets.radio.addEventListener("click", () => {
-    if (radioSlider.style.display === "none") {
-      radioSlider.style.display = "block";
-    } else {
-      radioSlider.style.display = "none";
-    }
+    sendContinueMessage();
   });
 
   assets.tvStand.append(assets.tvTable);
@@ -802,75 +802,84 @@ function addImages() {
     data.canvas.moveMelodyCanvasToRoom();
   });
 
-  const avatar = assets.avatar;
-  switchAvatar = (drinking) => {
+  assets.switchAvatar = (drinking) => {
+    const { avatar } = assets;
     if (drinking === undefined) {
-      if (avatar.src === drinkingUrl) {
-        avatar.src = notDrinkingUrl;
+      if (avatar.src === assets.avatarUrls[0]) {
+        avatar.src = assets.avatarUrls[1];
       } else {
-        avatar.src = drinkingUrl;
+        avatar.src = assets.avatarUrls[0];
       }
     } else {
-      avatar.src = drinking ? drinkingUrl : notDrinkingUrl;
+      avatar.src = drinking ? assets.avatarUrls[0] : assets.avatarUrls[1];
     }
   };
-  avatar.addEventListener("click", () => {
-    toggleDrumMute();
-  });
+  dragElement(
+    assets.avatar,
+    () => {
+      toggleDrumMute();
+    },
+    { horizontal: true }
+  );
 
-  assets.catCallback = function () {
-    assets.cat.style.display = "none";
-    assets.catIndex = (assets.catIndex + 1) % catsUrls.length;
-    assets.cat.src = catsUrls[assets.catIndex];
-    if (assets.catIndex === 0) {
-      changeBpm(75);
-      changeDrumPattern(2);
-    } else if (assets.catIndex === 1) {
-      changeBpm(90);
-      changeDrumPattern(0);
-    } else {
-      changeBpm(100);
-      changeDrumPattern(1);
+  dragElement(
+    assets.cat,
+    () => {
+      assets.cat.style.display = "none";
+      assets.catIndex = (assets.catIndex + 1) % assets.catUrls.length;
+      assets.cat.src = assets.catUrls[assets.catIndex];
+      if (assets.catIndex === 0) {
+        changeBpm(75);
+        changeDrumPattern(2);
+      } else if (assets.catIndex === 1) {
+        changeBpm(90);
+        changeDrumPattern(0);
+      } else {
+        changeBpm(100);
+        changeDrumPattern(1);
+      }
+
+      if (assets.catIndex === 2) {
+        assets.cat.style.left = "41.5%";
+        assets.cat.style.width = "9%";
+        assets.cat.style.bottom = "39%";
+      } else {
+        assets.cat.style.left = "43%";
+        assets.cat.style.width = "6%";
+        assets.cat.style.bottom = "33%";
+      }
+
+      // MACRO
+      if (assets.catIndex === 0) {
+        changeChords(0);
+        changeMelodyInstrument(1);
+        changeMelodyByIndex(0);
+        changeChordsInstrument(0);
+        data.backgroundSounds.gain.gain.value = 1.0;
+      } else if (assets.catIndex === 1) {
+        changeChords(1);
+        changeChordsInstrument(2);
+        changeMelodyByIndex(1);
+        changeMelodyInstrument(3);
+        data.backgroundSounds.switch(1);
+        data.backgroundSounds.gain.gain.value = 0.5;
+      } else {
+        changeChords(2);
+        changeChordsInstrument(2);
+        changeMelodyByIndex(2);
+        changeMelodyInstrument(0); // electric guitar
+        data.backgroundSounds.switch(3);
+        data.backgroundSounds.gain.gain.value = 1.0;
+      }
+
+      assets.cat.onload = () => {
+        assets.cat.style.display = "block";
+      };
+    },
+    {
+      horizontal: false,
     }
-
-    if (assets.catIndex === 2) {
-      assets.cat.style.left = "41.5%";
-      assets.cat.style.width = "9%";
-      assets.cat.style.bottom = "39%";
-    } else {
-      assets.cat.style.left = "43%";
-      assets.cat.style.width = "6%";
-      assets.cat.style.bottom = "33%";
-    }
-
-    // MACRO
-    if (assets.catIndex === 0) {
-      changeChords(0);
-      changeMelodyInstrument(1);
-      changeMelodyByIndex(0);
-      changeChordsInstrument(0);
-      data.backgroundSounds.gain.gain.value = 1.0;
-    } else if (assets.catIndex === 1) {
-      changeChords(1);
-      changeChordsInstrument(2);
-      changeMelodyByIndex(1);
-      changeMelodyInstrument(3);
-      data.backgroundSounds.switch(1);
-      data.backgroundSounds.gain.gain.value = 0.5;
-    } else {
-      changeChords(2);
-      changeChordsInstrument(2);
-      changeMelodyByIndex(2);
-      changeMelodyInstrument(0); // electric guitar
-      data.backgroundSounds.switch(3);
-      data.backgroundSounds.gain.gain.value = 1.0;
-    }
-
-    assets.cat.onload = () => {
-      assets.cat.style.display = "block";
-    };
-  };
-  assets.cat.addEventListener("click", assets.catCallback);
+  );
 
   // const amp = addImageToCanvasDiv("./assets/amp.png", {
   //   class: "large-on-hover",
@@ -905,16 +914,25 @@ function addImages() {
     switchPanel("bass");
     togglePanel();
   });
-  assets.cactus.addEventListener("click", () => {
-    switchPanel("background");
-    togglePanel();
-  });
+  dragElement(
+    assets.cactus,
+    () => {
+      switchPanel("background");
+      togglePanel();
+    },
+    {
+      horizontal: true,
+    }
+  );
 
   dragElement(assets.clock, () => {
     switchPanel("drum");
     togglePanel();
   });
-  dragElement(assets.shelfWithBooks);
+  dragElement(assets.shelfWithBooks, () => {
+    switchPanel("info");
+    togglePanel();
+  });
   dragElement(assets.pens, () => {
     switchPanel("master");
     togglePanel();
@@ -1043,9 +1061,9 @@ function drawMainCanvas() {
     // ctx.fillRect(width * Tone.Transport.progress, 0, 10, height);
   }
 
-  // if (melodyMidis) {
+  // if (data.melody.midis) {
   //   drawRect(ctx, 357, 102, 111, 61, "rgba(255, 11, 174, 0.8)");
-  //   drawMidi(ctx, 357, 102, 111, 61, melodyMidis[melodyIndex]);
+  //   drawMidi(ctx, 357, 102, 111, 61, data.melody.midis[melodyIndex]);
 
   //   // kick
   //   drawRect(ctx, 519, 131, 52, 190, "rgba(255, 11, 174, 0.8)");
@@ -1255,17 +1273,19 @@ async function loadMidiFiles() {
 
   changeChords(chordsIndex);
 
-  melodyMidis = await Promise.all([
+  data.melody.midis = await Promise.all([
     Midi.fromUrl("./midi/IV_IV_I_I/melody/m_1_C.mid"),
     Midi.fromUrl("./midi/IV_IV_I_I/melody/m_2_C.mid"),
     Midi.fromUrl("./midi/IV_IV_I_I/melody/m_3_C.mid"),
     Midi.fromUrl("./midi/IV_IV_I_I/melody/m_4_C.mid"),
   ]);
+  data.melody.midis[4] = data.melody.midis[0]; // placeholder
+  data.melody.toneNotes = data.melody.midis.map(midiToToneNotes);
 
   changeMelodyByIndex(melodyIndex);
 
   console.log("midi loaded");
-  // console.log("midi loaded", melodyMidis[0]);
+  // console.log("midi loaded", data.melody.midis[0]);
   checkFinishLoading();
 }
 
@@ -1276,6 +1296,11 @@ function checkFinishLoading() {
     data.loading = false;
     console.log("Finish loading!");
     onFinishLoading();
+  } else if (data.loading) {
+    const percentage = Math.floor(
+      (loadEventsCounts / LOAD_EVENTS_COUNTS_THRESHOLD) * 100
+    );
+    startButton.textContent = `loading...${percentage}/100%`;
   }
 }
 
@@ -1303,29 +1328,13 @@ function triggerStart() {
   }
 }
 function onFinishLoading() {
-  // controlDiv.style.display = "flex";
+  canvasOverlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
   startButton.textContent = "start";
   startButton.addEventListener("click", () => {
     triggerStart();
   });
 
-  function switchCallback() {
-    if (data.showPanel) {
-      switchScreenButton.textContent = "music";
-      canvasDiv.style.display = "block";
-      initCanvas();
-      controlDiv.style.display = "none";
-      data.showPanel = false;
-    } else {
-      switchScreenButton.textContent = "room";
-      canvasDiv.style.display = "none";
-      controlDiv.style.display = "flex";
-      data.showPanel = true;
-    }
-  }
-  switchScreenButton.addEventListener("click", switchCallback);
-
-  changeBpm(bpm);
+  changeBpm(data.master.bpm);
   bpmInput.addEventListener("input", (e) => {
     changeBpm(bpmInput.value);
   });
@@ -1350,12 +1359,12 @@ function onFinishLoading() {
   });
 
   firstMelodySelect.addEventListener("change", () => {
-    changeMelodyByIndex(firstMelodySelect.value);
+    changeMelodyByIndex(parseInt(firstMelodySelect.value));
   });
 
   secondMelodySelect.addEventListener("change", () => {
     secondMelodyIndex = secondMelodySelect.value;
-    sendInterpolationMessage();
+    sendInterpolationMessage(data.melody.interpolationData[0]);
   });
 
   backgroundSoundsSelect.addEventListener("change", () => {
@@ -1409,20 +1418,6 @@ function onFinishLoading() {
     data.backgroundSounds.hpf.frequency.value = frq;
   });
 
-  linkInput.value = "https://www.youtube.com/watch?v=EhBSXFidyUU";
-  linkInput.addEventListener("click", () => {
-    linkInput.select();
-  });
-  submitLinkButton.addEventListener("click", (e) => {
-    const id = parseYoutubeId(linkInput.value);
-    if (id) {
-      console.log(`youtube id:${id}`);
-      assets.youtube.src = getYoutubeEmbedUrlFromId(id);
-    } else {
-      console.log("wrong format");
-    }
-  });
-
   masterReverbSlider.addEventListener("input", () => {
     const wet = masterReverbSlider.value / 100;
     data.master.reverb.wet.value = wet;
@@ -1436,6 +1431,13 @@ function onFinishLoading() {
   masterVolumeSlider.addEventListener("input", () => {
     const vol = masterVolumeSlider.value / 100;
     data.master.gain.gain.value = vol;
+  });
+
+  melodySwingSlider.addEventListener("input", () => {
+    data.melody.swing = melodySwingSlider.value / 100;
+  });
+  chordsSwingSlider.addEventListener("input", () => {
+    data.chords.swing = chordsSwingSlider.value / 100;
   });
 
   window.addEventListener("resize", () => {
@@ -1495,7 +1497,7 @@ function toggleDrumMute(value) {
 
   // sync ui
   drumToggle.checked = !drumMute;
-  switchAvatar(drumMute);
+  assets.switchAvatar(drumMute);
 }
 
 function changeChords(index = 0) {
@@ -1508,7 +1510,7 @@ function changeChords(index = 0) {
     chordsInstruments[chordsInstrumentIndex].triggerAttackRelease(
       toFreq(note.pitch - (chordsInstrumentIndex === 0 ? 0 : 12)),
       note.duration,
-      time,
+      time + data.chords.swing * (75 / data.master.bpm) * Math.random() * 0.1,
       note.velocity * data.chords.gain
     );
   }, midiToToneNotes(chordsMidis[chordsIndex])).start(0);
@@ -1521,15 +1523,20 @@ function changeMelodyByIndex(index = 0) {
     melodyPart.cancel(0);
   }
   melodyIndex = index;
+  if (index === data.melody.toneNotes.length - 1) {
+    console.log("rnn");
+    sendContinueMessage();
+    return;
+  }
 
   melodyPart = new Tone.Part((time, note) => {
     data.melody.instrument.triggerAttackRelease(
       toFreq(note.pitch - 12),
       note.duration,
-      time,
+      time + Math.random() * (75 / data.master.bpm) * 0.3 * data.melody.swing,
       note.velocity * data.melody.gain
     );
-  }, midiToToneNotes(melodyMidis[melodyIndex])).start(0);
+  }, data.melody.toneNotes[melodyIndex]).start(0);
 
   melodyPart.loop = false;
 
@@ -1545,7 +1552,7 @@ function changeMelody(readyMidi) {
     data.melody.instrument.triggerAttackRelease(
       toFreq(note.pitch - 12),
       note.duration,
-      time,
+      time + Math.random() * (75 / data.master.bpm) * 0.3 * data.melody.swing,
       note.velocity * data.melody.gain
     );
   }, readyMidi).start(0);
@@ -1561,22 +1568,22 @@ function changeInterpolationIndex(index) {
   secondInterpolationSlider.value = index;
 }
 
-function sendInterpolationMessage(m1, m2) {
+function sendInterpolationMessage(m1, m2, id = 0) {
   data.melody.waitingInterpolation = true;
   melodyInteractionDivs[0].classList.add("disabledbutton");
 
   // console.log(`interpolate ${melodyIndex} ${secondMelodyIndex}`);
-  const firstMelody = melodyMidis[melodyIndex];
+  const firstMelody = data.melody.midis[melodyIndex];
   const left = m1 ? m1 : midiToModelFormat(firstMelody);
 
-  const secondMelody = melodyMidis[secondMelodyIndex];
+  const secondMelody = data.melody.midis[secondMelodyIndex];
   const right = m2 ? m2 : midiToModelFormat(secondMelody);
 
   data.melody.interpolationData[0] = left;
   data.melody.interpolationData[NUM_INTERPOLATIONS - 1] = right;
 
   worker.postMessage({
-    id: 0,
+    id,
     msg: "interpolate",
     left,
     right,
@@ -1584,8 +1591,9 @@ function sendInterpolationMessage(m1, m2) {
 }
 
 function sendContinueMessage() {
+  data.canvas.melodyCanvas.style.opacity = 0.1;
   worker.postMessage({
-    id: 0,
+    id: 1,
     msg: "continue",
   });
 }
@@ -1619,7 +1627,7 @@ function changeMelodyInstrument(index) {
 function changeBpm(v) {
   bpmInput.value = v;
   bpmValueSpan.textContent = `${v}`;
-  bpm = v;
+  data.master.bpm = v;
   Tone.Transport.bpm.value = v;
 }
 
@@ -1683,8 +1691,8 @@ function midiToModelFormat(midi, resolution = 2) {
   };
 }
 
-function modelFormatToToneNotes(data) {
-  const { notes } = data;
+function modelFormatToToneNotes(d) {
+  const { notes } = d;
   return notes.map((note) => {
     const { pitch, quantizedStartStep, quantizedEndStep } = note;
 
@@ -1693,7 +1701,10 @@ function modelFormatToToneNotes(data) {
         (quantizedStartStep % 8) / 2
       )}:${(quantizedStartStep % 2) * 2}`,
       pitch,
-      duration: (quantizedEndStep - quantizedStartStep) * (bpm / 60) * (1 / 4),
+      duration:
+        (quantizedEndStep - quantizedStartStep) *
+        (data.master.bpm / 60) *
+        (1 / 4),
       velocity: 0.7,
     };
   });
@@ -1815,7 +1826,6 @@ function dragElement(el, onClickCallback = () => {}, params = {}) {
 }
 
 // youtube
-const API = "https://lofi-player.glitch.me/comments";
 const API_KEY_NYU = "AIzaSyA8xd1IFBj6F0XtdzdOkCYXHq-U85jk7kU";
 const API_KEY_PRESONAL = "AIzaSyAeSDpo6Ch50ZdS_UYKbpb2uY7iCq2HZb0";
 const API_KEY = API_KEY_NYU;
@@ -1839,7 +1849,7 @@ const YOUTUBE_CHAT_API =
 let lastReadTime = 0;
 let time = Date.now();
 let interval = setInterval(() => {
-  fetchData();
+  // fetchData();
 }, 10000);
 
 async function fetchData() {
