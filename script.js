@@ -72,6 +72,11 @@ const controlPanels = document.getElementsByClassName("panel");
 const connectYoutubeButton = document.getElementById("connect-youtube-button");
 const youtubePromptText = document.getElementById("youtube-prompt-text");
 const youtubePromptDiv = document.getElementById("youtube-prompt-div");
+const youtubeDiv = document.getElementById("youtube-div");
+const youtubeButtons = document.getElementById("youtube-buttons");
+const collapseYoutubeDivButton = document.getElementById(
+  "collapse-youtube-div-button"
+);
 
 const worker = new Worker("worker.js");
 const samplesBaseUrl = "./samples";
@@ -1960,4 +1965,18 @@ async function onClickConnect() {
       }
     });
   }, listenPeriod);
+}
+function onClickCloseYoutube() {
+  // youtubeDiv.style.display = "none";
+  if (youtubeButtons.style.display === "none") {
+    collapseYoutubeDivButton.textContent = "X";
+    youtubeDiv.style.height = "20%";
+    youtubeButtons.style.display = "block";
+    youtubePromptDiv.style.display = "block";
+  } else {
+    collapseYoutubeDivButton.textContent = "=";
+    youtubeDiv.style.height = "auto";
+    youtubeButtons.style.display = "none";
+    youtubePromptDiv.style.display = "none";
+  }
 }

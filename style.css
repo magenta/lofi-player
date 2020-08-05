@@ -388,11 +388,7 @@ li {
   box-shadow: var(--shadow);
   overflow: hidden;
 }
-#youtube-div button {
-  padding: 0rem;
-  margin: 0;
-  font-size: 0.4rem;
-}
+
 #youtube-div h3 {
   margin: 0 auto 0 auto;
   padding: 0.2rem;
@@ -418,6 +414,26 @@ li {
   right: 0;
   z-index: 1;
   background-color: var(--text-color);
+}
+#youtube-buttons button {
+  padding: 0rem;
+  margin: 0;
+  font-size: 0.4rem;
+}
+#collapse-youtube-div-button {
+  color: var(--text-background-color);
+  padding: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  opacity: 0.5;
+  font-size: 0.8rem;
+
+  border: none;
+  background-color: transparent;
+}
+#collapse-youtube-div-button:hover {
+  opacity: 1;
 }
 
 @media only screen and (max-width: 720px) {
