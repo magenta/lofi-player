@@ -71,7 +71,7 @@
           </p>
           <div>
             <a
-              href="https://www.youtube.com/watch?v=Ncukf00ZYu8"
+              href="https://www.youtube.com/channel/UCizuHuCAHmpTa6EFeZS2Hqg/live"
               target="_blank"
             >
               <button id="youtube-button" class="nes-btn is-error">
@@ -136,7 +136,7 @@
                   class="nes-progress"
                   min="0"
                   max="100"
-                  value="100"
+                  value="30"
                 />
                 <br />
                 <label>reverb</label>
@@ -445,8 +445,51 @@
       </div>
 
       <footer>
-        <span style="color: white;">v.0.6</span>
+        <span style="color: white;">v.0.7</span>
       </footer>
+    </div>
+
+    <div id="youtube-div">
+      <h3>
+        <a
+          href="https://www.youtube.com/channel/UCizuHuCAHmpTa6EFeZS2Hqg/live"
+          target="_blank"
+          >Youtube Live</a
+        >
+      </h3>
+      <div id="youtube-buttons">
+        <button
+          id="connect-youtube-button"
+          class="nes-btn is-success"
+          onclick="onClickConnect()"
+        >
+          connect
+        </button>
+
+        <a
+          href="https://studio.golightstream.com/projects/5f1f9dc90d0f3262372d3118"
+          target="_blank"
+        >
+          <button class="nes-btn">
+            stream
+          </button>
+        </a>
+      </div>
+      <div id="youtube-content-div">
+        <p id="youtube-prompt-text">[wait...]</p>
+        <div id="youtube-prompt-div">
+          <p>
+            You can get api key from youtube service and connect this project to
+            your youtube stream, and this block will show the live comments
+            real-time. Hope you enjoy this.
+          </p>
+          <p>Regards,</p>
+          <p>Vibert</p>
+        </div>
+      </div>
+      <button id="collapse-youtube-div-button" onclick="onClickCloseYoutube()">
+        X
+      </button>
     </div>
   </body>
 </html>

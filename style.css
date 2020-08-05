@@ -10,6 +10,8 @@
   --input-thumb-size: 8px;
   --border-width: 8px;
   --bright-green: rgba(127, 246, 102, 1);
+  /* --shadow: 10px 10px 5px black; */
+  --shadow: 0 8px 12px 0 rgba(0, 0, 0, 0.8), 0 12px 25px 0 rgba(0, 0, 0, 0.7);
 }
 
 * {
@@ -147,6 +149,7 @@ button {
   /* height: 435px; */
   border: solid var(--text-color) var(--border-width);
   overflow: hidden;
+  box-shadow: var(--shadow);
 }
 
 #canvas-overlay {
@@ -367,6 +370,71 @@ footer {
 #info-div p,
 li {
   font-size: 0.7rem;
+}
+
+#youtube-div {
+  display: none;
+  color: var(--text-color);
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  width: 30%;
+  max-width: 500px;
+  height: 20%;
+
+  /* padding: 1rem; */
+  border: solid var(--text-color) var(--border-width);
+  background-color: white;
+  z-index: 5;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+#youtube-div h3 {
+  margin: 0 auto 0 auto;
+  padding: 0.2rem;
+  width: 100%;
+  background-color: var(--text-color);
+  text-align: center;
+  font-size: 0.7rem;
+}
+#youtube-div a {
+  color: var(--text-background-color);
+}
+#youtube-content-div {
+  padding: 0.4rem;
+}
+#youtube-div p,
+li {
+  font-size: 0.4rem;
+}
+#youtube-buttons {
+  position: absolute;
+  padding: 0.4rem 0.4rem 0.4rem 0.6rem;
+  bottom: 0;
+  right: 0;
+  z-index: 1;
+  background-color: var(--text-color);
+}
+#youtube-buttons button {
+  padding: 0rem;
+  margin: 0;
+  font-size: 0.4rem;
+}
+#collapse-youtube-div-button {
+  color: var(--text-background-color);
+  padding: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  opacity: 0.5;
+  font-size: 0.8rem;
+
+  border: none;
+  background-color: transparent;
+}
+#collapse-youtube-div-button:hover {
+  opacity: 1;
 }
 
 @media only screen and (max-width: 720px) {

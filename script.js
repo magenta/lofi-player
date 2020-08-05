@@ -68,8 +68,15 @@ const masterToneSlider = document.getElementById("master-tone-slider");
 const masterVolumeSlider = document.getElementById("master-volume-slider");
 const melodySwingSlider = document.getElementById("melody-swing-slider");
 const chordsSwingSlider = document.getElementById("chords-swing-slider");
-
 const controlPanels = document.getElementsByClassName("panel");
+const connectYoutubeButton = document.getElementById("connect-youtube-button");
+const youtubePromptText = document.getElementById("youtube-prompt-text");
+const youtubePromptDiv = document.getElementById("youtube-prompt-div");
+const youtubeDiv = document.getElementById("youtube-div");
+const youtubeButtons = document.getElementById("youtube-buttons");
+const collapseYoutubeDivButton = document.getElementById(
+  "collapse-youtube-div-button"
+);
 
 const worker = new Worker("worker.js");
 const samplesBaseUrl = "./samples";
@@ -133,7 +140,7 @@ const data = {
       preDelay: 0.01,
     }),
     bpm: 75,
-    gain: new Tone.Gain(1),
+    gain: new Tone.Gain(0.3),
   },
 };
 let backgroundSounds = [];
@@ -156,10 +163,7 @@ let chordsInstruments;
 
 const assets = {
   catIndex: 0,
-  avatarUrls: [
-    `${window.location}/assets/avatar-2.png`,
-    `${window.location}/assets/avatar.png`,
-  ],
+  avatarUrls: [`./assets/avatar-2.png`, `./assets/avatar.png`],
   catUrls: [
     "./assets/cat-75-purple.gif",
     "./assets/cat-90.gif",
@@ -783,9 +787,9 @@ function addImages() {
     data.effects.beep.start();
     assets.lampOn = !assets.lampOn;
     if (!assets.lampOn) {
-      assets.lamp.src = `${window.location}/assets/lamp-off.png`;
+      assets.lamp.src = `./assets/lamp-off.png`;
     } else {
-      assets.lamp.src = `${window.location}/assets/lamp-on.png`;
+      assets.lamp.src = `./assets/lamp-on.png`;
     }
   });
 
@@ -1515,7 +1519,7 @@ function changeChords(index = 0) {
     );
   }, midiToToneNotes(chordsMidis[chordsIndex])).start(0);
 
-  backgroundImage.src = `${window.location}/assets/rooom-${chordsIndex}.png`;
+  backgroundImage.src = `./assets/rooom-${chordsIndex}.png`;
 }
 
 function changeMelodyByIndex(index = 0) {
@@ -1822,5 +1826,157 @@ function dragElement(el, onClickCallback = () => {}, params = {}) {
     // stop moving when mouse button is released:
     document.onmouseup = null;
     document.onmousemove = null;
+  }
+}
+
+// youtube stream
+const CHANNEL_ID = "UCizuHuCAHmpTa6EFeZS2Hqg";
+let fetchIntervalId;
+
+function getApiKeyFromParams() {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get("key");
+}
+function getVideoId(apiKey, channelId) {
+  return (
+    "https://www.googleapis.com/youtube/v3/search" +
+    "?eventType=live" +
+    "&part=id" +
+    `&channelId=${channelId}` +
+    "&type=video" +
+    `&key=${apiKey}`
+  );
+}
+function getChatIdUrl(apiKey, videoId) {
+  return (
+    "https://www.googleapis.com/youtube/v3/videos" +
+    "?part=liveStreamingDetails" +
+    `&id=${videoId}` +
+    `&key=${apiKey}`
+  );
+}
+function getChatMessagesUrl(apiKey, chatId) {
+  return (
+    "https://www.googleapis.com/youtube/v3/liveChat/messages" +
+    `?liveChatId=${chatId}` +
+    "&part=id,snippet,authorDetails" +
+    "&maxResults=100" +
+    `&key=${apiKey}`
+  );
+}
+async function fetchData(url, callback = () => {}) {
+  try {
+    let res = await fetch(url);
+    const data = await res.json();
+    // console.log(`[${url}]`);
+    // console.log("response", data);
+    return callback(data);
+  } catch (err) {
+    alert(err);
+  }
+}
+function handleMessage(msg) {
+  const callbacks = {
+    start: () => {
+      triggerStart();
+    },
+    "turn on the light": () => {
+      triggerStart();
+    },
+    "turn off the light": () => {
+      triggerStart();
+    },
+    "click the window": () => {
+      const n = backgroundSoundsNames.length;
+      data.backgroundSounds.switch((backgroundSoundsIndex + 1) % n);
+    },
+    "click the cat": () => {
+      assets.catCallback();
+    },
+  };
+  if (callbacks[msg]) {
+    callbacks[msg]();
+  }
+}
+async function onClickConnect() {
+  if (fetchIntervalId) {
+    youtubePromptText.textContent = "[disconnected]";
+    connectYoutubeButton.textContent = "connect";
+    connectYoutubeButton.classList.add("is-success");
+    connectYoutubeButton.classList.remove("is-error");
+    clearInterval(fetchIntervalId);
+    fetchIntervalId = undefined;
+    return;
+  }
+
+  connectYoutubeButton.classList.remove("is-success");
+  connectYoutubeButton.classList.add("is-error");
+  connectYoutubeButton.classList.add("disabledbutton");
+
+  connectYoutubeButton.textContent = "disconnect";
+  youtubePromptText.textContent = "[loading...]";
+
+  let lastReadTime = Date.now();
+  let paramKey = getApiKeyFromParams();
+  let apiKey = paramKey;
+  while (!apiKey) {
+    apiKey = prompt("API key", paramKey);
+  }
+  let channelId = prompt("Channel Id", CHANNEL_ID);
+  let listenPeriod = Number(prompt("Fetch every milliseconds: ", 5000));
+  if (!apiKey) {
+    apiKey = paramKey;
+  }
+  if (!channelId) {
+    channelId = CHANNEL_ID;
+  }
+  if (!listenPeriod) {
+    listenPeriod = 5000;
+  }
+
+  youtubePromptText.textContent = "[fetching live id...]";
+  const liveId = await fetchData(getVideoId(apiKey, channelId), (data) => {
+    return data.items[0].id.videoId;
+  });
+
+  youtubePromptText.textContent = "[fetching chat id...]";
+  const chatId = await fetchData(getChatIdUrl(apiKey, liveId), (data) => {
+    return data.items[0].liveStreamingDetails.activeLiveChatId;
+  });
+
+  youtubePromptText.textContent = "[connected]";
+  connectYoutubeButton.classList.remove("disabledbutton");
+  fetchIntervalId = setInterval(() => {
+    fetchData(getChatMessagesUrl(apiKey, chatId), (data) => {
+      youtubePromptDiv.innerHTML = "";
+      for (let i = 0; i < data.items.length; i++) {
+        const item = data.items[i];
+        let time = new Date(item.snippet.publishedAt).getTime();
+        if (lastReadTime < time) {
+          lastReadTime = time;
+          const content = item.snippet.displayMessage;
+          const authorName = item.authorDetails.displayName;
+          const line = `${authorName}: ${content}`;
+          const el = document.createElement("LI");
+          el.textContent = line;
+          youtubePromptDiv.appendChild(el);
+          handleMessage(content);
+        }
+      }
+    });
+  }, listenPeriod);
+}
+function onClickCloseYoutube() {
+  // youtubeDiv.style.display = "none";
+  if (youtubeButtons.style.display === "none") {
+    collapseYoutubeDivButton.textContent = "X";
+    youtubeDiv.style.height = "20%";
+    youtubeButtons.style.display = "block";
+    youtubePromptDiv.style.display = "block";
+  } else {
+    collapseYoutubeDivButton.textContent = "=";
+    youtubeDiv.style.height = "auto";
+    youtubeButtons.style.display = "none";
+    youtubePromptDiv.style.display = "none";
   }
 }
