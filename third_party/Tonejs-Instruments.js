@@ -5,6 +5,35 @@
  * https://github.com/nbrosowsky/tonejs-instruments
  */
 
+/**
+ * @license
+ * MIT License
+ * 
+ * Copyright (c) 2018 Nicholaus P. Brosowsky
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * 
+ * 
+ * SAMPLES RELEASED UNDER [CC-BY 3.0](https://creativecommons.org/licenses/by/3.0/)
+ * =============================================================================
+ */
+
 var SampleLibrary = {
   minify: false,
   ext: ".[mp3|ogg]", // use setExt to change the extensions on all files // do not change this variable //
@@ -33,7 +62,7 @@ var SampleLibrary = {
   ],
   onload: null,
 
-  setExt: function(newExt) {
+  setExt: function (newExt) {
     var i;
     for (i = 0; i <= this.list.length - 1; i++) {
       for (var property in this[this.list[i]]) {
@@ -47,7 +76,7 @@ var SampleLibrary = {
     return console.log("sample extensions set to " + this.ext);
   },
 
-  load: function(arg) {
+  load: function (arg) {
     var t, rt, i;
     arg ? (t = arg) : (t = {});
     t.instruments = t.instruments || this.list;
@@ -81,10 +110,10 @@ var SampleLibrary = {
             minBy = 6;
           }
 
-          var filtered = Object.keys(newT).filter(function(_, i) {
+          var filtered = Object.keys(newT).filter(function (_, i) {
             return i % minBy != 0;
           });
-          filtered.forEach(function(f) {
+          filtered.forEach(function (f) {
             delete newT[f];
           });
         }
@@ -114,10 +143,10 @@ var SampleLibrary = {
           minBy = 6;
         }
 
-        filtered = Object.keys(newT).filter(function(_, i) {
+        filtered = Object.keys(newT).filter(function (_, i) {
           return i % minBy != 0;
         });
-        filtered.forEach(function(f) {
+        filtered.forEach(function (f) {
           delete newT[f];
         });
       }

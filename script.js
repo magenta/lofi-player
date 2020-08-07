@@ -1,3 +1,20 @@
+/**
+ * @license
+ * Copyright 2020 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+
 const warningOverlay = document.getElementById('warning-overlay');
 const startButton = document.getElementById('start-button');
 const whateverButton = document.getElementById('whatever-button');
@@ -1851,7 +1868,7 @@ function midiToToneNotes(midi) {
     return {
       time: `${Math.floor(note.ticks / TICKS_PER_BAR)}:${
         Math.floor(note.ticks / ticksPerBeat) % BEATS_PER_BAR
-      }:${(note.ticks / ticksPerFourthNote) % 4}`,
+        }:${(note.ticks / ticksPerFourthNote) % 4}`,
       pitch: note.midi,
       duration: note.duration,
       velocity: note.velocity,
@@ -1889,7 +1906,7 @@ function modelFormatToToneNotes(d) {
     return {
       time: `${Math.floor(quantizedStartStep / 8)}:${Math.floor((quantizedStartStep % 8) / 2)}:${
         (quantizedStartStep % 2) * 2
-      }`,
+        }`,
       pitch,
       duration: (quantizedEndStep - quantizedStartStep) * (data.master.bpm / 60) * (1 / 4),
       velocity: 0.7,
@@ -1967,7 +1984,7 @@ function removeElement(el) {
   el.parentNode.removeChild(el);
 }
 
-function dragElement(el, onClickCallback = () => {}, params = {}) {
+function dragElement(el, onClickCallback = () => { }, params = {}) {
   let pos1 = 0;
   let pos2 = 0;
   let pos3 = 0;
@@ -2122,7 +2139,7 @@ function getChatMessagesUrl(apiKey, chatId, pageToken) {
   );
 }
 
-async function fetchData(url, callback = () => {}, onError = () => {}) {
+async function fetchData(url, callback = () => { }) {
   try {
     let res = await fetch(url);
     const data = await res.json();
