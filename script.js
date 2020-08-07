@@ -1,19 +1,3 @@
-const LOAD_EVENTS_COUNTS_THRESHOLD = 8;
-const TOTAL_BAR_COUNTS = 8;
-const TICKS_PER_BAR = 384;
-const BEATS_PER_BAR = 4;
-const TOTAL_TICKS = TOTAL_BAR_COUNTS * TICKS_PER_BAR;
-const MODEL_BAR_COUNT = 2;
-const MAIN_CANVAS_PADDING = 0;
-const NUM_INTERPOLATIONS = 5;
-let NUM_PRESET_MELODIES = 4;
-
-const SYNTHS = 0;
-const PIANO = 1;
-const ACOUSTIC_GUITAR = 2;
-const ELETRIC_GUITAR = 3;
-const NUM_INSTRUMENTS = 4;
-
 const warningOverlay = document.getElementById("warning-overlay");
 const startButton = document.getElementById("start-button");
 const whateverButton = document.getElementById("whatever-button");
@@ -77,6 +61,25 @@ const youtubeButtons = document.getElementById("youtube-buttons");
 const collapseYoutubeDivButton = document.getElementById(
   "collapse-youtube-div-button"
 );
+
+const LOAD_EVENTS_COUNTS_THRESHOLD = 8;
+const TOTAL_BAR_COUNTS = 8;
+const TICKS_PER_BAR = 384;
+const BEATS_PER_BAR = 4;
+const TOTAL_TICKS = TOTAL_BAR_COUNTS * TICKS_PER_BAR;
+const MODEL_BAR_COUNT = 2;
+const MAIN_CANVAS_PADDING = 0;
+const NUM_INTERPOLATIONS = 5;
+let NUM_PRESET_MELODIES = 4;
+
+const SYNTHS = 0;
+const PIANO = 1;
+const ACOUSTIC_GUITAR = 2;
+const ELETRIC_GUITAR = 3;
+const NUM_INSTRUMENTS = 4;
+
+const CHANNEL_ID = "UCizuHuCAHmpTa6EFeZS2Hqg";
+let fetchIntervalId;
 
 const worker = new Worker("worker.js");
 const samplesBaseUrl = "./samples";
@@ -1640,7 +1643,6 @@ function changeDrumPattern(index) {
   drumPatternsSelect.value = index;
 }
 
-// utils
 function checkStarted() {
   return Tone.Transport.state === "started";
 }
@@ -1766,6 +1768,7 @@ function filterNotesInScale(data) {
     return d;
   });
 }
+
 function filterNotesInScaleSingle(notes) {
   return notes.filter(({ pitch }) => {
     const p = pitch % 12;
@@ -1829,14 +1832,11 @@ function dragElement(el, onClickCallback = () => {}, params = {}) {
   }
 }
 
-// youtube stream
-const CHANNEL_ID = "UCizuHuCAHmpTa6EFeZS2Hqg";
-let fetchIntervalId;
-
 function getApiKeyFromParams() {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get("key");
 }
+
 function getVideoId(apiKey, channelId) {
   return (
     "https://www.googleapis.com/youtube/v3/search" +
@@ -1847,6 +1847,7 @@ function getVideoId(apiKey, channelId) {
     `&key=${apiKey}`
   );
 }
+
 function getChatIdUrl(apiKey, videoId) {
   return (
     "https://www.googleapis.com/youtube/v3/videos" +
@@ -1855,6 +1856,7 @@ function getChatIdUrl(apiKey, videoId) {
     `&key=${apiKey}`
   );
 }
+
 function getChatMessagesUrl(apiKey, chatId) {
   return (
     "https://www.googleapis.com/youtube/v3/liveChat/messages" +
@@ -1864,6 +1866,7 @@ function getChatMessagesUrl(apiKey, chatId) {
     `&key=${apiKey}`
   );
 }
+
 async function fetchData(url, callback = () => {}) {
   try {
     let res = await fetch(url);
@@ -1875,6 +1878,7 @@ async function fetchData(url, callback = () => {}) {
     alert(err);
   }
 }
+
 function handleMessage(msg) {
   const callbacks = {
     start: () => {
@@ -1898,6 +1902,7 @@ function handleMessage(msg) {
     callbacks[msg]();
   }
 }
+
 async function onClickConnect() {
   if (fetchIntervalId) {
     youtubePromptText.textContent = "[disconnected]";
@@ -1966,6 +1971,7 @@ async function onClickConnect() {
     });
   }, listenPeriod);
 }
+
 function onClickCloseYoutube() {
   // youtubeDiv.style.display = "none";
   if (youtubeButtons.style.display === "none") {
