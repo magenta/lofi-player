@@ -2,4 +2,4 @@
 
 Play with lo-fi beats with ease.
 
-![](./assets/screenshot_v0.3.png)
+![](./assets/screenshot_v.0.7.png)
