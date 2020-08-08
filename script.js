@@ -614,14 +614,19 @@ function addImages() {
   let radioSlider = secondInterpolationSlider;
   removeElement(radioSlider);
 
-  assets.radio.addEventListener("click", () => {
-    sendContinueMessage();
-  });
-
   assets.tvStand.append(assets.tvTable);
   assets.tvStand.append(assets.radio);
   assets.tvStand.append(radioSlider);
   dragElement(assets.tvStand, undefined, { horizontal: true });
+  assets.radio.addEventListener("click", () => {
+    sendContinueMessage();
+  });
+
+  assets.tvTable.addEventListener("click", () => {
+    data.canvas.moveMelodyCanvasToPanel();
+    switchPanel();
+    togglePanel();
+  });
 
   assets.sofa = addImageToCanvasDiv("./assets/sofa-1.png", {
     width: "35%",
@@ -796,12 +801,6 @@ function addImages() {
     } else {
       assets.lamp.src = `./assets/lamp-on.png`;
     }
-  });
-
-  assets.tvTable.addEventListener("click", () => {
-    data.canvas.moveMelodyCanvasToPanel();
-    switchPanel();
-    togglePanel();
   });
 
   melodyPanelCloseSpan.addEventListener("click", () => {

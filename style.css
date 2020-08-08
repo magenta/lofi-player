@@ -242,6 +242,12 @@ button {
   /* align-items: center; */
 }
 
+#interpolation-div {
+  text-align: center;
+}
+#interpolation-div a {
+  font-size: 0.6rem;
+}
 #interpolation-div canvas {
   width: 100%;
   height: 30%;
