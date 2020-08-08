@@ -912,7 +912,8 @@ function addImages() {
   });
 
   dragElement(assets.logo, () => {
-    window.open("google.com", "_blank");
+    stopTransport();
+    window.open("https://magenta.tensorflow.org/", "_blank");
   });
 
   dragElement(assets.bass, () => {
@@ -1316,23 +1317,30 @@ function triggerStart() {
   }
 
   if (Tone.Transport.state === "started") {
-    // stop
-    Tone.Transport.stop();
-    onTransportStop();
-    startButton.textContent = "start";
-    assets.window.src = "./assets/window-1.png";
-    assets.light.src = "./assets/light-off.png";
-    canvasOverlay.style.display = "flex";
+    stopTransport();
   } else {
-    // start
-    Tone.Transport.start();
-    onTransportStart();
-    startButton.textContent = "stop";
-    assets.window.src = "./assets/window-0.png";
-    assets.light.src = "./assets/light-on.png";
-    canvasOverlay.style.display = "none";
+    startTransport();
   }
 }
+
+function startTransport() {
+  Tone.Transport.start();
+  onTransportStart();
+  startButton.textContent = "stop";
+  assets.window.src = "./assets/window-0.png";
+  assets.light.src = "./assets/light-on.png";
+  canvasOverlay.style.display = "none";
+}
+
+function stopTransport() {
+  Tone.Transport.stop();
+  onTransportStop();
+  startButton.textContent = "start";
+  assets.window.src = "./assets/window-1.png";
+  assets.light.src = "./assets/light-off.png";
+  canvasOverlay.style.display = "flex";
+}
+
 function onFinishLoading() {
   canvasOverlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
   startButton.textContent = "start";
@@ -1836,6 +1844,34 @@ function getApiKeyFromParams() {
   return urlParams.get("key");
 }
 
+function checkApiKeyIsValid(key) {
+  if (!key) {
+    return false;
+  }
+
+  if (typeof key !== "string") {
+    return false;
+  }
+
+  if (key.length < 30) {
+    return false;
+  }
+
+  return true;
+}
+
+function checkPeriodIsValid(p) {
+  if (typeof p !== "number") {
+    return false;
+  }
+
+  if (p < 0 || p > 60000) {
+    return false;
+  }
+
+  return true;
+}
+
 function getVideoId(apiKey, channelId) {
   return (
     "https://www.googleapis.com/youtube/v3/search" +
@@ -1866,13 +1902,11 @@ function getChatMessagesUrl(apiKey, chatId) {
   );
 }
 
-async function fetchData(url, callback = () => {}) {
+async function fetchData(url, callback = () => {}, onError = () => {}) {
   try {
     let res = await fetch(url);
     const data = await res.json();
-    // console.log(`[${url}]`);
-    // console.log("response", data);
-    return callback(data);
+    return data;
   } catch (err) {
     alert(err);
   }
@@ -1904,12 +1938,7 @@ function handleMessage(msg) {
 
 async function onClickConnect() {
   if (fetchIntervalId) {
-    youtubePromptText.textContent = "[disconnected]";
-    connectYoutubeButton.textContent = "connect";
-    connectYoutubeButton.classList.add("is-success");
-    connectYoutubeButton.classList.remove("is-error");
-    clearInterval(fetchIntervalId);
-    fetchIntervalId = undefined;
+    disconnectYoutubeLiveChat();
     return;
   }
 
@@ -1923,8 +1952,10 @@ async function onClickConnect() {
   let lastReadTime = Date.now();
   let paramKey = getApiKeyFromParams();
   let apiKey = paramKey;
-  while (!apiKey) {
-    apiKey = prompt("API key", paramKey);
+  let hint = "API key";
+  while (!checkApiKeyIsValid(apiKey)) {
+    apiKey = prompt(hint, paramKey);
+    hint = "Invalid API key. Try again.";
   }
   let channelId = prompt("Channel Id", CHANNEL_ID);
   let listenPeriod = Number(prompt("Fetch every milliseconds: ", 5000));
@@ -1934,27 +1965,47 @@ async function onClickConnect() {
   if (!channelId) {
     channelId = CHANNEL_ID;
   }
-  if (!listenPeriod) {
+  if (!checkPeriodIsValid(listenPeriod)) {
     listenPeriod = 5000;
   }
 
   youtubePromptText.textContent = "[fetching live id...]";
-  const liveId = await fetchData(getVideoId(apiKey, channelId), (data) => {
-    return data.items[0].id.videoId;
-  });
+  let liveId;
+  let d = await fetchData(getVideoId(apiKey, channelId));
+
+  if (!d.error) {
+    liveId = d.items[0].id.videoId;
+  } else {
+    youtubePromptDiv.innerHTML = "";
+    const el = document.createElement("P");
+    el.textContent = d.error.message;
+    youtubePromptDiv.appendChild(el);
+    disconnectYoutubeLiveChat();
+    return;
+  }
 
   youtubePromptText.textContent = "[fetching chat id...]";
-  const chatId = await fetchData(getChatIdUrl(apiKey, liveId), (data) => {
-    return data.items[0].liveStreamingDetails.activeLiveChatId;
-  });
+  let chatId;
+  d = await fetchData(getChatIdUrl(apiKey, liveId));
+  if (!d.error) {
+    chatId = d.items[0].liveStreamingDetails.activeLiveChatId;
+  } else {
+    youtubePromptDiv.innerHTML = "";
+    const el = document.createElement("P");
+    el.textContent = d.error.message;
+    youtubePromptDiv.appendChild(el);
+    disconnectYoutubeLiveChat();
+    return;
+  }
 
   youtubePromptText.textContent = "[connected]";
   connectYoutubeButton.classList.remove("disabledbutton");
   fetchIntervalId = setInterval(() => {
-    fetchData(getChatMessagesUrl(apiKey, chatId), (data) => {
+    d = fetchData(getChatMessagesUrl(apiKey, chatId));
+    if (!d.error) {
       youtubePromptDiv.innerHTML = "";
-      for (let i = 0; i < data.items.length; i++) {
-        const item = data.items[i];
+      for (let i = 0; i < d.items.length; i++) {
+        const item = d.items[i];
         let time = new Date(item.snippet.publishedAt).getTime();
         if (lastReadTime < time) {
           lastReadTime = time;
@@ -1967,8 +2018,25 @@ async function onClickConnect() {
           handleMessage(content);
         }
       }
-    });
+    } else {
+      youtubePromptDiv.innerHTML = "";
+      const el = document.createElement("P");
+      el.textContent = d.error.message;
+      youtubePromptDiv.appendChild(el);
+      disconnectYoutubeLiveChat();
+      return;
+    }
   }, listenPeriod);
+}
+
+function disconnectYoutubeLiveChat() {
+  connectYoutubeButton.classList.remove("disabledbutton");
+  youtubePromptText.textContent = "[disconnected]";
+  connectYoutubeButton.textContent = "connect";
+  connectYoutubeButton.classList.add("is-success");
+  connectYoutubeButton.classList.remove("is-error");
+  clearInterval(fetchIntervalId);
+  fetchIntervalId = undefined;
 }
 
 function onClickCloseYoutube() {
