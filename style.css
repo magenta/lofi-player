@@ -368,7 +368,7 @@ footer {
 }
 
 #info-div p,
-li {
+#info-div ul {
   font-size: 0.7rem;
 }
 
@@ -404,7 +404,7 @@ li {
   padding: 0.4rem;
 }
 #youtube-div p,
-li {
+#youtube-div li {
   font-size: 0.4rem;
 }
 #youtube-buttons {

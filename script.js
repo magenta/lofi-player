@@ -1987,9 +1987,7 @@ async function onClickConnect() {
   youtubePromptText.textContent = "[fetching chat id...]";
   let chatId;
   d = await fetchData(getChatIdUrl(apiKey, liveId));
-  if (!d.error) {
-    chatId = d.items[0].liveStreamingDetails.activeLiveChatId;
-  } else {
+  if (d.error) {
     youtubePromptDiv.innerHTML = "";
     const el = document.createElement("P");
     el.textContent = d.error.message;
@@ -1997,34 +1995,37 @@ async function onClickConnect() {
     disconnectYoutubeLiveChat();
     return;
   }
+  chatId = d.items[0].liveStreamingDetails.activeLiveChatId;
 
   youtubePromptText.textContent = "[connected]";
   connectYoutubeButton.classList.remove("disabledbutton");
-  fetchIntervalId = setInterval(() => {
-    d = fetchData(getChatMessagesUrl(apiKey, chatId));
-    if (!d.error) {
-      youtubePromptDiv.innerHTML = "";
-      for (let i = 0; i < d.items.length; i++) {
-        const item = d.items[i];
-        let time = new Date(item.snippet.publishedAt).getTime();
-        if (lastReadTime < time) {
-          lastReadTime = time;
-          const content = item.snippet.displayMessage;
-          const authorName = item.authorDetails.displayName;
-          const line = `${authorName}: ${content}`;
-          const el = document.createElement("LI");
-          el.textContent = line;
-          youtubePromptDiv.appendChild(el);
-          handleMessage(content);
-        }
-      }
-    } else {
+  fetchIntervalId = setInterval(async () => {
+    d = await fetchData(getChatMessagesUrl(apiKey, chatId));
+    if (d.error) {
       youtubePromptDiv.innerHTML = "";
       const el = document.createElement("P");
       el.textContent = d.error.message;
       youtubePromptDiv.appendChild(el);
       disconnectYoutubeLiveChat();
       return;
+    }
+    youtubePromptDiv.innerHTML = "";
+    if (!d.items) {
+      return;
+    }
+    for (let i = 0; i < d.items.length; i++) {
+      const item = d.items[i];
+      let time = new Date(item.snippet.publishedAt).getTime();
+      if (lastReadTime < time) {
+        lastReadTime = time;
+        const content = item.snippet.displayMessage;
+        const authorName = item.authorDetails.displayName;
+        const line = `${authorName}: ${content}`;
+        const el = document.createElement("LI");
+        el.textContent = line;
+        youtubePromptDiv.appendChild(el);
+        handleMessage(content);
+      }
     }
   }, listenPeriod);
 }
