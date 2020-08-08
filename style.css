@@ -444,6 +444,19 @@ footer {
   opacity: 1;
 }
 
+#bubble-div {
+  position: absolute;
+  padding: 0.1rem;
+  bottom: 90%;
+  left: 65%;
+  width: 100%;
+  z-index: 2;
+}
+
+#bubble-div p {
+  font-size: 0.5rem;
+}
+
 @media only screen and (max-width: 720px) {
   :root {
     --input-thumb-size: 8px;

@@ -61,6 +61,7 @@ const youtubeButtons = document.getElementById("youtube-buttons");
 const collapseYoutubeDivButton = document.getElementById(
   "collapse-youtube-div-button"
 );
+const bubbleDiv = document.getElementById("bubble-div");
 
 const LOAD_EVENTS_COUNTS_THRESHOLD = 8;
 const TOTAL_BAR_COUNTS = 8;
@@ -479,12 +480,15 @@ function addImages() {
     zIndex: "4",
   });
 
-  assets.avatar = addImageToCanvasDiv(assets.avatarUrls[1], {
+  assets.avatarGroup = addImageToCanvasDiv(assets.avatarUrls[1], {
     class: "large-on-hover-micro",
-    height: "55%",
+    width: "11%",
     left: "20%",
     zIndex: "4",
+    group: true,
   });
+  assets.avatar = assets.avatarGroup.childNodes[0];
+  assets.avatarGroup.appendChild(bubbleDiv);
 
   assets.cactus = addImageToCanvasDiv("./assets/cactus.png", {
     class: "large-on-hover",
@@ -823,7 +827,7 @@ function addImages() {
     }
   };
   dragElement(
-    assets.avatar,
+    assets.avatarGroup,
     () => {
       toggleDrumMute();
     },
