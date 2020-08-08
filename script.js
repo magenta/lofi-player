@@ -1892,12 +1892,13 @@ function getChatIdUrl(apiKey, videoId) {
   );
 }
 
-function getChatMessagesUrl(apiKey, chatId) {
+function getChatMessagesUrl(apiKey, chatId, pageToken) {
   return (
     "https://www.googleapis.com/youtube/v3/liveChat/messages" +
     `?liveChatId=${chatId}` +
     "&part=id,snippet,authorDetails" +
     "&maxResults=100" +
+    (pageToken ? `&pageToken=${pageToken}` : "") +
     `&key=${apiKey}`
   );
 }
@@ -1999,8 +2000,9 @@ async function onClickConnect() {
 
   youtubePromptText.textContent = "[connected]";
   connectYoutubeButton.classList.remove("disabledbutton");
+  let nextPageToken;
   fetchIntervalId = setInterval(async () => {
-    d = await fetchData(getChatMessagesUrl(apiKey, chatId));
+    d = await fetchData(getChatMessagesUrl(apiKey, chatId, nextPageToken));
     if (d.error) {
       youtubePromptDiv.innerHTML = "";
       const el = document.createElement("P");
@@ -2013,6 +2015,8 @@ async function onClickConnect() {
     if (!d.items) {
       return;
     }
+    nextPageToken = d.nextPageToken;
+    console.log("new messages", d.items);
     for (let i = 0; i < d.items.length; i++) {
       const item = d.items[i];
       let time = new Date(item.snippet.publishedAt).getTime();
