@@ -245,7 +245,9 @@ button {
 #interpolation-div {
   text-align: center;
 }
-#interpolation-div a {
+#interpolation-div label,
+#interpolation-div select,
+#interpolation-div p {
   font-size: 0.6rem;
 }
 #interpolation-div canvas {
