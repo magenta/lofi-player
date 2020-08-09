@@ -87,6 +87,9 @@ const PIANO = 1;
 const ACOUSTIC_GUITAR = 2;
 const ELETRIC_GUITAR = 3;
 const NUM_INSTRUMENTS = 4;
+const NUM_PRESET_MELODIES = 4;
+const NUM_PRESET_CHORD_PROGRESSIONS = 3;
+const NUM_DRUM_PATTERNS = 3;
 const SAMPLES_BASE_URL = './samples';
 const CHANNEL_ID = 'UCizuHuCAHmpTa6EFeZS2Hqg';
 
@@ -108,9 +111,6 @@ const data = {
     part: null,
     gain: 1,
     swing: 0,
-    changeGain: (v) => {
-      data.melody.gain = v;
-    },
     instrumentIndex: 1,
     waitingInterpolation: true,
     midis: [],
@@ -1399,7 +1399,7 @@ function onFinishLoading() {
   });
 
   bassVolumeSlider.addEventListener('input', () => {
-    data.bass.gain.gain.value = bassVolumeSlider.value / 100;
+    data.bass.changeGain(bassVolumeSlider.value / 100);
   });
   bassToneSlider.addEventListener('input', () => {
     const frq = bassToneSlider.value * 2;
@@ -1454,6 +1454,38 @@ function onFinishLoading() {
   data.melody.changeGain = function (v) {
     data.melody.gain = v;
     melodyVolumeSlider.value = v * 100;
+  };
+
+  data.melody.changeSwing = function (v) {
+    data.melody.swing = v;
+    melodySwingSlider.value = v * 100;
+  };
+
+  data.chords.changeGain = function (v) {
+    data.chords.gain = v;
+    chordsVolumeSlider.value = v * 100;
+  };
+
+  data.chords.changeSwing = function (v) {
+    data.chords.swing = v;
+    chordsSwingSlider.value = v * 100;
+  };
+
+  data.bass.changeGain = function (v) {
+    data.bass.gain.gain.value = v;
+    bassVolumeSlider.value = v * 100;
+  };
+
+  data.master.changeReverb = function (v) {
+    masterReverbSlider.value = v * 100;
+    data.master.reverb.web.linearRampTo(v, 1, Tone.now());
+    // data.master.reverb.wet.value = v;
+  };
+
+  data.master.changeFilter = function (v) {
+    masterToneSlider.value = v * 100;
+    const f = v * 19800 + 200;
+    data.master.lpf.frequency.linearRampTo(f, 1, Tone.now());
   };
 
   setupPageVisibilityCallback();
@@ -1660,6 +1692,7 @@ function changeMelodyInstrument(index) {
 }
 
 function changeBpm(v) {
+  v = Math.min(Math.max(60, v), 100);
   bpmInput.value = v;
   bpmValueSpan.textContent = `${v}`;
   data.master.bpm = v;
@@ -1964,10 +1997,16 @@ function handleMessage(msg, author = 'test') {
     return;
   }
 
+  let args;
+  if (commandId === WRITE_ON_BOARD) {
+    args = { textContent: msg.substring(6) };
+  }
+
   const command = {
     authorName: author,
     content: msg,
     id: commandId,
+    args,
   };
 
   const n = commands.length;
@@ -2003,26 +2042,97 @@ function initMessageCallbacks() {
   callbacks[GENERATE_NEW_MELODY] = () => {
     sendContinueMessage();
   };
-  callbacks[RANDOMIZE_INTERPOLATION] = () => {};
-  callbacks[TRIGGER_MELODY] = () => {};
-  callbacks[TRIGGER_CHORDS] = () => {};
-  callbacks[TRIGGER_DRUM] = () => {};
-  callbacks[TRIGGER_BASS] = () => {};
-  callbacks[CHANGE_MELODY_INSTRUMENT] = () => {};
-  callbacks[CHANGE_CHORDS_INSTRUMENT] = () => {};
-  callbacks[CHANGE_MELODY_PATTERN] = () => {};
-  callbacks[CHANGE_CHORDS_PATTERN] = () => {};
-  callbacks[CHANGE_DRUM_PATTERN] = () => {};
-  callbacks[MAKE_MELODY_SWING] = () => {};
-  callbacks[MAKE_CHORDS_SWING] = () => {};
-  callbacks[DRINK_COFFEE] = () => {};
-  callbacks[WRITE_ON_BOARD] = () => {};
-  callbacks[INCREASE_BPM] = () => {};
-  callbacks[DECREASE_BPM] = () => {};
-  callbacks[MORE_REVERB] = () => {};
-  callbacks[LESS_REVERB] = () => {};
-  callbacks[MORE_FILTER] = () => {};
-  callbacks[LESS_FILTER] = () => {};
+  callbacks[RANDOMIZE_INTERPOLATION] = () => {
+    const index = Math.floor(Math.random() * data.melody.interpolationToneNotes.length);
+    changeInterpolationIndex(index);
+  };
+  callbacks[TRIGGER_MELODY] = () => {
+    if (data.melody.gain > 0.5) {
+      data.melody.changeGain(0);
+    } else {
+      data.melody.changeGain(1);
+    }
+  };
+  callbacks[TRIGGER_CHORDS] = () => {
+    if (data.chords.gain > 0.5) {
+      data.chords.changeGain(0);
+    } else {
+      data.chords.changeGain(1);
+    }
+  };
+  callbacks[TRIGGER_DRUM] = () => {
+    toggleDrumMute();
+  };
+  callbacks[TRIGGER_BASS] = () => {
+    if (data.bass.gain.gain.value > 0.5) {
+      data.bass.changeGain(0);
+    } else {
+      data.bass.changeGain(1);
+    }
+  };
+  callbacks[CHANGE_MELODY_INSTRUMENT] = () => {
+    const index = Math.floor(Math.random() * NUM_INSTRUMENTS);
+    changeMelodyInstrument(index);
+  };
+  callbacks[CHANGE_CHORDS_INSTRUMENT] = () => {
+    const index = Math.floor(Math.random() * NUM_INSTRUMENTS);
+    changeChordsInstrument(index);
+  };
+  callbacks[CHANGE_MELODY_PATTERN] = () => {
+    const index = Math.floor(Math.random() * NUM_PRESET_MELODIES);
+    changeMelodyByIndex(index);
+  };
+  callbacks[CHANGE_CHORDS_PATTERN] = () => {
+    const index = Math.floor(Math.random() * NUM_PRESET_CHORD_PROGRESSIONS);
+    changeChords(index);
+  };
+  callbacks[CHANGE_DRUM_PATTERN] = () => {
+    const index = Math.floor(Math.random() * NUM_DRUM_PATTERNS);
+    changeDrumPattern(index);
+  };
+
+  // TODO: make melody swing callback
+  callbacks[MAKE_MELODY_SWING] = () => {
+    if (data.melody.swing > 0.5) {
+      data.melody.changeSwing(0);
+    } else {
+      data.melody.changeSwing(1);
+    }
+  };
+
+  // TODO: make chords swing callback
+  callbacks[MAKE_CHORDS_SWING] = () => {
+    if (data.chords.swing > 0.5) {
+      data.chords.changeSwing(1);
+    } else {
+      data.chords.changeSwing(0);
+    }
+  };
+
+  callbacks[DRINK_COFFEE] = () => {
+    toggleDrumMute(undefined, true, Tone.now());
+  };
+  callbacks[WRITE_ON_BOARD] = ({ textContent }) => {
+    assets.textInput.value = textContent;
+  };
+  callbacks[INCREASE_BPM] = () => {
+    changeBpm(Number(data.master.bpm) + 10);
+  };
+  callbacks[DECREASE_BPM] = () => {
+    changeBpm(Number(data.master.bpm) - 10);
+  };
+  callbacks[MORE_REVERB] = () => {
+    data.master.changeReverb(0.5);
+  };
+  callbacks[LESS_REVERB] = () => {
+    data.master.changeReverb(0);
+  };
+  callbacks[MORE_FILTER] = () => {
+    data.master.changeFilter(1);
+  };
+  callbacks[LESS_FILTER] = () => {
+    data.master.changeFilter(0);
+  };
 }
 
 function parseMessageToCommand(msg) {
@@ -2145,12 +2255,12 @@ function consumeNextCommand() {
     return;
   }
 
-  const { authorName, content, id } = data.commands.shift();
+  const { authorName, content, id, args } = data.commands.shift();
   console.log(`${id}`);
 
   if (callbacks[id]) {
     showTextInBubbleFor(`${authorName}: ${content}`);
-    callbacks[id]();
+    callbacks[id](args);
   }
 }
 
