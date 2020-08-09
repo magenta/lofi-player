@@ -73,6 +73,8 @@ const LESS_REVERB = 'less_reverb';
 const MORE_FILTER = 'more_filter';
 const LESS_FILTER = 'less_filter';
 
+// TODO: temporary
+// const LOAD_EVENTS_COUNTS_THRESHOLD = 6;
 const LOAD_EVENTS_COUNTS_THRESHOLD = 8;
 const TOTAL_BAR_COUNTS = 8;
 const TICKS_PER_BAR = 384;
@@ -94,6 +96,7 @@ const DEFAULT_GUIDANCE_INTERVAL = 100;
 const SAMPLES_BASE_URL = './samples';
 const CHANNEL_ID = 'UCizuHuCAHmpTa6EFeZS2Hqg';
 
+// TODO: temporary
 const worker = new Worker('worker.js');
 const callbacks = {};
 const data = {
@@ -170,12 +173,13 @@ const data = {
 const assets = {
   defaultBoardText: 'Vibert Thio 2020.',
   catIndex: 0,
-  avatarUrls: [`./assets/avatar-2.png`, `./assets/avatar.png`],
+  avatarUrls: [`./assets/avatar-1-0.png`, `./assets/avatar-1-1.png`, `./assets/avatar-1-2.png`],
   catUrls: ['./assets/cat-75-purple.gif', './assets/cat-90.gif', './assets/dog-100.gif'],
 };
 
 addImages();
 loadMidiFiles();
+// TODO: temporary
 initModel();
 initSounds();
 initCanvas();
@@ -300,7 +304,7 @@ function initSounds() {
   });
 
   // event
-  data.handleMessageLoop = new Tone.Loop((time) => {
+  data.handleMessageLoop = new Tone.Loop(() => {
     consumeNextCommand();
   }, '1m').start(0);
 }
@@ -472,15 +476,20 @@ function addImages() {
   });
   assets.cat = assets.catGroup.childNodes[0];
 
-  assets.avatarGroup = addImageToCanvasDiv(assets.avatarUrls[1], {
+  assets.avatarGroup = addImageToCanvasDiv(assets.avatarUrls[0], {
     class: 'large-on-hover-micro',
     width: '11%',
     left: '20%',
     zIndex: '4',
     group: true,
   });
+
   assets.avatar = assets.avatarGroup.childNodes[0];
   assets.avatarGroup.appendChild(bubbleDiv);
+  assets.hiddenAvatars = [
+    addImageToCanvasDiv(assets.avatarUrls[2], { display: 'none', width: '0' }),
+    addImageToCanvasDiv(assets.avatarUrls[1], { display: 'none', width: '0' }),
+  ];
 
   assets.cactus = addImageToCanvasDiv('./assets/cactus.png', {
     class: 'large-on-hover',
@@ -799,6 +808,14 @@ function addImages() {
     data.canvas.moveMelodyCanvasToRoom();
   });
 
+  assets.makeAvatarLiftFoot = () => {
+    const { avatar, avatarUrls } = assets;
+    avatar.src = avatarUrls[2];
+  };
+  assets.makeAvatarDropFoot = () => {
+    const { avatar, avatarUrls } = assets;
+    avatar.src = avatarUrls[0];
+  };
   assets.switchAvatar = (drinking) => {
     const { avatar } = assets;
     if (drinking === undefined) {
@@ -808,7 +825,7 @@ function addImages() {
         avatar.src = assets.avatarUrls[0];
       }
     } else {
-      avatar.src = drinking ? assets.avatarUrls[0] : assets.avatarUrls[1];
+      avatar.src = drinking ? assets.avatarUrls[1] : assets.avatarUrls[0];
     }
   };
   dragElement(
@@ -998,6 +1015,12 @@ function addImageToCanvasDiv(src, params) {
   }
   img.style.position = 'absolute';
 
+  if (params.display) {
+    img.style.display = params.display;
+  } else {
+    img.style.display = 'block';
+  }
+
   if (!params.height) {
     img.style.width = params.width ? params.width : '25%';
     img.style.height = 'auto';
@@ -1043,28 +1066,12 @@ function drawMainCanvas() {
   let ctx = data.canvas.canvas.getContext('2d');
   const { width, height } = ctx.canvas;
   ctx.clearRect(0, 0, width, height);
-  // ctx.fillStyle = `rgba(200, 200, 200, ${Math.sin(0.01 * Date.now()) > 0 ? 1 : 0})`;
-  // ctx.fillRect(0, 0, width, height);
-  // ctx.fillRect(width / 30, width / 30, width / 30, width / 30);
 
   // progress;
   if (Tone.Transport.state === 'started') {
-    // ctx.fillStyle = "rgba(255, 11, 174, 1)";
     ctx.fillStyle = 'rgba(200, 200, 200, 1)';
     ctx.fillRect(0, 0, width * Tone.Transport.progress, height * 0.05);
-    // ctx.fillRect(width * Tone.Transport.progress, 0, 10, height);
   }
-
-  // if (data.melody.midis) {
-  //   drawRect(ctx, 357, 102, 111, 61, "rgba(255, 11, 174, 0.8)");
-  //   drawMidi(ctx, 357, 102, 111, 61, data.melody.midis[data.melody.index]);
-
-  //   // kick
-  //   drawRect(ctx, 519, 131, 52, 190, "rgba(255, 11, 174, 0.8)");
-  //   drawDrums(ctx, 519, 131, 52, 190);
-  // }
-
-  // ctx.translate(470, 166);
 }
 
 function drawMelodyCanvas() {
@@ -1158,40 +1165,6 @@ function drawModelData(ctx, x, y, w, h, data) {
   ctx.restore();
 }
 
-function drawDrums(ctx, x, y, w, h) {
-  const radius = 10;
-
-  data.drum.scale.kk = data.drum.scale.kk * 0.9;
-  data.drum.scale.sn = data.drum.scale.sn * 0.9;
-  data.drum.scale.hh = data.drum.scale.hh * 0.9;
-  ctx.save();
-
-  ctx.translate(x + 0.5 * w, y);
-
-  ctx.translate(0, 0.2 * h);
-  ctx.fillStyle = `rgba(255, 255, 255, ${data.drum.scale.hh})`;
-  ctx.beginPath();
-  // ctx.arc(0, 0, radius, 0, 2 * Math.PI);
-  ctx.fillRect(-5, 0, 10, 10);
-  ctx.fill();
-
-  ctx.translate(0, 0.2 * h);
-  ctx.fillStyle = `rgba(255, 255, 255, ${data.drum.scale.sn})`;
-  ctx.beginPath();
-  // ctx.arc(0, 0, radius, 0, 2 * Math.PI);
-  ctx.fillRect(-5, 0, 10, 10);
-  ctx.fill();
-
-  ctx.translate(0, 0.2 * h);
-  ctx.fillStyle = `rgba(255, 255, 255, ${data.drum.scale.kk})`;
-  ctx.beginPath();
-  // ctx.arc(0, 0, radius, 0, 2 * Math.PI);
-  ctx.fillRect(-5, 0, 10, 10);
-  ctx.fill();
-
-  ctx.restore();
-}
-
 function seqCallback(time, b) {
   if (!data.drum.mute) {
     if (data.drum.patternIndex === 0) {
@@ -1227,6 +1200,13 @@ function seqCallback(time, b) {
       if (b % 2 === 0) {
         data.drum.samples.get('hh').start(time + 0.07);
       }
+    }
+
+    if (b % 16 === 7) {
+      // tap foot
+      assets.makeAvatarLiftFoot();
+    } else if (b % 16 === 8) {
+      assets.makeAvatarDropFoot();
     }
   }
 
@@ -1650,6 +1630,7 @@ function sendInterpolationMessage(m1, m2, id = 0) {
   data.melody.interpolationData[0] = left;
   data.melody.interpolationData[NUM_INTERPOLATIONS - 1] = right;
 
+  // TODO: temporary
   worker.postMessage({
     id,
     msg: 'interpolate',
