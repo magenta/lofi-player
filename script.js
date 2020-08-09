@@ -1,3 +1,80 @@
+const warningOverlay = document.getElementById('warning-overlay');
+const startButton = document.getElementById('start-button');
+const whateverButton = document.getElementById('whatever-button');
+const checkTimeButton = document.getElementById('check-time-button');
+const checkTimeText = document.getElementById('check-time-text');
+const bpmInput = document.getElementById('bpm-input');
+const bpmValueSpan = document.getElementById('bpm-value');
+const drumPatternsSelect = document.getElementById('drum-patterns-select');
+const drumToggle = document.getElementById('drum-toggle');
+const drumAutoToggle = document.getElementById('drum-auto-toggle');
+const chordsSelect = document.getElementById('chords-select');
+const chordsInstrumentSelect = document.getElementById('chords-instrument-select');
+const backgroundSoundsSelect = document.getElementById('background-samples-select');
+const firstMelodySelect = document.getElementById('first-melody-select');
+const secondMelodySelect = document.getElementById('second-melody-select');
+const melodyInteractionSelect = document.getElementById('melody-interaction-select');
+const melodyInteractionDivs = [
+  document.getElementById('interpolation-div'),
+  document.getElementById('mixing-div'),
+];
+const melodyInstrumentSelect = document.getElementById('melody-instrument-select');
+const interpolationSlider = document.getElementById('interpolation-slider');
+const secondInterpolationSlider = document.getElementById('interpolation-slider-2');
+const backgroundVolumeSlider = document.getElementById('background-volume-slider');
+const backgroundToneSlider = document.getElementById('background-tone-slider');
+const canvasDiv = document.getElementById('canvas-div');
+const canvasOverlay = document.getElementById('canvas-overlay');
+const melodyPanelDiv = document.getElementById('melody-panel-div');
+const interpolationDiv = document.getElementById('interpolation-div');
+const melodyPanelCloseSpan = document.getElementById('melody-panel-close');
+const timeProgress = document.getElementById('time-progress');
+const backgroundImage = document.getElementById('background-image');
+const bassVolumeSlider = document.getElementById('bass-volume-slider');
+const bassToneSlider = document.getElementById('bass-tone-slider');
+const melodyVolumeSlider = document.getElementById('melody-volume-slider');
+const chordsVolumeSlider = document.getElementById('chords-volume-slider');
+const masterReverbSlider = document.getElementById('master-reverb-slider');
+const masterToneSlider = document.getElementById('master-tone-slider');
+const masterVolumeSlider = document.getElementById('master-volume-slider');
+const melodySwingSlider = document.getElementById('melody-swing-slider');
+const chordsSwingSlider = document.getElementById('chords-swing-slider');
+const controlPanels = document.getElementsByClassName('panel');
+const connectYoutubeButton = document.getElementById('connect-youtube-button');
+const youtubePromptText = document.getElementById('youtube-prompt-text');
+const youtubePromptDiv = document.getElementById('youtube-prompt-div');
+const youtubeDiv = document.getElementById('youtube-div');
+const youtubeButtons = document.getElementById('youtube-buttons');
+const collapseYoutubeDivButton = document.getElementById('collapse-youtube-div-button');
+const bubbleDiv = document.getElementById('bubble-div');
+
+const CLICK_CAT = 'click_cat';
+const CLICK_WINDOW = 'click_window';
+const CLICK_LIGHT = 'click_light';
+const GENERATE_NEW_MELODY = 'generate_new_melody';
+const RANDOMIZE_INTERPOLATION = 'randomize_interpolation';
+const TRIGGER_MELODY = 'trigger_melody';
+const TRIGGER_CHORDS = 'trigger_chords';
+const TRIGGER_DRUM = 'trigger_drum';
+const TRIGGER_BASS = 'trigger_bass';
+const CHANGE_MELODY_INSTRUMENT = 'change_melody_instrument';
+const CHANGE_CHORDS_INSTRUMENT = 'change_chords_instrument';
+const CHANGE_MELODY_PATTERN = 'change_melody_pattern';
+const CHANGE_CHORDS_PATTERN = 'change_chords_pattern';
+const CHANGE_DRUM_PATTERN = 'change_drum_pattern';
+const MAKE_MELODY_SWING = 'make_melody_swing';
+const MAKE_CHORDS_SWING = 'make_chords_swing';
+const DRINK_COFFEE = 'drink_coffee';
+const WRITE_ON_BOARD = 'write_on_board';
+const INCREASE_BPM = 'increase_bpm';
+const DECREASE_BPM = 'decrease_bpm';
+const MORE_REVERB = 'more_reverb';
+const LESS_REVERB = 'less_reverb';
+const MORE_FILTER = 'more_filter';
+const LESS_FILTER = 'less_filter';
+
+// TODO: temporary
+// const LOAD_EVENTS_COUNTS_THRESHOLD = 6;
 const LOAD_EVENTS_COUNTS_THRESHOLD = 8;
 const TOTAL_BAR_COUNTS = 8;
 const TICKS_PER_BAR = 384;
@@ -6,122 +83,72 @@ const TOTAL_TICKS = TOTAL_BAR_COUNTS * TICKS_PER_BAR;
 const MODEL_BAR_COUNT = 2;
 const MAIN_CANVAS_PADDING = 0;
 const NUM_INTERPOLATIONS = 5;
-let NUM_PRESET_MELODIES = 4;
-
+const TRANSITION_PROB = 0.2;
 const SYNTHS = 0;
 const PIANO = 1;
 const ACOUSTIC_GUITAR = 2;
 const ELETRIC_GUITAR = 3;
 const NUM_INSTRUMENTS = 4;
+const NUM_PRESET_MELODIES = 4;
+const NUM_PRESET_CHORD_PROGRESSIONS = 3;
+const NUM_DRUM_PATTERNS = 3;
+const DEFAULT_GUIDANCE_INTERVAL = 100;
+const SAMPLES_BASE_URL = './samples';
+const CHANNEL_ID = 'UCizuHuCAHmpTa6EFeZS2Hqg';
 
-const warningOverlay = document.getElementById("warning-overlay");
-const startButton = document.getElementById("start-button");
-const whateverButton = document.getElementById("whatever-button");
-const checkTimeButton = document.getElementById("check-time-button");
-const checkTimeText = document.getElementById("check-time-text");
-const bpmInput = document.getElementById("bpm-input");
-const bpmValueSpan = document.getElementById("bpm-value");
-const drumPatternsSelect = document.getElementById("drum-patterns-select");
-const drumToggle = document.getElementById("drum-toggle");
-const drumAutoToggle = document.getElementById("drum-auto-toggle");
-const chordsSelect = document.getElementById("chords-select");
-const chordsInstrumentSelect = document.getElementById(
-  "chords-instrument-select"
-);
-const backgroundSoundsSelect = document.getElementById(
-  "background-samples-select"
-);
-const firstMelodySelect = document.getElementById("first-melody-select");
-const secondMelodySelect = document.getElementById("second-melody-select");
-const melodyInteractionSelect = document.getElementById(
-  "melody-interaction-select"
-);
-const melodyInteractionDivs = [
-  document.getElementById("interpolation-div"),
-  document.getElementById("mixing-div"),
-];
-const melodyInstrumentSelect = document.getElementById(
-  "melody-instrument-select"
-);
-const interpolationSlider = document.getElementById("interpolation-slider");
-const secondInterpolationSlider = document.getElementById(
-  "interpolation-slider-2"
-);
-const backgroundVolumeSlider = document.getElementById(
-  "background-volume-slider"
-);
-const backgroundToneSlider = document.getElementById("background-tone-slider");
-const canvasDiv = document.getElementById("canvas-div");
-const canvasOverlay = document.getElementById("canvas-overlay");
-const melodyPanelDiv = document.getElementById("melody-panel-div");
-const interpolationDiv = document.getElementById("interpolation-div");
-const melodyPanelCloseSpan = document.getElementById("melody-panel-close");
-const timeProgress = document.getElementById("time-progress");
-const backgroundImage = document.getElementById("background-image");
-
-const bassVolumeSlider = document.getElementById("bass-volume-slider");
-const bassToneSlider = document.getElementById("bass-tone-slider");
-const melodyVolumeSlider = document.getElementById("melody-volume-slider");
-const chordsVolumeSlider = document.getElementById("chords-volume-slider");
-const masterReverbSlider = document.getElementById("master-reverb-slider");
-const masterToneSlider = document.getElementById("master-tone-slider");
-const masterVolumeSlider = document.getElementById("master-volume-slider");
-const melodySwingSlider = document.getElementById("melody-swing-slider");
-const chordsSwingSlider = document.getElementById("chords-swing-slider");
-const controlPanels = document.getElementsByClassName("panel");
-const connectYoutubeButton = document.getElementById("connect-youtube-button");
-const youtubePromptText = document.getElementById("youtube-prompt-text");
-const youtubePromptDiv = document.getElementById("youtube-prompt-div");
-const youtubeDiv = document.getElementById("youtube-div");
-const youtubeButtons = document.getElementById("youtube-buttons");
-const collapseYoutubeDivButton = document.getElementById(
-  "collapse-youtube-div-button"
-);
-
-const worker = new Worker("worker.js");
-const samplesBaseUrl = "./samples";
-const ac = Tone.context._context;
-let loadEventsCounts = 0;
-
-let seq;
-let drumSamples;
-let drumNames = ["kk", "sn", "hh"];
-let drumMute = false;
-let drumPatternIndex = 0;
-
+// TODO: temporary
+const worker = new Worker('worker.js');
+const callbacks = {};
 const data = {
   loading: true,
+  started: false,
+  loadEventsCount: 0,
+  commands: [],
   showPanel: false,
-  backgroundSounds: {},
+  backgroundSounds: {
+    samples: [],
+    names: ['rain', 'waves', 'street', 'kids'],
+    index: 0,
+  },
+  instruments: {},
   melody: {
+    part: null,
     gain: 1,
     swing: 0,
-    changeGain: (v) => {
-      data.melody.gain = v;
-    },
     instrumentIndex: 1,
     waitingInterpolation: true,
     midis: [],
     toneNotes: [],
+    index: 0,
+    secondIndex: 1,
     interpolationToneNotes: [],
     interpolationData: [],
     interpolationIndex: 0,
   },
   chords: {
+    part: null,
+    index: 0,
     gain: 1,
     swing: 0,
+    midis: null,
+    instrumentIndex: 0,
   },
   bass: {
     notes: [
-      { time: "0:0:0", note: "F2", duration: { "1m": 0.7 }, velocity: 1.0 },
-      { time: "1:0:0", note: "F2", duration: { "1m": 0.7 }, velocity: 1.0 },
-      { time: "2:0:0", note: "C2", duration: { "1m": 0.7 }, velocity: 1.0 },
-      { time: "3:0:0", note: "C2", duration: { "1m": 0.7 }, velocity: 1.0 },
+      { time: '0:0:0', note: 'F2', duration: { '1m': 0.7 }, velocity: 1.0 },
+      { time: '1:0:0', note: 'F2', duration: { '1m': 0.7 }, velocity: 1.0 },
+      { time: '2:0:0', note: 'C2', duration: { '1m': 0.7 }, velocity: 1.0 },
+      { time: '3:0:0', note: 'C2', duration: { '1m': 0.7 }, velocity: 1.0 },
     ],
   },
   canvas: {},
+  seq: {},
   drum: {
+    mute: false,
+    names: ['kk', 'sn', 'hh'],
+    samples: [],
     auto: true,
+    patternIndex: 0,
     scale: {
       kk: 1,
       sn: 1,
@@ -134,7 +161,7 @@ const data = {
       threshold: -15,
       ratio: 7,
     }),
-    lpf: new Tone.Filter(20000, "lowpass"),
+    lpf: new Tone.Filter(20000, 'lowpass'),
     reverb: new Tone.Reverb({
       decay: 1.0,
       preDelay: 0.01,
@@ -143,49 +170,30 @@ const data = {
     gain: new Tone.Gain(0.3),
   },
 };
-let backgroundSounds = [];
-let backgroundSoundsNames = ["rain", "waves", "street", "kids"];
-let backgroundSoundsIndex = 0;
-
-let melodyPart;
-let melodyIndex = 0;
-let secondMelodyIndex = 1;
-let chordsMidis;
-let chordsPart;
-let chordsIndex = 0;
-let chordsInstrumentIndex = 0;
-
-let piano;
-let acousticGuitar;
-let electricGuitar;
-let synth;
-let chordsInstruments;
-
 const assets = {
+  defaultBoardText: 'Vibert Thio 2020.',
   catIndex: 0,
-  avatarUrls: [`./assets/avatar-2.png`, `./assets/avatar.png`],
-  catUrls: [
-    "./assets/cat-75-purple.gif",
-    "./assets/cat-90.gif",
-    "./assets/dog-100.gif",
-  ],
+  avatarUrls: [`./assets/avatar-1-0.png`, `./assets/avatar-1-1.png`, `./assets/avatar-1-2.png`],
+  catUrls: ['./assets/cat-75-purple.gif', './assets/cat-90.gif', './assets/dog-100.gif'],
 };
 
 addImages();
-initModel();
 loadMidiFiles();
+// TODO: temporary
+initModel();
 initSounds();
 initCanvas();
+initMessageCallbacks();
 
 function onClickWhatever() {
-  warningOverlay.style.display = "none";
+  warningOverlay.style.display = 'none';
 }
 
 function initSounds() {
   Tone.Transport.bpm.value = data.master.bpm;
   Tone.Transport.loop = true;
-  Tone.Transport.loopStart = "0:0:0";
-  Tone.Transport.loopEnd = "8:0:0";
+  Tone.Transport.loopStart = '0:0:0';
+  Tone.Transport.loopEnd = '8:0:0';
 
   Tone.Master.chain(
     data.master.masterCompressor,
@@ -194,65 +202,58 @@ function initSounds() {
     data.master.gain
   );
   data.master.reverb.generate().then(() => {
-    console.log("master reverb ready");
+    console.log('master reverb ready');
     checkFinishLoading();
   });
   data.master.reverb.wet.value = 0;
 
   const drumUrls = {};
-  drumNames.forEach((n) => (drumUrls[n] = `${samplesBaseUrl}/drums/${n}.mp3`));
-  drumSamples = new Tone.Players(drumUrls, () => {
-    console.log("drums loaded");
+  data.drum.names.forEach((n) => (drumUrls[n] = `${SAMPLES_BASE_URL}/drums/${n}.mp3`));
+  data.drum.samples = new Tone.Players(drumUrls, () => {
+    console.log('drums loaded');
     checkFinishLoading();
   }).toMaster();
 
   data.backgroundSounds.gain = new Tone.Gain(1).toMaster();
   // data.backgroundSounds.hpf = new Tone.Filter(0, "highpass").connect(data.backgroundSounds.gain);
-  data.backgroundSounds.hpf = new Tone.Filter(20000, "lowpass").connect(
-    data.backgroundSounds.gain
-  );
+  data.backgroundSounds.hpf = new Tone.Filter(20000, 'lowpass').connect(data.backgroundSounds.gain);
   const sampleUrls = {};
-  backgroundSoundsNames.forEach(
-    (n) => (sampleUrls[n] = `${samplesBaseUrl}/fx/${n}.mp3`)
-  );
-  backgroundSounds = new Tone.Players(sampleUrls, () => {
-    console.log("background sounds loaded");
+  data.backgroundSounds.names.forEach((n) => (sampleUrls[n] = `${SAMPLES_BASE_URL}/fx/${n}.mp3`));
+  data.backgroundSounds.samples = new Tone.Players(sampleUrls, () => {
+    console.log('background sounds loaded');
     checkFinishLoading();
   }).connect(data.backgroundSounds.hpf);
 
-  data.effects.beep = new Tone.Player(
-    `${samplesBaseUrl}/effects/beep.mp3`,
-    () => {
-      checkFinishLoading();
-    }
-  ).toMaster();
+  data.effects.beep = new Tone.Player(`${SAMPLES_BASE_URL}/effects/beep.mp3`, () => {
+    checkFinishLoading();
+  }).toMaster();
 
-  backgroundSoundsNames.forEach((name) => {
-    backgroundSounds.get(name).loop = true;
+  data.backgroundSounds.names.forEach((name) => {
+    data.backgroundSounds.samples.get(name).loop = true;
   });
-  seq = new Tone.Sequence(
+  data.seq = new Tone.Sequence(
     seqCallback,
     Array(128)
       .fill(null)
       .map((_, i) => i),
-    "16n"
+    '16n'
   );
-  seq.start(0);
+  data.seq.start(0);
 
   const reverb = new Tone.Reverb({
     decay: 8.5,
     preDelay: 0.1,
   }).toMaster();
   reverb.generate().then(() => {
-    console.log("reverb ready");
+    console.log('reverb ready');
     checkFinishLoading();
   });
   reverb.wet.value = 0.3;
-  const lpf = new Tone.Filter(1000, "lowpass").connect(reverb);
-  const hpf = new Tone.Filter(1, "highpass").connect(lpf);
+  const lpf = new Tone.Filter(1000, 'lowpass').connect(reverb);
+  const hpf = new Tone.Filter(1, 'highpass').connect(lpf);
   const chorus = new Tone.Chorus(4, 2.5, 0.1).connect(hpf);
 
-  synth = new Tone.PolySynth(10, Tone.Synth, {
+  data.instruments[SYNTHS] = new Tone.PolySynth(10, Tone.Synth, {
     envelope: {
       attack: 0.02,
       decay: 0.1,
@@ -261,22 +262,22 @@ function initSounds() {
     },
   }).connect(chorus);
 
-  piano = SampleLibrary.load({
-    instruments: "piano",
+  data.instruments[PIANO] = SampleLibrary.load({
+    instruments: 'piano',
   });
-  acousticGuitar = SampleLibrary.load({
-    instruments: "guitar-acoustic",
+  data.instruments[ACOUSTIC_GUITAR] = SampleLibrary.load({
+    instruments: 'guitar-acoustic',
   });
-  electricGuitar = SampleLibrary.load({
-    instruments: "guitar-electric",
+  data.instruments[ELETRIC_GUITAR] = SampleLibrary.load({
+    instruments: 'guitar-electric',
   });
-  const { bass } = data;
 
+  const { bass } = data;
   bass.gain = new Tone.Gain(1).connect(reverb);
-  bass.lpf = new Tone.Filter(200, "lowpass").connect(bass.gain);
+  bass.lpf = new Tone.Filter(200, 'lowpass').connect(bass.gain);
   bass.instrument = new Tone.Synth({
     oscillator: {
-      type: "triangle",
+      type: 'triangle',
     },
     envelope: {
       attack: 0.005,
@@ -286,37 +287,36 @@ function initSounds() {
     },
   }).connect(bass.lpf);
   bass.part = new Tone.Part((time, note) => {
-    bass.instrument.triggerAttackRelease(
-      note.note,
-      note.duration,
-      time,
-      note.velocity
-    );
+    bass.instrument.triggerAttackRelease(note.note, note.duration, time, note.velocity);
   }, bass.notes).start(0);
   bass.part.loop = true;
-  bass.part.loopEnd = "4:0:0";
+  bass.part.loopEnd = '4:0:0';
 
-  piano.connect(chorus);
-  acousticGuitar.connect(chorus);
-  electricGuitar.connect(chorus);
+  data.instruments[PIANO].connect(chorus);
+  data.instruments[ACOUSTIC_GUITAR].connect(chorus);
+  data.instruments[ELETRIC_GUITAR].connect(chorus);
 
-  chordsInstruments = [synth, piano, acousticGuitar, electricGuitar];
-  data.melody.instrument = piano;
+  data.melody.instrument = data.instruments[PIANO];
 
-  Tone.Buffer.on("load", () => {
+  Tone.Buffer.on('load', () => {
     checkFinishLoading();
-    console.log("buffers loaded");
+    console.log('buffers loaded');
   });
+
+  // event
+  data.handleMessageLoop = new Tone.Loop(() => {
+    consumeNextCommand();
+  }, '1m').start(0);
 }
 
 function initModel() {
-  worker.postMessage({ msg: "init" });
+  worker.postMessage({ msg: 'init' });
   worker.onmessage = (e) => {
-    if (e.data.msg === "init") {
-      console.log("model loaded");
+    if (e.data.msg === 'init') {
+      console.log('model loaded');
       checkFinishLoading();
     }
-    if (e.data.msg === "interpolate") {
+    if (e.data.msg === 'interpolate') {
       let { id, result } = e.data;
       // console.log("interpolation result", result);
       result = filterNotesInScale(result);
@@ -328,20 +328,18 @@ function initModel() {
       // data.melody.interpolationData = result;
 
       data.melody.interpolationToneNotes = result.map(modelFormatToToneNotes);
-      data.melody.interpolationToneNotes[0] =
-        data.melody.toneNotes[melodyIndex];
-      data.melody.interpolationToneNotes[
-        data.melody.interpolationToneNotes.length - 1
-      ] = data.melody.toneNotes[secondMelodyIndex];
+      data.melody.interpolationToneNotes[0] = data.melody.toneNotes[data.melody.index];
+      data.melody.interpolationToneNotes[data.melody.interpolationToneNotes.length - 1] =
+        data.melody.toneNotes[data.melody.secondIndex];
 
       data.melody.waitingInterpolation = false;
 
       // console.log("interpolationData", data.melody.interpolationData);
       // console.log("interpolationToneNotes", data.melody.interpolationToneNotes);
       data.canvas.melodyCanvas.style.opacity = 1;
-      melodyInteractionDivs[0].classList.remove("disabledbutton");
+      melodyInteractionDivs[0].classList.remove('disabledbutton');
     }
-    if (e.data.msg === "continue") {
+    if (e.data.msg === 'continue') {
       let { id, result } = e.data;
       result.notes = filterNotesInScaleSingle(result.notes);
       result.notes = result.notes.map((note) => {
@@ -354,7 +352,7 @@ function initModel() {
       const n = data.melody.toneNotes.length;
       data.melody.toneNotes[n - 1] = notes; // update toneNotes
       changeMelody(notes); // change played melody part
-      melodyIndex = n - 1; // change index
+      data.melody.index = n - 1; // change index
       firstMelodySelect.value = n - 1; // change ui index
       sendInterpolationMessage(result); // update interpolation
     }
@@ -362,7 +360,7 @@ function initModel() {
 }
 
 function initCanvas() {
-  const canvas = document.getElementById("main-canvas");
+  const canvas = document.getElementById('main-canvas');
   data.canvas.canvas = canvas;
 
   canvasDiv.style.height = `${backgroundImage.clientWidth * (435 / 885)}px`;
@@ -370,7 +368,7 @@ function initCanvas() {
   canvas.width = canvasDiv.clientWidth;
   canvas.height = canvasDiv.clientHeight;
 
-  canvasDiv.addEventListener("mousedown", (e) => {
+  canvasDiv.addEventListener('mousedown', (e) => {
     const { clientX, clientY } = e;
     let canvasRect = canvas.getBoundingClientRect();
     const mouseX = clientX - canvasRect.left - MAIN_CANVAS_PADDING;
@@ -379,27 +377,27 @@ function initCanvas() {
     // console.log(`x: ${mouseX} y: ${mouseY}`);
   });
 
-  const melodyCanvas = document.getElementById("melody-canvas");
+  const melodyCanvas = document.getElementById('melody-canvas');
   data.canvas.melodyCanvas = melodyCanvas;
   data.canvas.moveMelodyCanvasToPanel = function () {
     removeElement(melodyCanvas);
-    melodyCanvas.style.position = "static";
-    melodyCanvas.style.width = "100%";
-    melodyCanvas.style.height = "100%";
+    melodyCanvas.style.position = 'static';
+    melodyCanvas.style.width = '100%';
+    melodyCanvas.style.height = '100%';
     melodyCanvas.style.opacity = 1.0;
     interpolationDiv.append(melodyCanvas);
   };
 
   data.canvas.moveMelodyCanvasToRoom = function () {
-    melodyCanvas.style.position = "absolute";
+    melodyCanvas.style.position = 'absolute';
     // melodyCanvas.style.top = "12%";
     // melodyCanvas.style.left = "23%";
     // melodyCanvas.style.width = "45%";
     // melodyCanvas.style.height = "41%";
-    melodyCanvas.style.top = "16%";
-    melodyCanvas.style.left = "7.5%";
-    melodyCanvas.style.width = "78%";
-    melodyCanvas.style.height = "52%";
+    melodyCanvas.style.top = '16%';
+    melodyCanvas.style.left = '7.5%';
+    melodyCanvas.style.width = '78%';
+    melodyCanvas.style.height = '52%';
 
     melodyCanvas.style.zIndex = 1;
     melodyCanvas.style.opacity = 0.93;
@@ -410,165 +408,175 @@ function initCanvas() {
 }
 
 function addImages() {
-  const rainGif = addImageToCanvasDiv("./assets/snow.gif", {
-    width: "45%",
-    left: "20%",
-    zIndex: "-2",
-    bottom: "0",
+  const rainGif = addImageToCanvasDiv('./assets/snow.gif', {
+    width: '45%',
+    left: '20%',
+    zIndex: '-2',
+    bottom: '0',
   });
 
-  assets.light = addImageToCanvasDiv("./assets/light-off.png", {
-    class: "large-on-hover",
-    width: "8%",
-    left: "50%",
-    top: "-2%",
-    zIndex: "2",
+  assets.light = addImageToCanvasDiv('./assets/light-off.png', {
+    class: 'large-on-hover',
+    width: '8%',
+    left: '50%',
+    top: '-2%',
+    zIndex: '2',
   });
   dragElement(
     assets.light,
     () => {
-      triggerStart();
+      toggleStart();
     },
     { horizontal: true }
   );
 
-  assets.window = addImageToCanvasDiv("./assets/window-1.png", {
-    class: "large-on-hover-micro",
-    width: "38%",
-    left: "17%",
-    zIndex: "0",
-    top: "20.3%",
+  assets.window = addImageToCanvasDiv('./assets/window-1.png', {
+    class: 'large-on-hover-micro',
+    width: '38%',
+    left: '17%',
+    zIndex: '0',
+    top: '20.3%',
   });
 
-  const wavesGif = addImageToCanvasDiv("./assets/waves.gif", {
-    width: "38%",
-    left: "20%",
-    zIndex: "-2",
-    top: "21%",
+  const wavesGif = addImageToCanvasDiv('./assets/waves.gif', {
+    width: '38%',
+    left: '20%',
+    zIndex: '-2',
+    top: '21%',
   });
 
-  const streetGif = addImageToCanvasDiv("./assets/city-2.gif", {
-    width: "60%",
-    left: "20%",
-    zIndex: "-2",
-    top: "-40%",
+  const streetGif = addImageToCanvasDiv('./assets/city-2.gif', {
+    width: '60%',
+    left: '20%',
+    zIndex: '-2',
+    top: '-40%',
   });
 
-  const kidsGif = addImageToCanvasDiv("./assets/city.gif", {
-    width: "33%",
-    left: "20%",
-    zIndex: "-2",
-    top: "14%",
+  const kidsGif = addImageToCanvasDiv('./assets/city.gif', {
+    width: '33%',
+    left: '20%',
+    zIndex: '-2',
+    top: '14%',
   });
 
   // rainGif.style.display = 'none';
-  streetGif.style.display = "none";
-  wavesGif.style.display = "none";
-  kidsGif.style.display = "none";
+  streetGif.style.display = 'none';
+  wavesGif.style.display = 'none';
+  kidsGif.style.display = 'none';
 
   assets.windowGifs = [rainGif, wavesGif, kidsGif, streetGif];
 
-  assets.cat = addImageToCanvasDiv(assets.catUrls[assets.catIndex], {
-    class: "large-on-hover",
-    width: "6%",
-    bottom: "33%",
-    left: "43%",
-    zIndex: "4",
+  assets.catGroup = addImageToCanvasDiv(assets.catUrls[assets.catIndex], {
+    class: 'large-on-hover',
+    width: '6%',
+    bottom: '33%',
+    left: '43%',
+    zIndex: '4',
+    group: true,
+  });
+  assets.cat = assets.catGroup.childNodes[0];
+
+  assets.avatarGroup = addImageToCanvasDiv(assets.avatarUrls[0], {
+    class: 'large-on-hover-micro',
+    width: '11%',
+    left: '20%',
+    zIndex: '4',
+    group: true,
   });
 
-  assets.avatar = addImageToCanvasDiv(assets.avatarUrls[1], {
-    class: "large-on-hover-micro",
-    height: "55%",
-    left: "20%",
-    zIndex: "4",
+  assets.avatar = assets.avatarGroup.childNodes[0];
+  assets.avatarGroup.appendChild(bubbleDiv);
+  assets.hiddenAvatars = [
+    addImageToCanvasDiv(assets.avatarUrls[2], { display: 'none', width: '0' }),
+    addImageToCanvasDiv(assets.avatarUrls[1], { display: 'none', width: '0' }),
+  ];
+
+  assets.cactus = addImageToCanvasDiv('./assets/cactus.png', {
+    class: 'large-on-hover',
+    width: '3%',
+    bottom: '39%',
+    left: '38%',
   });
 
-  assets.cactus = addImageToCanvasDiv("./assets/cactus.png", {
-    class: "large-on-hover",
-    width: "3%",
-    bottom: "39%",
-    left: "38%",
-  });
-
-  assets.chair = addImageToCanvasDiv("./assets/chair-red.png", {
-    width: "10%",
-    left: "10%",
+  assets.chair = addImageToCanvasDiv('./assets/chair-red.png', {
+    width: '10%',
+    left: '10%',
   });
 
   dragElement(assets.chair, undefined, { horizontal: true });
 
-  assets.desk = addImageToCanvasDiv("./assets/desk.png", {
-    width: "21%",
-    left: "1%",
+  assets.desk = addImageToCanvasDiv('./assets/desk.png', {
+    width: '21%',
+    left: '1%',
     group: true,
   });
 
-  assets.lamp = addImageToCanvasDiv("./assets/lamp-on.png", {
-    class: "large-on-hover",
-    width: "20%",
-    left: "20%",
-    bottom: "100%",
-    zIndex: "4",
+  assets.lamp = addImageToCanvasDiv('./assets/lamp-on.png', {
+    class: 'large-on-hover',
+    width: '20%',
+    left: '20%',
+    bottom: '100%',
+    zIndex: '4',
   });
   assets.desk.appendChild(assets.lamp);
   assets.lampOn = true;
 
-  assets.pens = addImageToCanvasDiv("./assets/pens.png", {
-    class: "large-on-hover",
-    width: "12%",
-    right: "40%",
-    bottom: "100%",
-    zIndex: "1",
+  assets.pens = addImageToCanvasDiv('./assets/pens.png', {
+    class: 'large-on-hover',
+    width: '12%',
+    right: '40%',
+    bottom: '100%',
+    zIndex: '1',
   });
 
   assets.desk.appendChild(assets.pens);
   dragElement(assets.desk, undefined, { horizontal: true });
 
-  assets.shelfWithBooks = addImageToCanvasDiv("./assets/shelf.png", {
-    class: "large-on-hover",
-    width: "12%",
-    left: "3%",
-    bottom: "60%",
+  assets.shelfWithBooks = addImageToCanvasDiv('./assets/shelf.png', {
+    class: 'large-on-hover',
+    width: '12%',
+    left: '3%',
+    bottom: '60%',
   });
 
-  assets.board = addImageToCanvasDiv("./assets/board.png", {
-    class: "large-on-hover",
-    width: "12%",
-    right: "20%",
-    top: "34%",
-    zIndex: "1",
+  assets.board = addImageToCanvasDiv('./assets/board.png', {
+    class: 'large-on-hover',
+    width: '12%',
+    right: '20%',
+    top: '34%',
+    zIndex: '1',
     group: true,
   });
-  const textInput = document.createElement("textarea");
-  textInput.id = "board-input";
-  textInput.value = "Try play with the cat...";
+  const textInput = document.createElement('textarea');
+  textInput.id = 'board-input';
+  textInput.value = assets.defaultBoardText;
   textInput.spellcheck = false;
   assets.textInput = textInput;
   assets.board.appendChild(textInput);
-  textInput.addEventListener("mousedown", (e) => {
+  textInput.addEventListener('mousedown', (e) => {
     e.stopPropagation();
   });
   dragElement(assets.board);
 
-  assets.shelf = addImageToCanvasDiv("./assets/shelf-blank-2.png", {
-    class: "large-on-hover",
-    width: "12%",
-    right: "20%",
-    top: "22%",
-    zIndex: "1",
+  assets.shelf = addImageToCanvasDiv('./assets/shelf-blank-2.png', {
+    class: 'large-on-hover',
+    width: '12%',
+    right: '20%',
+    top: '22%',
+    zIndex: '1',
     group: true,
   });
-  assets.plant = addImageToCanvasDiv("./assets/vine-2.png", {
-    width: "40%",
-    right: "10%",
-    bottom: "45%",
-    zIndex: "4",
+  assets.plant = addImageToCanvasDiv('./assets/vine-2.png', {
+    width: '40%',
+    right: '10%',
+    bottom: '45%',
+    zIndex: '4',
   });
-  assets.secondPlant = addImageToCanvasDiv("./assets/vine-4.png", {
-    width: "60%",
-    left: "0%",
-    bottom: "15%",
-    zIndex: "4",
+  assets.secondPlant = addImageToCanvasDiv('./assets/vine-4.png', {
+    width: '60%',
+    left: '0%',
+    bottom: '15%',
+    zIndex: '4',
   });
 
   // assets.secondPlant = addImageToCanvasDiv("./assets/plant-1.png", {
@@ -582,46 +590,53 @@ function addImages() {
   assets.shelf.appendChild(assets.secondPlant);
   // dragElement(assets.plant);
   // dragElement(assets.secondPlant);
-  dragElement(assets.shelf);
+  dragElement(assets.shelf, () => {
+    changeChords(data.chords.index + 1);
+  });
 
-  assets.tvStand = addImageToCanvasDiv("./assets/tv-stand.png", {
-    width: "20%",
-    left: "35%",
-    zIndex: "3",
+  assets.tvStand = addImageToCanvasDiv('./assets/tv-stand.png', {
+    width: '20%',
+    left: '35%',
+    zIndex: '3',
     group: true,
   });
-  assets.tvTable = addImageToCanvasDiv("./assets/tv-color.png", {
-    class: "large-on-hover",
-    width: "50%",
-    bottom: "95%",
-    left: "15%",
-    zIndex: "1",
+  assets.tvTable = addImageToCanvasDiv('./assets/tv-color.png', {
+    class: 'large-on-hover',
+    width: '50%',
+    bottom: '95%',
+    left: '15%',
+    zIndex: '1',
     group: true,
   });
-  assets.radio = addImageToCanvasDiv("./assets/radio.png", {
-    class: "large-on-hover",
-    width: "18%",
-    bottom: "95%",
-    right: "10%",
-    zIndex: "1",
+  assets.radio = addImageToCanvasDiv('./assets/radio.png', {
+    class: 'large-on-hover',
+    width: '18%',
+    bottom: '95%',
+    right: '10%',
+    zIndex: '1',
   });
 
   let radioSlider = secondInterpolationSlider;
   removeElement(radioSlider);
 
-  assets.radio.addEventListener("click", () => {
-    sendContinueMessage();
-  });
-
   assets.tvStand.append(assets.tvTable);
   assets.tvStand.append(assets.radio);
   assets.tvStand.append(radioSlider);
   dragElement(assets.tvStand, undefined, { horizontal: true });
+  assets.radio.addEventListener('click', () => {
+    sendContinueMessage();
+  });
 
-  assets.sofa = addImageToCanvasDiv("./assets/sofa-1.png", {
-    width: "35%",
-    right: "3%",
-    zIndex: "2",
+  assets.tvTable.addEventListener('click', () => {
+    data.canvas.moveMelodyCanvasToPanel();
+    switchPanel();
+    togglePanel();
+  });
+
+  assets.sofa = addImageToCanvasDiv('./assets/sofa-1.png', {
+    width: '35%',
+    right: '3%',
+    zIndex: '2',
     group: true,
   });
   dragElement(assets.sofa, undefined, { horizontal: true });
@@ -642,7 +657,7 @@ function addImages() {
   //   group: true,
   // });
 
-  const ifrm = document.createElement("iframe");
+  const ifrm = document.createElement('iframe');
   // ifrm.setAttribute("frameborder", "0");
   // ifrm.style.position = "absolute";
   // ifrm.style.top = "16.6%";
@@ -654,34 +669,34 @@ function addImages() {
 
   assets.youtube = ifrm;
 
-  assets.cabinetRight = addImageToCanvasDiv("./assets/cabinet-2.png", {
-    width: "10%",
-    right: "30%",
-    bottom: "9%",
-    zIndex: "1",
+  assets.cabinetRight = addImageToCanvasDiv('./assets/cabinet-2.png', {
+    width: '10%',
+    right: '30%',
+    bottom: '9%',
+    zIndex: '1',
     group: true,
   });
   dragElement(assets.cabinetRight, undefined, { horizontal: true });
 
   assets.time = setClock();
 
-  assets.clock = addImageToCanvasDiv("./assets/clock-3.png", {
-    class: "large-on-hover",
-    width: "78%",
-    right: "10%",
-    top: "-21%",
+  assets.clock = addImageToCanvasDiv('./assets/clock-3.png', {
+    class: 'large-on-hover',
+    width: '78%',
+    right: '10%',
+    top: '-21%',
     // bottom: "100%",
     group: true,
   });
   assets.clock.appendChild(assets.time);
   assets.cabinetRight.appendChild(assets.clock);
 
-  assets.bass = addImageToCanvasDiv("./assets/bass-wall.png", {
-    class: "large-on-hover",
-    height: "40%",
-    right: "10%",
-    top: "10%",
-    zIndex: "0",
+  assets.bass = addImageToCanvasDiv('./assets/bass-wall.png', {
+    class: 'large-on-hover',
+    height: '40%',
+    right: '10%',
+    top: '10%',
+    zIndex: '0',
   });
 
   // assets.acousticGuitar = addImageToCanvasDiv("./assets/acoustic-guitar.png", {
@@ -693,70 +708,70 @@ function addImages() {
   // });
 
   assets.chordsInstruments = [
-    addImageToCanvasDiv("./assets/synth.png", {
-      class: "large-on-hover",
-      height: "28%",
-      right: "30%",
-      top: "-28%",
-      zIndex: "2",
+    addImageToCanvasDiv('./assets/synth.png', {
+      class: 'large-on-hover',
+      height: '28%',
+      right: '30%',
+      top: '-28%',
+      zIndex: '2',
     }),
-    addImageToCanvasDiv("./assets/piano.png", {
-      class: "large-on-hover",
-      height: "28%",
-      right: "30%",
-      top: "-28%",
-      zIndex: "2",
-      display: "none",
+    addImageToCanvasDiv('./assets/piano.png', {
+      class: 'large-on-hover',
+      height: '28%',
+      right: '30%',
+      top: '-28%',
+      zIndex: '2',
+      display: 'none',
     }),
-    addImageToCanvasDiv("./assets/acoustic-guitar.png", {
-      class: "large-on-hover",
-      height: "120%",
-      left: "40%",
-      bottom: "-10%",
-      zIndex: "3",
-      display: "none",
+    addImageToCanvasDiv('./assets/acoustic-guitar.png', {
+      class: 'large-on-hover',
+      height: '120%',
+      left: '40%',
+      bottom: '-10%',
+      zIndex: '3',
+      display: 'none',
     }),
-    addImageToCanvasDiv("./assets/electric-guitar.png", {
-      class: "large-on-hover",
-      height: "130%",
-      left: "40%",
-      bottom: "-10%",
-      zIndex: "3",
-      display: "none",
+    addImageToCanvasDiv('./assets/electric-guitar.png', {
+      class: 'large-on-hover',
+      height: '130%',
+      left: '40%',
+      bottom: '-10%',
+      zIndex: '3',
+      display: 'none',
     }),
   ];
 
   assets.melodyInstruments = [
-    addImageToCanvasDiv("./assets/synth.png", {
-      class: "large-on-hover",
-      width: "30%",
-      right: "52%",
-      bottom: "45%",
-      zIndex: "3",
-      display: "none",
+    addImageToCanvasDiv('./assets/synth.png', {
+      class: 'large-on-hover',
+      width: '30%',
+      right: '52%',
+      bottom: '45%',
+      zIndex: '3',
+      display: 'none',
     }),
-    addImageToCanvasDiv("./assets/piano.png", {
-      class: "large-on-hover",
-      width: "30%",
-      right: "52%",
-      bottom: "45%",
-      zIndex: "3",
+    addImageToCanvasDiv('./assets/piano.png', {
+      class: 'large-on-hover',
+      width: '30%',
+      right: '52%',
+      bottom: '45%',
+      zIndex: '3',
     }),
-    addImageToCanvasDiv("./assets/acoustic-guitar.png", {
-      class: "large-on-hover",
-      height: "120%",
-      left: "15%",
-      bottom: "-10%",
-      zIndex: "3",
-      display: "none",
+    addImageToCanvasDiv('./assets/acoustic-guitar.png', {
+      class: 'large-on-hover',
+      height: '120%',
+      left: '15%',
+      bottom: '-10%',
+      zIndex: '3',
+      display: 'none',
     }),
-    addImageToCanvasDiv("./assets/electric-guitar.png", {
-      class: "large-on-hover",
-      height: "130%",
-      left: "15%",
-      bottom: "-10%",
-      zIndex: "3",
-      display: "none",
+    addImageToCanvasDiv('./assets/electric-guitar.png', {
+      class: 'large-on-hover',
+      height: '130%',
+      left: '15%',
+      bottom: '-10%',
+      zIndex: '3',
+      display: 'none',
     }),
   ];
 
@@ -764,26 +779,19 @@ function addImages() {
     const mi = assets.melodyInstruments[i];
     assets.sofa.appendChild(mi);
     dragElement(mi, () => {
-      switchPanel("melody");
+      switchPanel('melody');
       togglePanel();
     });
 
     const ci = assets.chordsInstruments[i];
     assets.sofa.appendChild(ci);
     dragElement(ci, () => {
-      switchPanel("chords");
+      switchPanel('chords');
       togglePanel();
     });
   }
-  // assets.electricGuitar = addImageToCanvasDiv("./assets/electric-guitar.png", {
-  //   class: "large-on-hover",
-  //   height: "35%",
-  //   right: "17%",
-  //   bottom: "2%",
-  //   zIndex: "3",
-  // });
 
-  assets.lamp.addEventListener("click", () => {
+  assets.lamp.addEventListener('click', () => {
     data.effects.beep.start();
     assets.lampOn = !assets.lampOn;
     if (!assets.lampOn) {
@@ -793,19 +801,21 @@ function addImages() {
     }
   });
 
-  assets.tvTable.addEventListener("click", () => {
-    data.canvas.moveMelodyCanvasToPanel();
-    switchPanel();
-    togglePanel();
-  });
-
-  melodyPanelCloseSpan.addEventListener("click", () => {
-    melodyPanelDiv.style.display = "none";
+  melodyPanelCloseSpan.addEventListener('click', () => {
+    melodyPanelDiv.style.display = 'none';
 
     // move canvas to outside
     data.canvas.moveMelodyCanvasToRoom();
   });
 
+  assets.makeAvatarLiftFoot = () => {
+    const { avatar, avatarUrls } = assets;
+    avatar.src = avatarUrls[2];
+  };
+  assets.makeAvatarDropFoot = () => {
+    const { avatar, avatarUrls } = assets;
+    avatar.src = avatarUrls[0];
+  };
   assets.switchAvatar = (drinking) => {
     const { avatar } = assets;
     if (drinking === undefined) {
@@ -815,75 +825,72 @@ function addImages() {
         avatar.src = assets.avatarUrls[0];
       }
     } else {
-      avatar.src = drinking ? assets.avatarUrls[0] : assets.avatarUrls[1];
+      avatar.src = drinking ? assets.avatarUrls[1] : assets.avatarUrls[0];
     }
   };
   dragElement(
-    assets.avatar,
+    assets.avatarGroup,
     () => {
-      toggleDrumMute();
+      toggleDrumMute(undefined, true, Tone.now());
     },
     { horizontal: true }
   );
 
-  dragElement(
-    assets.cat,
-    () => {
-      assets.cat.style.display = "none";
-      assets.catIndex = (assets.catIndex + 1) % assets.catUrls.length;
-      assets.cat.src = assets.catUrls[assets.catIndex];
-      if (assets.catIndex === 0) {
-        changeBpm(75);
-        changeDrumPattern(2);
-      } else if (assets.catIndex === 1) {
-        changeBpm(90);
-        changeDrumPattern(0);
-      } else {
-        changeBpm(100);
-        changeDrumPattern(1);
-      }
-
-      if (assets.catIndex === 2) {
-        assets.cat.style.left = "41.5%";
-        assets.cat.style.width = "9%";
-        assets.cat.style.bottom = "39%";
-      } else {
-        assets.cat.style.left = "43%";
-        assets.cat.style.width = "6%";
-        assets.cat.style.bottom = "33%";
-      }
-
-      // MACRO
-      if (assets.catIndex === 0) {
-        changeChords(0);
-        changeMelodyInstrument(1);
-        changeMelodyByIndex(0);
-        changeChordsInstrument(0);
-        data.backgroundSounds.gain.gain.value = 1.0;
-      } else if (assets.catIndex === 1) {
-        changeChords(1);
-        changeChordsInstrument(2);
-        changeMelodyByIndex(1);
-        changeMelodyInstrument(3);
-        data.backgroundSounds.switch(1);
-        data.backgroundSounds.gain.gain.value = 0.5;
-      } else {
-        changeChords(2);
-        changeChordsInstrument(2);
-        changeMelodyByIndex(2);
-        changeMelodyInstrument(0); // electric guitar
-        data.backgroundSounds.switch(3);
-        data.backgroundSounds.gain.gain.value = 1.0;
-      }
-
-      assets.cat.onload = () => {
-        assets.cat.style.display = "block";
-      };
-    },
-    {
-      horizontal: false,
+  assets.catCallback = () => {
+    assets.cat.style.display = 'none';
+    assets.catIndex = (assets.catIndex + 1) % assets.catUrls.length;
+    assets.cat.src = assets.catUrls[assets.catIndex];
+    if (assets.catIndex === 0) {
+      changeBpm(75);
+      changeDrumPattern(2);
+    } else if (assets.catIndex === 1) {
+      changeBpm(90);
+      changeDrumPattern(0);
+    } else {
+      changeBpm(100);
+      changeDrumPattern(1);
     }
-  );
+
+    if (assets.catIndex === 2) {
+      assets.catGroup.style.left = '42%';
+      assets.catGroup.style.width = '8%';
+      assets.catGroup.style.bottom = '39%';
+    } else {
+      assets.catGroup.style.left = '43%';
+      assets.catGroup.style.width = '6%';
+      assets.catGroup.style.bottom = '33%';
+    }
+
+    // MACRO
+    if (assets.catIndex === 0) {
+      changeChords(0);
+      changeMelodyInstrument(1);
+      changeMelodyByIndex(0);
+      changeChordsInstrument(0);
+      data.backgroundSounds.gain.gain.value = 1.0;
+    } else if (assets.catIndex === 1) {
+      changeChords(1);
+      changeChordsInstrument(2);
+      changeMelodyByIndex(1);
+      changeMelodyInstrument(3);
+      data.backgroundSounds.switch(1);
+      data.backgroundSounds.gain.gain.value = 0.5;
+    } else {
+      changeChords(2);
+      changeChordsInstrument(2);
+      changeMelodyByIndex(2);
+      changeMelodyInstrument(0); // electric guitar
+      data.backgroundSounds.switch(3);
+      data.backgroundSounds.gain.gain.value = 1.0;
+    }
+
+    assets.cat.onload = () => {
+      assets.cat.style.display = 'block';
+    };
+  };
+  dragElement(assets.catGroup, assets.catCallback, {
+    horizontal: false,
+  });
 
   // const amp = addImageToCanvasDiv("./assets/amp.png", {
   //   class: "large-on-hover",
@@ -893,35 +900,36 @@ function addImages() {
   //   zIndex: "3",
   // });
 
-  assets.window.addEventListener("click", () => {
+  assets.window.addEventListener('click', () => {
     if (checkStarted()) {
-      const n = backgroundSoundsNames.length;
-      data.backgroundSounds.switch((backgroundSoundsIndex + 1) % n);
+      const n = data.backgroundSounds.names.length;
+      data.backgroundSounds.switch((data.backgroundSounds.index + 1) % n);
     } else {
-      triggerStart();
+      toggleStart();
     }
   });
 
-  assets.logo = addImageToCanvasDiv("./assets/magenta-logo.png", {
-    class: "large-on-hover",
-    width: "12%",
-    left: "3%",
-    top: "15%",
+  assets.logo = addImageToCanvasDiv('./assets/magenta-logo.png', {
+    class: 'large-on-hover',
+    width: '12%',
+    left: '3%',
+    top: '15%',
   });
 
   dragElement(assets.logo, () => {
-    changeChords(chordsIndex + 1);
+    stopTransport();
+    window.open('https://magenta.tensorflow.org/', '_blank');
   });
 
   dragElement(assets.bass, () => {
     // data.bass.gain.gain.value = data.bass.gain.gain.value > 0.5 ? 0 : 1;
-    switchPanel("bass");
+    switchPanel('bass');
     togglePanel();
   });
   dragElement(
     assets.cactus,
     () => {
-      switchPanel("background");
+      switchPanel('background');
       togglePanel();
     },
     {
@@ -930,35 +938,34 @@ function addImages() {
   );
 
   dragElement(assets.clock, () => {
-    switchPanel("drum");
+    switchPanel('drum');
     togglePanel();
   });
   dragElement(assets.shelfWithBooks, () => {
-    switchPanel("info");
+    switchPanel('info');
     togglePanel();
   });
   dragElement(assets.pens, () => {
-    switchPanel("master");
+    switchPanel('master');
     togglePanel();
   });
-  // assets.piano.addEventListener("click", () => {
-  //   changeChordsInstrument(1);
-  // });
-  // assets.acousticGuitar.addEventListener("click", () => {
-  //   changeChordsInstrument(2);
-  // });
+
   data.backgroundSounds.switch = function (index) {
-    backgroundSounds.get(backgroundSoundsNames[backgroundSoundsIndex]).stop();
-    backgroundSoundsIndex = index;
+    data.backgroundSounds.samples
+      .get(data.backgroundSounds.names[data.backgroundSounds.index])
+      .stop();
+    data.backgroundSounds.index = index;
     backgroundSoundsSelect.value = index;
-    backgroundSounds.get(backgroundSoundsNames[backgroundSoundsIndex]).start();
+    data.backgroundSounds.samples
+      .get(data.backgroundSounds.names[data.backgroundSounds.index])
+      .start();
 
     // change background
     for (let i = 0; i < assets.windowGifs.length; i++) {
       if (i === index || i.toString() === index) {
-        assets.windowGifs[i].style.display = "block";
+        assets.windowGifs[i].style.display = 'block';
       } else {
-        assets.windowGifs[i].style.display = "none";
+        assets.windowGifs[i].style.display = 'none';
       }
     }
   };
@@ -967,20 +974,20 @@ function addImages() {
 }
 
 function togglePanel() {
-  if (melodyPanelDiv.style.display === "flex") {
-    melodyPanelDiv.style.display = "none";
+  if (melodyPanelDiv.style.display === 'flex') {
+    melodyPanelDiv.style.display = 'none';
   } else {
-    melodyPanelDiv.style.display = "flex";
+    melodyPanelDiv.style.display = 'flex';
   }
 }
 
-function switchPanel(name = "interpolation") {
+function switchPanel(name = 'interpolation') {
   for (let i = 0; i < controlPanels.length; i++) {
     const el = controlPanels[i];
     if (el.id === `${name}-div`) {
-      el.style.display = "flex";
+      el.style.display = 'flex';
     } else {
-      el.style.display = "none";
+      el.style.display = 'none';
     }
   }
 }
@@ -990,51 +997,57 @@ function addImageToCanvasDiv(src, params) {
   img.src = src;
 
   if (params.group) {
-    const div = document.createElement("DIV");
-    div.style.position = "absolute";
+    const div = document.createElement('DIV');
+    div.style.position = 'absolute';
 
-    img.style.width = "100%";
-    img.style.top = "0";
-    img.style.left = "0";
-    img.style.margin = "0";
+    img.style.width = '100%';
+    img.style.top = '0';
+    img.style.left = '0';
+    img.style.margin = '0';
     div.appendChild(img);
     img = div;
   } else {
-    img.style.position = "absolute";
+    img.style.position = 'absolute';
   }
 
   if (params.class) {
     img.classList.add(params.class);
   }
-  img.style.position = "absolute";
+  img.style.position = 'absolute';
+
+  if (params.display) {
+    img.style.display = params.display;
+  } else {
+    img.style.display = 'block';
+  }
 
   if (!params.height) {
-    img.style.width = params.width ? params.width : "25%";
-    img.style.height = "auto";
+    img.style.width = params.width ? params.width : '25%';
+    img.style.height = 'auto';
   } else {
     img.style.height = params.height;
-    img.style.width = "auto";
+    img.style.width = 'auto';
   }
 
   if (!params.right) {
-    img.style.left = params.left ? params.left : "5%";
+    img.style.left = params.left ? params.left : '5%';
   } else {
     img.style.right = params.right;
   }
 
   if (!params.top) {
-    img.style.bottom = params.bottom ? params.bottom : "5%";
+    img.style.bottom = params.bottom ? params.bottom : '5%';
   } else {
     img.style.top = params.top;
   }
 
   if (!params.display) {
-    img.style.display = "block";
+    img.style.display = 'block';
   } else {
     img.style.display = params.display;
   }
 
-  img.style.zIndex = params.zIndex ? params.zIndex : "0";
+  img.style.zIndex = params.zIndex ? params.zIndex : '0';
 
   canvasDiv.appendChild(img);
   return img;
@@ -1050,35 +1063,19 @@ function draw() {
 }
 
 function drawMainCanvas() {
-  let ctx = data.canvas.canvas.getContext("2d");
+  let ctx = data.canvas.canvas.getContext('2d');
   const { width, height } = ctx.canvas;
   ctx.clearRect(0, 0, width, height);
-  // ctx.fillStyle = `rgba(200, 200, 200, ${Math.sin(0.01 * Date.now()) > 0 ? 1 : 0})`;
-  // ctx.fillRect(0, 0, width, height);
-  // ctx.fillRect(width / 30, width / 30, width / 30, width / 30);
 
   // progress;
-  if (Tone.Transport.state === "started") {
-    // ctx.fillStyle = "rgba(255, 11, 174, 1)";
-    ctx.fillStyle = "rgba(200, 200, 200, 1)";
+  if (Tone.Transport.state === 'started') {
+    ctx.fillStyle = 'rgba(200, 200, 200, 1)';
     ctx.fillRect(0, 0, width * Tone.Transport.progress, height * 0.05);
-    // ctx.fillRect(width * Tone.Transport.progress, 0, 10, height);
   }
-
-  // if (data.melody.midis) {
-  //   drawRect(ctx, 357, 102, 111, 61, "rgba(255, 11, 174, 0.8)");
-  //   drawMidi(ctx, 357, 102, 111, 61, data.melody.midis[melodyIndex]);
-
-  //   // kick
-  //   drawRect(ctx, 519, 131, 52, 190, "rgba(255, 11, 174, 0.8)");
-  //   drawDrums(ctx, 519, 131, 52, 190);
-  // }
-
-  // ctx.translate(470, 166);
 }
 
 function drawMelodyCanvas() {
-  let ctx = data.canvas.melodyCanvas.getContext("2d");
+  let ctx = data.canvas.melodyCanvas.getContext('2d');
   const { width, height } = ctx.canvas;
   ctx.clearRect(0, 0, width, height);
 
@@ -1087,9 +1084,9 @@ function drawMelodyCanvas() {
     data.melody.interpolationData[data.melody.interpolationIndex]
   ) {
     ctx.save();
-    ctx.fillStyle = "rgba(255, 255, 255, 1)";
+    ctx.fillStyle = 'rgba(255, 255, 255, 1)';
     ctx.fillRect(0, 0, width, height);
-    ctx.strokeStyle = "rgba(0, 0, 0, 1)";
+    ctx.strokeStyle = 'rgba(0, 0, 0, 1)';
     ctx.lineWidth = 10;
     ctx.strokeRect(0, 0, width, height);
     ctx.restore();
@@ -1126,13 +1123,13 @@ function drawMidi(ctx, x, y, w, h, m) {
     const ypos = h * (1 - (midi - 64) / 32);
     const ww = (w * durationTicks) / TOTAL_TICKS;
 
-    ctx.fillStyle = "rgba(255, 255, 255, 1)";
+    ctx.fillStyle = 'rgba(255, 255, 255, 1)';
     ctx.fillRect(xpos, ypos, ww, hh);
     ctx.restore();
   }
 
-  if (Tone.Transport.state === "started") {
-    ctx.fillStyle = "#373fff";
+  if (Tone.Transport.state === 'started') {
+    ctx.fillStyle = '#373fff';
     ctx.fillRect(w * Tone.Transport.progress, 0, -5, h);
   }
   ctx.restore();
@@ -1154,109 +1151,75 @@ function drawModelData(ctx, x, y, w, h, data) {
     ctx.save();
     const xpos = (w * quantizedStartStep) / totalQuantizedSteps;
     const ypos = h * (1 - (pitch - 64) / 64);
-    const ww =
-      (w * (quantizedEndStep - quantizedStartStep)) / totalQuantizedSteps;
+    const ww = (w * (quantizedEndStep - quantizedStartStep)) / totalQuantizedSteps;
 
-    ctx.fillStyle = "rgba(0, 0, 0, 1)";
+    ctx.fillStyle = 'rgba(0, 0, 0, 1)';
     ctx.fillRect(xpos, ypos, ww, hh);
     ctx.restore();
   }
 
-  if (Tone.Transport.state === "started") {
-    ctx.fillStyle = "#373fff";
+  if (Tone.Transport.state === 'started') {
+    ctx.fillStyle = '#373fff';
     ctx.fillRect(w * ((Tone.Transport.progress * 2) % 1), 0, -5, h);
   }
   ctx.restore();
 }
 
-function drawDrums(ctx, x, y, w, h) {
-  const radius = 10;
-
-  data.drum.scale.kk = data.drum.scale.kk * 0.9;
-  data.drum.scale.sn = data.drum.scale.sn * 0.9;
-  data.drum.scale.hh = data.drum.scale.hh * 0.9;
-  ctx.save();
-
-  ctx.translate(x + 0.5 * w, y);
-
-  ctx.translate(0, 0.2 * h);
-  ctx.fillStyle = `rgba(255, 255, 255, ${data.drum.scale.hh})`;
-  ctx.beginPath();
-  // ctx.arc(0, 0, radius, 0, 2 * Math.PI);
-  ctx.fillRect(-5, 0, 10, 10);
-  ctx.fill();
-
-  ctx.translate(0, 0.2 * h);
-  ctx.fillStyle = `rgba(255, 255, 255, ${data.drum.scale.sn})`;
-  ctx.beginPath();
-  // ctx.arc(0, 0, radius, 0, 2 * Math.PI);
-  ctx.fillRect(-5, 0, 10, 10);
-  ctx.fill();
-
-  ctx.translate(0, 0.2 * h);
-  ctx.fillStyle = `rgba(255, 255, 255, ${data.drum.scale.kk})`;
-  ctx.beginPath();
-  // ctx.arc(0, 0, radius, 0, 2 * Math.PI);
-  ctx.fillRect(-5, 0, 10, 10);
-  ctx.fill();
-
-  ctx.restore();
-}
-
 function seqCallback(time, b) {
-  if (!drumMute) {
-    if (drumPatternIndex === 0) {
+  if (!data.drum.mute) {
+    if (data.drum.patternIndex === 0) {
       if (b % 16 === 0) {
         data.drum.scale.kk = 1;
-        drumSamples.get("kk").start(time);
+        data.drum.samples.get('kk').start(time);
       }
       if (b % 16 === 8) {
         data.drum.scale.sn = 1;
-        drumSamples.get("sn").start(time);
+        data.drum.samples.get('sn').start(time);
       }
       if (b % 2 === 0) {
         data.drum.scale.hh = 1;
-        drumSamples.get("hh").start(time);
+        data.drum.samples.get('hh').start(time);
       }
-    } else if (drumPatternIndex === 1) {
+    } else if (data.drum.patternIndex === 1) {
       if (b % 32 === 0 || b % 32 === 20) {
-        drumSamples.get("kk").start(time);
+        data.drum.samples.get('kk').start(time);
       }
       if (b % 16 === 8) {
-        drumSamples.get("sn").start(time);
+        data.drum.samples.get('sn').start(time);
       }
       if (b % 2 === 0) {
-        drumSamples.get("hh").start(time + 0.07);
+        data.drum.samples.get('hh').start(time + 0.07);
       }
-    } else if (drumPatternIndex === 2) {
+    } else if (data.drum.patternIndex === 2) {
       if (b % 16 === 0 || b % 16 === 10 || (b % 32 >= 16 && b % 16 === 11)) {
-        drumSamples.get("kk").start(time);
+        data.drum.samples.get('kk').start(time);
       }
       if (b % 8 === 4) {
-        drumSamples.get("sn").start(time);
+        data.drum.samples.get('sn').start(time);
       }
       if (b % 2 === 0) {
-        drumSamples.get("hh").start(time + 0.07);
+        data.drum.samples.get('hh').start(time + 0.07);
       }
+    }
+
+    if (b % 16 === 7) {
+      // tap foot
+      assets.makeAvatarLiftFoot();
+    } else if (b % 16 === 8) {
+      assets.makeAvatarDropFoot();
     }
   }
 
   // Markov chain
   if (data.drum.auto) {
     if (b % 32 === 31) {
-      if (drumMute) {
+      if (data.drum.mute) {
         if (Math.random() > 0.05) {
-          toggleDrumMute(false);
-
-          // transition
-          data.master.lpf.frequency.linearRampTo(20000, 1, time);
+          toggleDrumMute(false, true, time);
         }
       } else {
-        if (Math.random() > 0.8) {
-          toggleDrumMute(true);
-
-          // transition
-          data.master.lpf.frequency.linearRampTo(200, 0.5, time);
+        if (Math.random() < TRANSITION_PROB) {
+          toggleDrumMute(true, true, time);
         }
       }
     }
@@ -1267,115 +1230,125 @@ function seqCallback(time, b) {
 }
 
 async function loadMidiFiles() {
-  chordsMidis = await Promise.all([
-    Midi.fromUrl("./midi/IV_IV_I_I/IV_IV_I_I_C_1.mid"),
-    Midi.fromUrl("./midi/IV_IV_I_I/IV_IV_I_I_C_3.mid"),
-    Midi.fromUrl("./midi/IV_IV_I_I/IV_IV_I_I_C_2.mid"),
+  data.chords.midis = await Promise.all([
+    Midi.fromUrl('./midi/IV_IV_I_I/IV_IV_I_I_C_1.mid'),
+    Midi.fromUrl('./midi/IV_IV_I_I/IV_IV_I_I_C_3.mid'),
+    Midi.fromUrl('./midi/IV_IV_I_I/IV_IV_I_I_C_2.mid'),
     // Midi.fromUrl("./midi/i_III_iv_v_Am.mid"),
     // Midi.fromUrl("./midi/VI_i_VI_v_Am.mid"),
   ]);
 
-  changeChords(chordsIndex);
+  changeChords(data.chords.index);
 
   data.melody.midis = await Promise.all([
-    Midi.fromUrl("./midi/IV_IV_I_I/melody/m_1_C.mid"),
-    Midi.fromUrl("./midi/IV_IV_I_I/melody/m_2_C.mid"),
-    Midi.fromUrl("./midi/IV_IV_I_I/melody/m_3_C.mid"),
-    Midi.fromUrl("./midi/IV_IV_I_I/melody/m_4_C.mid"),
+    Midi.fromUrl('./midi/IV_IV_I_I/melody/m_1_C.mid'),
+    Midi.fromUrl('./midi/IV_IV_I_I/melody/m_2_C.mid'),
+    Midi.fromUrl('./midi/IV_IV_I_I/melody/m_3_C.mid'),
+    Midi.fromUrl('./midi/IV_IV_I_I/melody/m_4_C.mid'),
   ]);
   data.melody.midis[4] = data.melody.midis[0]; // placeholder
   data.melody.toneNotes = data.melody.midis.map(midiToToneNotes);
 
-  changeMelodyByIndex(melodyIndex);
+  changeMelodyByIndex(data.melody.index);
 
-  console.log("midi loaded");
+  console.log('midi loaded');
   // console.log("midi loaded", data.melody.midis[0]);
   checkFinishLoading();
 }
 
 function checkFinishLoading() {
-  loadEventsCounts += 1;
-  console.log(`[${loadEventsCounts}/${LOAD_EVENTS_COUNTS_THRESHOLD}]`);
-  if (data.loading && loadEventsCounts >= LOAD_EVENTS_COUNTS_THRESHOLD) {
+  data.loadEventsCount += 1;
+  console.log(`[${data.loadEventsCount}/${LOAD_EVENTS_COUNTS_THRESHOLD}]`);
+  if (data.loading && data.loadEventsCount >= LOAD_EVENTS_COUNTS_THRESHOLD) {
     data.loading = false;
-    console.log("Finish loading!");
+    console.log('Finish loading!');
     onFinishLoading();
   } else if (data.loading) {
-    const percentage = Math.floor(
-      (loadEventsCounts / LOAD_EVENTS_COUNTS_THRESHOLD) * 100
-    );
+    const percentage = Math.floor((data.loadEventsCount / LOAD_EVENTS_COUNTS_THRESHOLD) * 100);
     startButton.textContent = `loading...${percentage}/100%`;
   }
 }
 
-function triggerStart() {
-  if (ac.state !== "started") {
+function toggleStart() {
+  const ac = Tone.context._context;
+  if (ac.state !== 'started') {
     ac.resume();
   }
 
-  if (Tone.Transport.state === "started") {
-    // stop
-    Tone.Transport.stop();
-    onTransportStop();
-    startButton.textContent = "start";
-    assets.window.src = "./assets/window-1.png";
-    assets.light.src = "./assets/light-off.png";
-    canvasOverlay.style.display = "flex";
+  if (Tone.Transport.state === 'started') {
+    stopTransport();
   } else {
-    // start
-    Tone.Transport.start();
-    onTransportStart();
-    startButton.textContent = "stop";
-    assets.window.src = "./assets/window-0.png";
-    assets.light.src = "./assets/light-on.png";
-    canvasOverlay.style.display = "none";
+    startTransport();
   }
 }
+
+function startTransport() {
+  Tone.Transport.start();
+  onTransportStart();
+  startButton.textContent = 'stop';
+  assets.window.src = './assets/window-0.png';
+  assets.light.src = './assets/light-on.png';
+  canvasOverlay.style.display = 'none';
+}
+
+function stopTransport() {
+  Tone.Transport.stop();
+  onTransportStop();
+  startButton.textContent = 'start';
+  assets.window.src = './assets/window-1.png';
+  assets.light.src = './assets/light-off.png';
+  canvasOverlay.style.display = 'flex';
+}
+
 function onFinishLoading() {
-  canvasOverlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
-  startButton.textContent = "start";
-  startButton.addEventListener("click", () => {
-    triggerStart();
+  canvasOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+  startButton.textContent = 'start';
+  startButton.addEventListener('click', () => {
+    if (!data.started) {
+      data.started = true;
+      onFirstTimeStarted();
+    }
+    toggleStart();
   });
 
   changeBpm(data.master.bpm);
-  bpmInput.addEventListener("input", (e) => {
+  bpmInput.addEventListener('input', (e) => {
     changeBpm(bpmInput.value);
   });
 
-  drumToggle.addEventListener("change", (e) => {
+  drumToggle.addEventListener('change', (e) => {
     toggleDrumMute(!e.target.checked);
   });
-  drumAutoToggle.addEventListener("change", (e) => {
+  drumAutoToggle.addEventListener('change', (e) => {
     data.drum.auto = e.target.checked;
   });
 
-  drumPatternsSelect.addEventListener("change", () => {
+  drumPatternsSelect.addEventListener('change', () => {
     changeDrumPattern(parseInt(drumPatternsSelect.value, 10));
-    // drumPatternIndex = parseInt(drumPatternsSelect.value, 10);
+    // data.drum.patternIndex = parseInt(drumPatternsSelect.value, 10);
   });
 
-  chordsSelect.addEventListener("change", () => {
+  chordsSelect.addEventListener('change', () => {
     changeChords(chordsSelect.value);
   });
-  chordsInstrumentSelect.addEventListener("change", () => {
+  chordsInstrumentSelect.addEventListener('change', () => {
     changeChordsInstrument(chordsInstrumentSelect.value);
   });
 
-  firstMelodySelect.addEventListener("change", () => {
+  firstMelodySelect.addEventListener('change', () => {
     changeMelodyByIndex(parseInt(firstMelodySelect.value));
   });
 
-  secondMelodySelect.addEventListener("change", () => {
-    secondMelodyIndex = secondMelodySelect.value;
+  secondMelodySelect.addEventListener('change', () => {
+    data.melody.secondIndex = secondMelodySelect.value;
     sendInterpolationMessage(data.melody.interpolationData[0]);
   });
 
-  backgroundSoundsSelect.addEventListener("change", () => {
+  backgroundSoundsSelect.addEventListener('change', () => {
     data.backgroundSounds.switch(backgroundSoundsSelect.value);
   });
 
-  melodyInstrumentSelect.addEventListener("change", () => {
+  melodyInstrumentSelect.addEventListener('change', () => {
     changeMelodyInstrument(melodyInstrumentSelect.value);
   });
 
@@ -1385,87 +1358,72 @@ function onFinishLoading() {
   //   melodyInteractionDivs[1 - mode].style.display = "none";
   // });
 
-  interpolationSlider.addEventListener("change", (e) => {
+  interpolationSlider.addEventListener('change', (e) => {
     e.stopPropagation();
     const index = Math.floor(interpolationSlider.value);
     changeInterpolationIndex(index);
   });
 
-  secondInterpolationSlider.addEventListener("mousedown", (e) => {
+  secondInterpolationSlider.addEventListener('mousedown', (e) => {
     e.stopPropagation();
   });
-  secondInterpolationSlider.addEventListener("change", (e) => {
+  secondInterpolationSlider.addEventListener('change', (e) => {
     const index = Math.floor(secondInterpolationSlider.value);
     changeInterpolationIndex(index);
   });
 
-  melodyVolumeSlider.addEventListener("input", (e) => {
+  melodyVolumeSlider.addEventListener('input', (e) => {
     data.melody.changeGain(melodyVolumeSlider.value / 100);
   });
-  chordsVolumeSlider.addEventListener("input", (e) => {
+  chordsVolumeSlider.addEventListener('input', (e) => {
     data.chords.gain = e.target.value / 100;
   });
 
-  bassVolumeSlider.addEventListener("input", () => {
-    data.bass.gain.gain.value = bassVolumeSlider.value / 100;
+  bassVolumeSlider.addEventListener('input', () => {
+    data.bass.changeGain(bassVolumeSlider.value / 100);
   });
-  bassToneSlider.addEventListener("input", () => {
+  bassToneSlider.addEventListener('input', () => {
     const frq = bassToneSlider.value * 2;
     data.bass.lpf.frequency.value = frq;
   });
-  backgroundVolumeSlider.addEventListener("input", () => {
+  backgroundVolumeSlider.addEventListener('input', () => {
     data.backgroundSounds.gain.gain.value = backgroundVolumeSlider.value / 100;
   });
 
-  backgroundToneSlider.addEventListener("input", () => {
+  backgroundToneSlider.addEventListener('input', () => {
     const frq = backgroundToneSlider.value * 200;
     data.backgroundSounds.hpf.frequency.value = frq;
   });
 
-  masterReverbSlider.addEventListener("input", () => {
+  masterReverbSlider.addEventListener('input', () => {
     const wet = masterReverbSlider.value / 100;
     data.master.reverb.wet.value = wet;
   });
 
-  masterToneSlider.addEventListener("input", () => {
+  masterToneSlider.addEventListener('input', () => {
     const frq = masterToneSlider.value * 198 + 200;
     data.master.lpf.frequency.value = frq;
   });
 
-  masterVolumeSlider.addEventListener("input", () => {
+  masterVolumeSlider.addEventListener('input', () => {
     const vol = masterVolumeSlider.value / 100;
     data.master.gain.gain.value = vol;
   });
 
-  melodySwingSlider.addEventListener("input", () => {
+  melodySwingSlider.addEventListener('input', () => {
     data.melody.swing = melodySwingSlider.value / 100;
   });
-  chordsSwingSlider.addEventListener("input", () => {
+  chordsSwingSlider.addEventListener('input', () => {
     data.chords.swing = chordsSwingSlider.value / 100;
   });
 
-  window.addEventListener("resize", () => {
+  window.addEventListener('resize', () => {
     const canvas = data.canvas.canvas;
     canvasDiv.style.height = `${backgroundImage.clientWidth * (435 / 885)}px`;
 
     canvas.width = canvasDiv.clientWidth;
     canvas.height = canvasDiv.clientHeight;
   });
-
-  // window.addEventListener("keydown", (e) => {
-  //   const callbacks = {
-  //     9: () => {
-  //       switchCallback();
-  //     },
-  //     32: () => {
-  //       triggerStart();
-  //     },
-  //   };
-  //   if (callbacks[e.keyCode]) {
-  //     e.preventDefault();
-  //     callbacks[e.keyCode]();
-  //   }
-  // });
 
   // show canvas
   data.canvas.moveMelodyCanvasToRoom();
@@ -1477,82 +1435,168 @@ function onFinishLoading() {
   data.melody.changeGain = function (v) {
     data.melody.gain = v;
     melodyVolumeSlider.value = v * 100;
-    assets.ampSlider.value = v * 100;
   };
 
-  // start youtube video
-  // assets.youtube.src = getYoutubeEmbedUrlFromId();
+  data.melody.changeSwing = function (v) {
+    data.melody.swing = v;
+    melodySwingSlider.value = v * 100;
+  };
+
+  data.chords.changeGain = function (v) {
+    data.chords.gain = v;
+    chordsVolumeSlider.value = v * 100;
+  };
+
+  data.chords.changeSwing = function (v) {
+    data.chords.swing = v;
+    chordsSwingSlider.value = v * 100;
+  };
+
+  data.bass.changeGain = function (v) {
+    data.bass.gain.gain.value = v;
+    bassVolumeSlider.value = v * 100;
+  };
+
+  data.master.changeReverb = function (v) {
+    masterReverbSlider.value = v * 100;
+    data.master.reverb.wet.linearRampTo(v, 1, Tone.now());
+    // data.master.reverb.wet.value = v;
+  };
+
+  data.master.changeFilter = function (v) {
+    masterToneSlider.value = v * 100;
+    const f = v * 19800 + 200;
+    data.master.lpf.frequency.linearRampTo(f, 1, Tone.now());
+  };
+
+  setupPageVisibilityCallback();
+}
+
+function setupKeyboardEvents() {
+  window.addEventListener('keydown', (e) => {
+    const callbacks = {
+      9: () => {
+        switchCallback();
+      },
+      32: () => {
+        toggleStart();
+      },
+    };
+    if (callbacks[e.keyCode]) {
+      e.preventDefault();
+      callbacks[e.keyCode]();
+    }
+  });
+}
+
+async function onFirstTimeStarted() {
+  const interval = DEFAULT_GUIDANCE_INTERVAL;
+  await sleep(interval * 2);
+  bubbleDiv.textContent = `It's crazy out there.`;
+
+  await sleep(interval * 5);
+  bubbleDiv.style.width = '120%';
+  bubbleDiv.textContent = `Try click the window.`;
+
+  await sleep(interval * 10);
+  bubbleDiv.textContent = `Click me to give me coffee.`;
+
+  await sleep(interval * 10);
+  assets.catGroup.appendChild(bubbleDiv);
+  bubbleDiv.style.width = '150%';
+  bubbleDiv.textContent = `meow...`;
+
+  await sleep(interval * 10);
+  assets.avatarGroup.appendChild(bubbleDiv);
+  bubbleDiv.style.width = '110%';
+  bubbleDiv.textContent = 'Enjoy the magical room...';
+
+  await sleep(interval * 10);
+  bubbleDiv.style.width = '100%';
+  bubbleDiv.style.display = 'none';
 }
 
 function onTransportStart() {
-  backgroundSounds.get(backgroundSoundsNames[backgroundSoundsIndex]).start();
+  data.backgroundSounds.samples
+    .get(data.backgroundSounds.names[data.backgroundSounds.index])
+    .start();
 }
 
 function onTransportStop() {
-  backgroundSounds.get(backgroundSoundsNames[backgroundSoundsIndex]).stop();
+  data.backgroundSounds.samples
+    .get(data.backgroundSounds.names[data.backgroundSounds.index])
+    .stop();
 }
 
-function toggleDrumMute(value) {
+function toggleDrumMute(value, changeFilter = false, time = 0) {
   if (value === undefined) {
-    drumMute = !drumMute;
+    data.drum.mute = !data.drum.mute;
   } else {
-    drumMute = value;
+    data.drum.mute = value;
+  }
+
+  if (changeFilter) {
+    if (!data.drum.mute) {
+      data.master.lpf.frequency.linearRampTo(20000, 1, time);
+    } else {
+      data.master.lpf.frequency.linearRampTo(200, 0.5, time);
+    }
   }
 
   // sync ui
-  drumToggle.checked = !drumMute;
-  assets.switchAvatar(drumMute);
+  drumToggle.checked = !data.drum.mute;
+  assets.switchAvatar(data.drum.mute);
 }
 
 function changeChords(index = 0) {
-  index = index % chordsMidis.length;
-  if (chordsPart) {
-    chordsPart.cancel(0);
+  index = index % data.chords.midis.length;
+  if (data.chords.part) {
+    data.chords.part.cancel(0);
   }
-  chordsIndex = index;
-  chordsPart = new Tone.Part((time, note) => {
-    chordsInstruments[chordsInstrumentIndex].triggerAttackRelease(
-      toFreq(note.pitch - (chordsInstrumentIndex === 0 ? 0 : 12)),
+  data.chords.index = index;
+  data.chords.part = new Tone.Part((time, note) => {
+    data.instruments[data.chords.instrumentIndex].triggerAttackRelease(
+      toFreq(note.pitch - (data.chords.instrumentIndex === 0 ? 0 : 12)),
       note.duration,
       time + data.chords.swing * (75 / data.master.bpm) * Math.random() * 0.1,
       note.velocity * data.chords.gain
     );
-  }, midiToToneNotes(chordsMidis[chordsIndex])).start(0);
+  }, midiToToneNotes(data.chords.midis[data.chords.index])).start(0);
 
-  backgroundImage.src = `./assets/rooom-${chordsIndex}.png`;
+  backgroundImage.src = `./assets/rooom-${data.chords.index}.png`;
 }
 
 function changeMelodyByIndex(index = 0) {
-  if (melodyPart) {
-    melodyPart.cancel(0);
+  if (data.melody.part) {
+    data.melody.part.cancel(0);
   }
-  melodyIndex = index;
+  data.melody.index = index;
   if (index === data.melody.toneNotes.length - 1) {
-    console.log("rnn");
+    console.log('rnn');
     sendContinueMessage();
     return;
   }
 
-  melodyPart = new Tone.Part((time, note) => {
+  data.melody.part = new Tone.Part((time, note) => {
     data.melody.instrument.triggerAttackRelease(
       toFreq(note.pitch - 12),
       note.duration,
       time + Math.random() * (75 / data.master.bpm) * 0.3 * data.melody.swing,
       note.velocity * data.melody.gain
     );
-  }, data.melody.toneNotes[melodyIndex]).start(0);
+  }, data.melody.toneNotes[data.melody.index]).start(0);
 
-  melodyPart.loop = false;
+  data.melody.part.loop = false;
 
   firstMelodySelect.value = index;
   sendInterpolationMessage();
 }
 
 function changeMelody(readyMidi) {
-  if (melodyPart) {
-    melodyPart.cancel(0);
+  if (data.melody.part) {
+    data.melody.part.cancel(0);
   }
-  melodyPart = new Tone.Part((time, note) => {
+  data.melody.part = new Tone.Part((time, note) => {
     data.melody.instrument.triggerAttackRelease(
       toFreq(note.pitch - 12),
       note.duration,
@@ -1560,8 +1604,8 @@ function changeMelody(readyMidi) {
       note.velocity * data.melody.gain
     );
   }, readyMidi).start(0);
-  melodyPart.loop = true;
-  melodyPart.loopEnd = "4:0:0";
+  data.melody.part.loop = true;
+  data.melody.part.loopEnd = '4:0:0';
 }
 
 function changeInterpolationIndex(index) {
@@ -1574,21 +1618,22 @@ function changeInterpolationIndex(index) {
 
 function sendInterpolationMessage(m1, m2, id = 0) {
   data.melody.waitingInterpolation = true;
-  melodyInteractionDivs[0].classList.add("disabledbutton");
+  melodyInteractionDivs[0].classList.add('disabledbutton');
 
-  // console.log(`interpolate ${melodyIndex} ${secondMelodyIndex}`);
-  const firstMelody = data.melody.midis[melodyIndex];
+  // console.log(`interpolate ${data.melody.index} ${data.melody.secondIndex}`);
+  const firstMelody = data.melody.midis[data.melody.index];
   const left = m1 ? m1 : midiToModelFormat(firstMelody);
 
-  const secondMelody = data.melody.midis[secondMelodyIndex];
+  const secondMelody = data.melody.midis[data.melody.secondIndex];
   const right = m2 ? m2 : midiToModelFormat(secondMelody);
 
   data.melody.interpolationData[0] = left;
   data.melody.interpolationData[NUM_INTERPOLATIONS - 1] = right;
 
+  // TODO: temporary
   worker.postMessage({
     id,
-    msg: "interpolate",
+    msg: 'interpolate',
     left,
     right,
   });
@@ -1598,37 +1643,38 @@ function sendContinueMessage() {
   data.canvas.melodyCanvas.style.opacity = 0.1;
   worker.postMessage({
     id: 1,
-    msg: "continue",
+    msg: 'continue',
   });
 }
 
 function changeChordsInstrument(index) {
   for (let j = 0; j < NUM_INSTRUMENTS; j++) {
     if (j === parseInt(index)) {
-      assets.chordsInstruments[j].style.display = "block";
+      assets.chordsInstruments[j].style.display = 'block';
     } else {
-      assets.chordsInstruments[j].style.display = "none";
+      assets.chordsInstruments[j].style.display = 'none';
     }
   }
 
-  chordsInstrumentIndex = index;
+  data.chords.instrumentIndex = index;
 }
 
 function changeMelodyInstrument(index) {
   for (let j = 0; j < NUM_INSTRUMENTS; j++) {
     if (j === parseInt(index)) {
-      assets.melodyInstruments[j].style.display = "block";
+      assets.melodyInstruments[j].style.display = 'block';
     } else {
-      assets.melodyInstruments[j].style.display = "none";
+      assets.melodyInstruments[j].style.display = 'none';
     }
   }
 
   melodyInstrumentSelect.value = index;
   data.melody.instrumentIndex = index;
-  data.melody.instrument = chordsInstruments[index];
+  data.melody.instrument = data.instruments[index];
 }
 
 function changeBpm(v) {
+  v = Math.min(Math.max(60, v), 100);
   bpmInput.value = v;
   bpmValueSpan.textContent = `${v}`;
   data.master.bpm = v;
@@ -1636,13 +1682,12 @@ function changeBpm(v) {
 }
 
 function changeDrumPattern(index) {
-  drumPatternIndex = index;
+  data.drum.patternIndex = index;
   drumPatternsSelect.value = index;
 }
 
-// utils
 function checkStarted() {
-  return Tone.Transport.state === "started";
+  return Tone.Transport.state === 'started';
 }
 
 function midiToToneNotes(midi) {
@@ -1668,20 +1713,9 @@ function midiToModelFormat(midi, resolution = 2) {
   // console.log("parse this midi", midi);
   const totalTicks = (TOTAL_BAR_COUNTS * TICKS_PER_BAR) / resolution;
 
-  // const notes = midi.tracks[0].notes.map((note) => ({
-  //   pitch: note.midi,
-  //   quantizedStartStep: Math.floor(
-  //     (note.ticks / totalTicks) * totalQuantizedSteps
-  //   ),
-  //   quantizedEndStep: Math.floor(
-  //     ((note.ticks + note.durationTicks) / totalTicks) * totalQuantizedSteps
-  //   ),
-  // }));
   const notes = midi.tracks[0].notes.map((note) => ({
     pitch: note.midi,
-    quantizedStartStep: Math.round(
-      (note.ticks / totalTicks) * totalQuantizedSteps
-    ),
+    quantizedStartStep: Math.round((note.ticks / totalTicks) * totalQuantizedSteps),
     quantizedEndStep: Math.round(
       ((note.ticks + note.durationTicks) / totalTicks) * totalQuantizedSteps
     ),
@@ -1701,34 +1735,31 @@ function modelFormatToToneNotes(d) {
     const { pitch, quantizedStartStep, quantizedEndStep } = note;
 
     return {
-      time: `${Math.floor(quantizedStartStep / 8)}:${Math.floor(
-        (quantizedStartStep % 8) / 2
-      )}:${(quantizedStartStep % 2) * 2}`,
+      time: `${Math.floor(quantizedStartStep / 8)}:${Math.floor((quantizedStartStep % 8) / 2)}:${
+        (quantizedStartStep % 2) * 2
+      }`,
       pitch,
-      duration:
-        (quantizedEndStep - quantizedStartStep) *
-        (data.master.bpm / 60) *
-        (1 / 4),
+      duration: (quantizedEndStep - quantizedStartStep) * (data.master.bpm / 60) * (1 / 4),
       velocity: 0.7,
     };
   });
 }
 
 function toFreq(m) {
-  return Tone.Frequency(m, "midi");
+  return Tone.Frequency(m, 'midi');
 }
 
 function setClock() {
   function checkTime(i) {
     if (i < 10) {
-      i = "0" + i;
+      i = '0' + i;
     }
     return i;
   }
 
-  const time = document.createElement("P");
-  time.textContent = "00:00";
-  time.id = "clock-text";
+  const time = document.createElement('P');
+  time.textContent = '00:00';
+  time.id = 'clock-text';
   assets.timeIntervalID = setInterval(() => {
     var today = new Date();
     var h = today.getHours();
@@ -1737,7 +1768,7 @@ function setClock() {
     // add a zero in front of numbers<10
     m = checkTime(m);
     h = checkTime(h);
-    if (time.textContent.includes(":")) {
+    if (time.textContent.includes(':')) {
       time.textContent = `${h} ${m}`;
     } else {
       time.textContent = `${h}:${m}`;
@@ -1746,14 +1777,14 @@ function setClock() {
   return time;
 }
 
-// https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
 function parseYoutubeId(url) {
+  // https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
   var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
   var match = url.match(regExp);
   return match && match[7].length == 11 ? match[7] : false;
 }
 
-function getYoutubeEmbedUrlFromId(id = "0HYq9kTOT70") {
+function getYoutubeEmbedUrlFromId(id = '0HYq9kTOT70') {
   return `https://www.youtube.com/embed/${id}?&loop=1&autoplay=1&controls=0&mute=1&vq=tiny`;
 }
 
@@ -1766,6 +1797,7 @@ function filterNotesInScale(data) {
     return d;
   });
 }
+
 function filterNotesInScaleSingle(notes) {
   return notes.filter(({ pitch }) => {
     const p = pitch % 12;
@@ -1784,7 +1816,7 @@ function dragElement(el, onClickCallback = () => {}, params = {}) {
   let pos4 = 0;
   let dragging = false;
   el.onmousedown = dragMouseDown;
-  el.addEventListener("click", (e) => {
+  el.addEventListener('click', (e) => {
     if (!dragging) {
       onClickCallback(e);
     }
@@ -1829,154 +1861,525 @@ function dragElement(el, onClickCallback = () => {}, params = {}) {
   }
 }
 
-// youtube stream
-const CHANNEL_ID = "UCizuHuCAHmpTa6EFeZS2Hqg";
-let fetchIntervalId;
+function setupPageVisibilityCallback() {
+  // https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API
+
+  let hidden;
+  let visibilityChange;
+  if (typeof document.hidden !== 'undefined') {
+    hidden = 'hidden';
+    visibilityChange = 'visibilitychange';
+  } else if (typeof document.msHidden !== 'undefined') {
+    hidden = 'msHidden';
+    visibilityChange = 'msvisibilitychange';
+  } else if (typeof document.webkitHidden !== 'undefined') {
+    hidden = 'webkitHidden';
+    visibilityChange = 'webkitvisibilitychange';
+  }
+
+  if (typeof document.addEventListener === 'undefined' || hidden === undefined) {
+    console.log(
+      'This demo requires a browser, such as Google Chrome or Firefox, that supports the Page Visibility API.'
+    );
+  } else {
+    document.addEventListener(
+      visibilityChange,
+      () => {
+        if (document[hidden]) {
+          stopTransport();
+        }
+      },
+      false
+    );
+  }
+}
+
+function sleep(m) {
+  return new Promise((r) => setTimeout(r, m));
+}
 
 function getApiKeyFromParams() {
   const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get("key");
+  return urlParams.get('key');
 }
+
+function checkApiKeyIsValid(key) {
+  if (!key) {
+    return false;
+  }
+
+  if (typeof key !== 'string') {
+    return false;
+  }
+
+  if (key.length < 30) {
+    return false;
+  }
+
+  return true;
+}
+
+function checkPeriodIsValid(p) {
+  if (typeof p !== 'number') {
+    return false;
+  }
+
+  if (p < 0 || p > 60000) {
+    return false;
+  }
+
+  return true;
+}
+
 function getVideoId(apiKey, channelId) {
   return (
-    "https://www.googleapis.com/youtube/v3/search" +
-    "?eventType=live" +
-    "&part=id" +
+    'https://www.googleapis.com/youtube/v3/search' +
+    '?eventType=live' +
+    '&part=id' +
     `&channelId=${channelId}` +
-    "&type=video" +
+    '&type=video' +
     `&key=${apiKey}`
   );
 }
+
 function getChatIdUrl(apiKey, videoId) {
   return (
-    "https://www.googleapis.com/youtube/v3/videos" +
-    "?part=liveStreamingDetails" +
+    'https://www.googleapis.com/youtube/v3/videos' +
+    '?part=liveStreamingDetails' +
     `&id=${videoId}` +
     `&key=${apiKey}`
   );
 }
-function getChatMessagesUrl(apiKey, chatId) {
+
+function getChatMessagesUrl(apiKey, chatId, pageToken) {
   return (
-    "https://www.googleapis.com/youtube/v3/liveChat/messages" +
+    'https://www.googleapis.com/youtube/v3/liveChat/messages' +
     `?liveChatId=${chatId}` +
-    "&part=id,snippet,authorDetails" +
-    "&maxResults=100" +
+    '&part=id,snippet,authorDetails' +
+    '&maxResults=100' +
+    (pageToken ? `&pageToken=${pageToken}` : '') +
     `&key=${apiKey}`
   );
 }
-async function fetchData(url, callback = () => {}) {
+
+async function fetchData(url, callback = () => {}, onError = () => {}) {
   try {
     let res = await fetch(url);
     const data = await res.json();
-    // console.log(`[${url}]`);
-    // console.log("response", data);
-    return callback(data);
+    return data;
   } catch (err) {
     alert(err);
   }
 }
-function handleMessage(msg) {
-  const callbacks = {
-    start: () => {
-      triggerStart();
-    },
-    "turn on the light": () => {
-      triggerStart();
-    },
-    "turn off the light": () => {
-      triggerStart();
-    },
-    "click the window": () => {
-      const n = backgroundSoundsNames.length;
-      data.backgroundSounds.switch((backgroundSoundsIndex + 1) % n);
-    },
-    "click the cat": () => {
-      assets.catCallback();
-    },
-  };
-  if (callbacks[msg]) {
-    callbacks[msg]();
-  }
-}
-async function onClickConnect() {
-  if (fetchIntervalId) {
-    youtubePromptText.textContent = "[disconnected]";
-    connectYoutubeButton.textContent = "connect";
-    connectYoutubeButton.classList.add("is-success");
-    connectYoutubeButton.classList.remove("is-error");
-    clearInterval(fetchIntervalId);
-    fetchIntervalId = undefined;
+
+function handleMessage(msg, author = 'test') {
+  const commands = data.commands;
+  const commandId = parseMessageToCommand(msg);
+  if (commandId === null) {
     return;
   }
 
-  connectYoutubeButton.classList.remove("is-success");
-  connectYoutubeButton.classList.add("is-error");
-  connectYoutubeButton.classList.add("disabledbutton");
+  let args;
+  if (commandId === WRITE_ON_BOARD) {
+    args = { textContent: msg.substring(6) };
+  }
 
-  connectYoutubeButton.textContent = "disconnect";
-  youtubePromptText.textContent = "[loading...]";
+  const command = {
+    authorName: author,
+    content: msg,
+    id: commandId,
+    args,
+  };
+
+  const n = commands.length;
+  if (n < 4) {
+    commands.push(command);
+  } else if (n < 8) {
+    if (Math.random() < 0.8) {
+      commands.push(command);
+    }
+  }
+}
+
+function checkKeywords(str, keys = []) {
+  for (let i = 0; i < keys.length; i++) {
+    if (!str.includes(keys[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+async function testMessageCallbacks() {
+  handleMessage('more reverb');
+  handleMessage('make melody swing');
+  handleMessage('slow');
+  handleMessage('fast');
+  handleMessage('more filter');
+  handleMessage('cat');
+  handleMessage('window');
+  handleMessage('rnn');
+  handleMessage('less filter');
+  handleMessage('interpolation');
+  handleMessage('trigger melody');
+  handleMessage('trigger melody');
+}
+function initMessageCallbacks() {
+  callbacks[CLICK_CAT] = () => {
+    assets.catCallback();
+  };
+  callbacks[CLICK_WINDOW] = () => {
+    const n = data.backgroundSounds.names.length;
+    data.backgroundSounds.switch((data.backgroundSounds.index + 1) % n);
+  };
+  callbacks[CLICK_LIGHT] = () => {
+    toggleStart();
+  };
+  callbacks[GENERATE_NEW_MELODY] = () => {
+    sendContinueMessage();
+  };
+  callbacks[RANDOMIZE_INTERPOLATION] = () => {
+    const index = Math.floor(Math.random() * data.melody.interpolationToneNotes.length);
+    changeInterpolationIndex(index);
+  };
+  callbacks[TRIGGER_MELODY] = () => {
+    if (data.melody.gain > 0.5) {
+      data.melody.changeGain(0);
+    } else {
+      data.melody.changeGain(1);
+    }
+  };
+  callbacks[TRIGGER_CHORDS] = () => {
+    if (data.chords.gain > 0.5) {
+      data.chords.changeGain(0);
+    } else {
+      data.chords.changeGain(1);
+    }
+  };
+  callbacks[TRIGGER_DRUM] = () => {
+    toggleDrumMute();
+  };
+  callbacks[TRIGGER_BASS] = () => {
+    if (data.bass.gain.gain.value > 0.5) {
+      data.bass.changeGain(0);
+    } else {
+      data.bass.changeGain(1);
+    }
+  };
+  callbacks[CHANGE_MELODY_INSTRUMENT] = () => {
+    const index = Math.floor(Math.random() * NUM_INSTRUMENTS);
+    changeMelodyInstrument(index);
+  };
+  callbacks[CHANGE_CHORDS_INSTRUMENT] = () => {
+    const index = Math.floor(Math.random() * NUM_INSTRUMENTS);
+    changeChordsInstrument(index);
+  };
+  callbacks[CHANGE_MELODY_PATTERN] = () => {
+    const index = Math.floor(Math.random() * NUM_PRESET_MELODIES);
+    changeMelodyByIndex(index);
+  };
+  callbacks[CHANGE_CHORDS_PATTERN] = () => {
+    const index = Math.floor(Math.random() * NUM_PRESET_CHORD_PROGRESSIONS);
+    changeChords(index);
+  };
+  callbacks[CHANGE_DRUM_PATTERN] = () => {
+    const index = Math.floor(Math.random() * NUM_DRUM_PATTERNS);
+    changeDrumPattern(index);
+  };
+  callbacks[MAKE_MELODY_SWING] = () => {
+    if (data.melody.swing > 0.1) {
+      data.melody.changeSwing(0);
+    } else {
+      data.melody.changeSwing(0.3);
+    }
+  };
+  callbacks[MAKE_CHORDS_SWING] = () => {
+    if (data.chords.swing > 0.1) {
+      data.chords.changeSwing(0);
+    } else {
+      data.chords.changeSwing(0.3);
+    }
+  };
+  callbacks[DRINK_COFFEE] = () => {
+    toggleDrumMute(undefined, true, Tone.now());
+  };
+  callbacks[WRITE_ON_BOARD] = ({ textContent }) => {
+    assets.textInput.value = textContent;
+  };
+  callbacks[INCREASE_BPM] = () => {
+    changeBpm(Number(data.master.bpm) + 10);
+  };
+  callbacks[DECREASE_BPM] = () => {
+    changeBpm(Number(data.master.bpm) - 10);
+  };
+  callbacks[MORE_REVERB] = () => {
+    data.master.changeReverb(0.5);
+  };
+  callbacks[LESS_REVERB] = () => {
+    data.master.changeReverb(0);
+  };
+  callbacks[MORE_FILTER] = () => {
+    data.master.changeFilter(1);
+  };
+  callbacks[LESS_FILTER] = () => {
+    data.master.changeFilter(0);
+  };
+}
+
+function parseMessageToCommand(msg) {
+  msg = msg.toLowerCase();
+  if (msg.includes('cat')) {
+    return CLICK_CAT;
+  }
+
+  if (msg.includes('window') || msg.includes('background')) {
+    return CLICK_WINDOW;
+  }
+
+  if (msg.includes('light')) {
+    return CLICK_LIGHT;
+  }
+
+  if ((msg.includes('generate') && msg.includes('melody')) || msg.includes('rnn')) {
+    return GENERATE_NEW_MELODY;
+  }
+
+  if (msg.includes('interpolation')) {
+    return RANDOMIZE_INTERPOLATION;
+  }
+
+  if (msg.includes('trigger')) {
+    if (msg.includes('melody')) {
+      return TRIGGER_MELODY;
+    }
+    if (msg.includes('chords')) {
+      return TRIGGER_CHORDS;
+    }
+    if (msg.includes('drum')) {
+      return TRIGGER_DRUM;
+    }
+    if (msg.includes('bass')) {
+      return TRIGGER_BASS;
+    }
+  }
+
+  if (msg.includes('instrument')) {
+    if (msg.includes('melody')) {
+      return CHANGE_MELODY_INSTRUMENT;
+    }
+    if (msg.includes('chords')) {
+      return CHANGE_CHORDS_INSTRUMENT;
+    }
+  }
+
+  if (msg.includes('pattern')) {
+    if (msg.includes('melody')) {
+      return CHANGE_MELODY_PATTERN;
+    }
+    if (msg.includes('chords')) {
+      return CHANGE_CHORDS_PATTERN;
+    }
+    if (msg.includes('drum')) {
+      return CHANGE_DRUM_PATTERN;
+    }
+  }
+
+  if (msg.includes('swing')) {
+    if (msg.includes('melody')) {
+      return MAKE_MELODY_SWING;
+    }
+    if (msg.includes('chords')) {
+      return MAKE_CHORDS_SWING;
+    }
+  }
+
+  if (msg.includes('coffee')) {
+    return DRINK_COFFEE;
+  }
+
+  if (msg.includes('write')) {
+    return WRITE_ON_BOARD;
+  }
+
+  if (msg.includes('fast') || msg.includes('hype')) {
+    return INCREASE_BPM;
+  }
+
+  if (msg.includes('slow') || msg.includes('chill')) {
+    return DECREASE_BPM;
+  }
+
+  if (msg.includes('reverb')) {
+    if (msg.includes('more')) {
+      return MORE_REVERB;
+    }
+    if (msg.includes('less')) {
+      return LESS_REVERB;
+    }
+  }
+
+  if (msg.includes('filter')) {
+    if (msg.includes('more')) {
+      return MORE_FILTER;
+    }
+    if (msg.includes('less')) {
+      return LESS_FILTER;
+    }
+  }
+
+  if (msg.includes('reverb') && msg.includes('more')) {
+    return MORE_REVERB;
+  }
+
+  if (msg.includes('reverb') && msg.includes('less')) {
+    return LESS_REVERB;
+  }
+
+  return null;
+}
+
+function consumeNextCommand() {
+  if (!data.commands) {
+    return;
+  }
+  if (data.commands.length === 0) {
+    return;
+  }
+
+  const { authorName, content, id, args } = data.commands.shift();
+  console.log(`${id}`);
+
+  if (callbacks[id]) {
+    showTextInBubbleFor(`${authorName}: ${content}`);
+    callbacks[id](args);
+  }
+}
+
+async function showTextInBubbleFor(text, time = 2000) {
+  bubbleDiv.textContent = text;
+  bubbleDiv.style.display = 'block';
+  setTimeout(() => {
+    bubbleDiv.style.display = 'none';
+  }, time);
+}
+
+async function onClickConnect() {
+  if (data.fetchintervalid) {
+    disconnectYoutubeLiveChat();
+    return;
+  }
+
+  connectYoutubeButton.classList.remove('is-success');
+  connectYoutubeButton.classList.add('is-error');
+  connectYoutubeButton.classList.add('disabledbutton');
+
+  connectYoutubeButton.textContent = 'disconnect';
+  youtubePromptText.textContent = '[loading...]';
 
   let lastReadTime = Date.now();
   let paramKey = getApiKeyFromParams();
   let apiKey = paramKey;
-  while (!apiKey) {
-    apiKey = prompt("API key", paramKey);
+  let hint = 'API key';
+  while (!checkApiKeyIsValid(apiKey)) {
+    apiKey = prompt(hint, paramKey);
+    hint = 'Invalid API key. Try again.';
   }
-  let channelId = prompt("Channel Id", CHANNEL_ID);
-  let listenPeriod = Number(prompt("Fetch every milliseconds: ", 5000));
+  let channelId = prompt('Channel Id', CHANNEL_ID);
+  let listenPeriod = Number(prompt('Fetch every milliseconds: ', 5000));
   if (!apiKey) {
     apiKey = paramKey;
   }
   if (!channelId) {
     channelId = CHANNEL_ID;
   }
-  if (!listenPeriod) {
+  if (!checkPeriodIsValid(listenPeriod)) {
     listenPeriod = 5000;
   }
 
-  youtubePromptText.textContent = "[fetching live id...]";
-  const liveId = await fetchData(getVideoId(apiKey, channelId), (data) => {
-    return data.items[0].id.videoId;
-  });
+  youtubePromptText.textContent = '[fetching live id...]';
+  let liveId;
+  let d = await fetchData(getVideoId(apiKey, channelId));
 
-  youtubePromptText.textContent = "[fetching chat id...]";
-  const chatId = await fetchData(getChatIdUrl(apiKey, liveId), (data) => {
-    return data.items[0].liveStreamingDetails.activeLiveChatId;
-  });
+  if (!d.error) {
+    liveId = d.items[0].id.videoId;
+  } else {
+    youtubePromptDiv.innerHTML = '';
+    const el = document.createElement('P');
+    el.textContent = d.error.message;
+    youtubePromptDiv.appendChild(el);
+    disconnectYoutubeLiveChat();
+    return;
+  }
 
-  youtubePromptText.textContent = "[connected]";
-  connectYoutubeButton.classList.remove("disabledbutton");
-  fetchIntervalId = setInterval(() => {
-    fetchData(getChatMessagesUrl(apiKey, chatId), (data) => {
-      youtubePromptDiv.innerHTML = "";
-      for (let i = 0; i < data.items.length; i++) {
-        const item = data.items[i];
-        let time = new Date(item.snippet.publishedAt).getTime();
-        if (lastReadTime < time) {
-          lastReadTime = time;
-          const content = item.snippet.displayMessage;
-          const authorName = item.authorDetails.displayName;
-          const line = `${authorName}: ${content}`;
-          const el = document.createElement("LI");
-          el.textContent = line;
-          youtubePromptDiv.appendChild(el);
-          handleMessage(content);
-        }
+  youtubePromptText.textContent = '[fetching chat id...]';
+  let chatId;
+  d = await fetchData(getChatIdUrl(apiKey, liveId));
+  if (d.error) {
+    youtubePromptDiv.innerHTML = '';
+    const el = document.createElement('P');
+    el.textContent = d.error.message;
+    youtubePromptDiv.appendChild(el);
+    disconnectYoutubeLiveChat();
+    return;
+  }
+  chatId = d.items[0].liveStreamingDetails.activeLiveChatId;
+
+  youtubePromptText.textContent = '[connected]';
+  connectYoutubeButton.classList.remove('disabledbutton');
+  let nextPageToken;
+  data.fetchintervalid = setInterval(async () => {
+    d = await fetchData(getChatMessagesUrl(apiKey, chatId, nextPageToken));
+    if (d.error) {
+      youtubePromptDiv.innerHTML = '';
+      const el = document.createElement('P');
+      el.textContent = d.error.message;
+      youtubePromptDiv.appendChild(el);
+      disconnectYoutubeLiveChat();
+      return;
+    }
+    youtubePromptDiv.innerHTML = '';
+    if (!d.items) {
+      return;
+    }
+    nextPageToken = d.nextPageToken;
+    console.log(`${d.items.length} new messages`);
+    for (let i = 0; i < d.items.length; i++) {
+      const item = d.items[i];
+      let time = new Date(item.snippet.publishedAt).getTime();
+      if (lastReadTime < time) {
+        lastReadTime = time;
+        const content = item.snippet.displayMessage;
+        const authorName = item.authorDetails.displayName;
+        const line = `${authorName}: ${content}`;
+        const el = document.createElement('LI');
+        el.textContent = line;
+        youtubePromptDiv.appendChild(el);
+        handleMessage(content, authorName);
       }
-    });
+    }
   }, listenPeriod);
 }
+
+function disconnectYoutubeLiveChat() {
+  connectYoutubeButton.classList.remove('disabledbutton');
+  youtubePromptText.textContent = '[disconnected]';
+  connectYoutubeButton.textContent = 'connect';
+  connectYoutubeButton.classList.add('is-success');
+  connectYoutubeButton.classList.remove('is-error');
+  clearInterval(data.fetchintervalid);
+  data.fetchintervalid = undefined;
+}
+
 function onClickCloseYoutube() {
   // youtubeDiv.style.display = "none";
-  if (youtubeButtons.style.display === "none") {
-    collapseYoutubeDivButton.textContent = "X";
-    youtubeDiv.style.height = "20%";
-    youtubeButtons.style.display = "block";
-    youtubePromptDiv.style.display = "block";
+  if (youtubeButtons.style.display === 'none') {
+    collapseYoutubeDivButton.textContent = 'X';
+    youtubeDiv.style.height = '20%';
+    youtubeButtons.style.display = 'block';
+    youtubePromptDiv.style.display = 'block';
   } else {
-    collapseYoutubeDivButton.textContent = "=";
-    youtubeDiv.style.height = "auto";
-    youtubeButtons.style.display = "none";
-    youtubePromptDiv.style.display = "none";
+    collapseYoutubeDivButton.textContent = '=';
+    youtubeDiv.style.height = 'auto';
+    youtubeButtons.style.display = 'none';
+    youtubePromptDiv.style.display = 'none';
   }
 }

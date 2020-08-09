@@ -242,6 +242,14 @@ button {
   /* align-items: center; */
 }
 
+#interpolation-div {
+  text-align: center;
+}
+#interpolation-div label,
+#interpolation-div select,
+#interpolation-div p {
+  font-size: 0.6rem;
+}
 #interpolation-div canvas {
   width: 100%;
   height: 30%;
@@ -368,7 +376,7 @@ footer {
 }
 
 #info-div p,
-li {
+#info-div ul {
   font-size: 0.7rem;
 }
 
@@ -405,7 +413,7 @@ li {
   padding: 0.4rem;
 }
 #youtube-div p,
-li {
+#youtube-div li {
   font-size: 0.4rem;
 }
 #youtube-buttons {
@@ -435,6 +443,16 @@ li {
 }
 #collapse-youtube-div-button:hover {
   opacity: 1;
+}
+
+#bubble-div {
+  position: absolute;
+  padding: 0.1rem;
+  bottom: 90%;
+  left: 65%;
+  width: 100%;
+  z-index: 2;
+  font-size: 0.5rem;
 }
 
 @media only screen and (max-width: 720px) {

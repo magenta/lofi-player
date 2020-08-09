@@ -18,7 +18,7 @@
     <meta property="og:site_name" content="Lo-Fi Player" />
     <meta name="twitter:image:alt" content="interactive lofi room" />
 
-    <title>Lo-Fi Player</title>
+    <title>Lo-Fi Player (Stream)</title>
 
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script
@@ -90,6 +90,9 @@
       </div>
 
       <div id="canvas-div">
+        <div id="bubble-div" class="nes-balloon from-left">
+          Hi there
+        </div>
         <img src="./assets/rooom-0.png" alt="room" id="background-image" />
         <canvas id="main-canvas"> </canvas>
         <div id="canvas-overlay">
@@ -161,7 +164,19 @@
               </div>
             </div>
             <div class="panel" id="interpolation-div">
-              <h3 class="nes-text">Create Your Melody!</h3>
+              <h3 class="nes-text">Melody Interpolation</h3>
+              <p>
+                Create your melodies by mixing!
+              </p>
+              <p>
+                <a
+                  href="https://magenta.tensorflow.org/music-vae"
+                  target="_blank"
+                >
+                  How does this work?</a
+                >
+              </p>
+
               <div>
                 <label>1st</label>
                 <select id="first-melody-select">
@@ -399,7 +414,7 @@
               </p>
               <br />
               <h3>Credits</h3>
-              <ul class="nes-list is-disc">
+              <ul>
                 <li>
                   rain gif:
                   <a href="https://giphy.com/colorful-courier" target="_blank"
@@ -434,10 +449,16 @@
             <button class="melody-panel-button" id="melody-panel-close">
               X
             </button>
-            <button class="melody-panel-button" id="melody-panel-right">
+            <button
+              class="melody-panel-button disabledbutton"
+              id="melody-panel-right"
+            >
               >
             </button>
-            <button class="melody-panel-button" id="melody-panel-left">
+            <button
+              class="melody-panel-button disabledbutton"
+              id="melody-panel-left"
+            >
               &lt;
             </button>
           </div>
