@@ -90,6 +90,7 @@ const NUM_INSTRUMENTS = 4;
 const NUM_PRESET_MELODIES = 4;
 const NUM_PRESET_CHORD_PROGRESSIONS = 3;
 const NUM_DRUM_PATTERNS = 3;
+const DEFAULT_GUIDANCE_INTERVAL = 100;
 const SAMPLES_BASE_URL = './samples';
 const CHANNEL_ID = 'UCizuHuCAHmpTa6EFeZS2Hqg';
 
@@ -301,7 +302,7 @@ function initSounds() {
   // event
   data.handleMessageLoop = new Tone.Loop((time) => {
     consumeNextCommand();
-  }, '2m').start(0);
+  }, '1m').start(0);
 }
 
 function initModel() {
@@ -1478,7 +1479,7 @@ function onFinishLoading() {
 
   data.master.changeReverb = function (v) {
     masterReverbSlider.value = v * 100;
-    data.master.reverb.web.linearRampTo(v, 1, Tone.now());
+    data.master.reverb.wet.linearRampTo(v, 1, Tone.now());
     // data.master.reverb.wet.value = v;
   };
 
@@ -1509,7 +1510,7 @@ function setupKeyboardEvents() {
 }
 
 async function onFirstTimeStarted() {
-  const interval = 100;
+  const interval = DEFAULT_GUIDANCE_INTERVAL;
   await sleep(interval * 2);
   bubbleDiv.textContent = `It's crazy out there.`;
 
@@ -2027,7 +2028,20 @@ function checkKeywords(str, keys = []) {
   }
   return true;
 }
-
+async function testMessageCallbacks() {
+  handleMessage('more reverb');
+  handleMessage('make melody swing');
+  handleMessage('slow');
+  handleMessage('fast');
+  handleMessage('more filter');
+  handleMessage('cat');
+  handleMessage('window');
+  handleMessage('rnn');
+  handleMessage('less filter');
+  handleMessage('interpolation');
+  handleMessage('trigger melody');
+  handleMessage('trigger melody');
+}
 function initMessageCallbacks() {
   callbacks[CLICK_CAT] = () => {
     assets.catCallback();
@@ -2090,25 +2104,20 @@ function initMessageCallbacks() {
     const index = Math.floor(Math.random() * NUM_DRUM_PATTERNS);
     changeDrumPattern(index);
   };
-
-  // TODO: make melody swing callback
   callbacks[MAKE_MELODY_SWING] = () => {
-    if (data.melody.swing > 0.5) {
+    if (data.melody.swing > 0.1) {
       data.melody.changeSwing(0);
     } else {
-      data.melody.changeSwing(1);
+      data.melody.changeSwing(0.3);
     }
   };
-
-  // TODO: make chords swing callback
   callbacks[MAKE_CHORDS_SWING] = () => {
-    if (data.chords.swing > 0.5) {
-      data.chords.changeSwing(1);
-    } else {
+    if (data.chords.swing > 0.1) {
       data.chords.changeSwing(0);
+    } else {
+      data.chords.changeSwing(0.3);
     }
   };
-
   callbacks[DRINK_COFFEE] = () => {
     toggleDrumMute(undefined, true, Tone.now());
   };
