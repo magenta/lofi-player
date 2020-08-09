@@ -48,6 +48,31 @@ const youtubeButtons = document.getElementById('youtube-buttons');
 const collapseYoutubeDivButton = document.getElementById('collapse-youtube-div-button');
 const bubbleDiv = document.getElementById('bubble-div');
 
+const CLICK_CAT = 'click_cat';
+const CLICK_WINDOW = 'click_window';
+const CLICK_LIGHT = 'click_light';
+const GENERATE_NEW_MELODY = 'generate_new_melody';
+const RANDOMIZE_INTERPOLATION = 'randomize_interpolation';
+const TRIGGER_MELODY = 'trigger_melody';
+const TRIGGER_CHORDS = 'trigger_chords';
+const TRIGGER_DRUM = 'trigger_drum';
+const TRIGGER_BASS = 'trigger_bass';
+const CHANGE_MELODY_INSTRUMENT = 'change_melody_instrument';
+const CHANGE_CHORDS_INSTRUMENT = 'change_chords_instrument';
+const CHANGE_MELODY_PATTERN = 'change_melody_pattern';
+const CHANGE_CHORDS_PATTERN = 'change_chords_pattern';
+const CHANGE_DRUM_PATTERN = 'change_drum_pattern';
+const MAKE_MELODY_SWING = 'make_melody_swing';
+const MAKE_CHORDS_SWING = 'make_chords_swing';
+const DRINK_COFFEE = 'drink_coffee';
+const WRITE_ON_BOARD = 'write_on_board';
+const INCREASE_BPM = 'increase_bpm';
+const DECREASE_BPM = 'decrease_bpm';
+const MORE_REVERB = 'more_reverb';
+const LESS_REVERB = 'less_reverb';
+const MORE_FILTER = 'more_filter';
+const LESS_FILTER = 'less_filter';
+
 const LOAD_EVENTS_COUNTS_THRESHOLD = 8;
 const TOTAL_BAR_COUNTS = 8;
 const TICKS_PER_BAR = 384;
@@ -57,25 +82,21 @@ const MODEL_BAR_COUNT = 2;
 const MAIN_CANVAS_PADDING = 0;
 const NUM_INTERPOLATIONS = 5;
 const TRANSITION_PROB = 0.2;
-
-const SAMPLES_BASE_URL = './samples';
 const SYNTHS = 0;
 const PIANO = 1;
 const ACOUSTIC_GUITAR = 2;
 const ELETRIC_GUITAR = 3;
 const NUM_INSTRUMENTS = 4;
+const SAMPLES_BASE_URL = './samples';
 const CHANNEL_ID = 'UCizuHuCAHmpTa6EFeZS2Hqg';
 
-const sleep = (m) => new Promise((r) => setTimeout(r, m));
 const worker = new Worker('worker.js');
-const ac = Tone.context._context;
-let presetMelodiesCount = 4;
-let fetchIntervalId;
-
+const callbacks = {};
 const data = {
   loading: true,
   started: false,
   loadEventsCount: 0,
+  commands: [],
   showPanel: false,
   backgroundSounds: {
     samples: [],
@@ -145,7 +166,6 @@ const data = {
     gain: new Tone.Gain(0.3),
   },
 };
-
 const assets = {
   defaultBoardText: 'Vibert Thio 2020.',
   catIndex: 0,
@@ -158,6 +178,7 @@ loadMidiFiles();
 initModel();
 initSounds();
 initCanvas();
+initMessageCallbacks();
 
 function onClickWhatever() {
   warningOverlay.style.display = 'none';
@@ -276,6 +297,11 @@ function initSounds() {
     checkFinishLoading();
     console.log('buffers loaded');
   });
+
+  // event
+  data.handleMessageLoop = new Tone.Loop((time) => {
+    consumeNextCommand();
+  }, '2m').start(0);
 }
 
 function initModel() {
@@ -1263,6 +1289,7 @@ function checkFinishLoading() {
 }
 
 function toggleStart() {
+  const ac = Tone.context._context;
   if (ac.state !== 'started') {
     ac.resume();
   }
@@ -1450,7 +1477,7 @@ function setupKeyboardEvents() {
 }
 
 async function onFirstTimeStarted() {
-  const interval = 1000;
+  const interval = 100;
   await sleep(interval * 2);
   bubbleDiv.textContent = `It's crazy out there.`;
 
@@ -1671,15 +1698,6 @@ function midiToModelFormat(midi, resolution = 2) {
   // console.log("parse this midi", midi);
   const totalTicks = (TOTAL_BAR_COUNTS * TICKS_PER_BAR) / resolution;
 
-  // const notes = midi.tracks[0].notes.map((note) => ({
-  //   pitch: note.midi,
-  //   quantizedStartStep: Math.floor(
-  //     (note.ticks / totalTicks) * totalQuantizedSteps
-  //   ),
-  //   quantizedEndStep: Math.floor(
-  //     ((note.ticks + note.durationTicks) / totalTicks) * totalQuantizedSteps
-  //   ),
-  // }));
   const notes = midi.tracks[0].notes.map((note) => ({
     pitch: note.midi,
     quantizedStartStep: Math.round((note.ticks / totalTicks) * totalQuantizedSteps),
@@ -1861,6 +1879,10 @@ function setupPageVisibilityCallback() {
   }
 }
 
+function sleep(m) {
+  return new Promise((r) => setTimeout(r, m));
+}
+
 function getApiKeyFromParams() {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get('key');
@@ -1935,32 +1957,213 @@ async function fetchData(url, callback = () => {}, onError = () => {}) {
   }
 }
 
-function handleMessage(msg) {
-  const callbacks = {
-    start: () => {
-      toggleStart();
-    },
-    'turn on the light': () => {
-      toggleStart();
-    },
-    'turn off the light': () => {
-      toggleStart();
-    },
-    'click the window': () => {
-      const n = data.backgroundSounds.names.length;
-      data.backgroundSounds.switch((data.backgroundSounds.index + 1) % n);
-    },
-    'click the cat': () => {
-      assets.catCallback();
-    },
+function handleMessage(msg, author = 'test') {
+  const commands = data.commands;
+  const commandId = parseMessageToCommand(msg);
+  if (commandId === null) {
+    return;
+  }
+
+  const command = {
+    authorName: author,
+    content: msg,
+    id: commandId,
   };
-  if (callbacks[msg]) {
-    callbacks[msg]();
+
+  const n = commands.length;
+  if (n < 4) {
+    commands.push(command);
+  } else if (n < 8) {
+    if (Math.random() < 0.8) {
+      commands.push(command);
+    }
   }
 }
 
+function checkKeywords(str, keys = []) {
+  for (let i = 0; i < keys.length; i++) {
+    if (!str.includes(keys[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function initMessageCallbacks() {
+  callbacks[CLICK_CAT] = () => {
+    assets.catCallback();
+  };
+  callbacks[CLICK_WINDOW] = () => {
+    const n = data.backgroundSounds.names.length;
+    data.backgroundSounds.switch((data.backgroundSounds.index + 1) % n);
+  };
+  callbacks[CLICK_LIGHT] = () => {
+    toggleStart();
+  };
+  callbacks[GENERATE_NEW_MELODY] = () => {
+    sendContinueMessage();
+  };
+  callbacks[RANDOMIZE_INTERPOLATION] = () => {};
+  callbacks[TRIGGER_MELODY] = () => {};
+  callbacks[TRIGGER_CHORDS] = () => {};
+  callbacks[TRIGGER_DRUM] = () => {};
+  callbacks[TRIGGER_BASS] = () => {};
+  callbacks[CHANGE_MELODY_INSTRUMENT] = () => {};
+  callbacks[CHANGE_CHORDS_INSTRUMENT] = () => {};
+  callbacks[CHANGE_MELODY_PATTERN] = () => {};
+  callbacks[CHANGE_CHORDS_PATTERN] = () => {};
+  callbacks[CHANGE_DRUM_PATTERN] = () => {};
+  callbacks[MAKE_MELODY_SWING] = () => {};
+  callbacks[MAKE_CHORDS_SWING] = () => {};
+  callbacks[DRINK_COFFEE] = () => {};
+  callbacks[WRITE_ON_BOARD] = () => {};
+  callbacks[INCREASE_BPM] = () => {};
+  callbacks[DECREASE_BPM] = () => {};
+  callbacks[MORE_REVERB] = () => {};
+  callbacks[LESS_REVERB] = () => {};
+  callbacks[MORE_FILTER] = () => {};
+  callbacks[LESS_FILTER] = () => {};
+}
+
+function parseMessageToCommand(msg) {
+  msg = msg.toLowerCase();
+  if (msg.includes('cat')) {
+    return CLICK_CAT;
+  }
+
+  if (msg.includes('window') || msg.includes('background')) {
+    return CLICK_WINDOW;
+  }
+
+  if (msg.includes('light')) {
+    return CLICK_LIGHT;
+  }
+
+  if ((msg.includes('generate') && msg.includes('melody')) || msg.includes('rnn')) {
+    return GENERATE_NEW_MELODY;
+  }
+
+  if (msg.includes('interpolation')) {
+    return RANDOMIZE_INTERPOLATION;
+  }
+
+  if (msg.includes('trigger')) {
+    if (msg.includes('melody')) {
+      return TRIGGER_MELODY;
+    }
+    if (msg.includes('chords')) {
+      return TRIGGER_CHORDS;
+    }
+    if (msg.includes('drum')) {
+      return TRIGGER_DRUM;
+    }
+    if (msg.includes('bass')) {
+      return TRIGGER_BASS;
+    }
+  }
+
+  if (msg.includes('instrument')) {
+    if (msg.includes('melody')) {
+      return CHANGE_MELODY_INSTRUMENT;
+    }
+    if (msg.includes('chords')) {
+      return CHANGE_CHORDS_INSTRUMENT;
+    }
+  }
+
+  if (msg.includes('pattern')) {
+    if (msg.includes('melody')) {
+      return CHANGE_MELODY_PATTERN;
+    }
+    if (msg.includes('chords')) {
+      return CHANGE_CHORDS_PATTERN;
+    }
+    if (msg.includes('drum')) {
+      return CHANGE_DRUM_PATTERN;
+    }
+  }
+
+  if (msg.includes('swing')) {
+    if (msg.includes('melody')) {
+      return MAKE_MELODY_SWING;
+    }
+    if (msg.includes('chords')) {
+      return MAKE_CHORDS_SWING;
+    }
+  }
+
+  if (msg.includes('coffee')) {
+    return DRINK_COFFEE;
+  }
+
+  if (msg.includes('write')) {
+    return WRITE_ON_BOARD;
+  }
+
+  if (msg.includes('fast') || msg.includes('hype')) {
+    return INCREASE_BPM;
+  }
+
+  if (msg.includes('slow') || msg.includes('chill')) {
+    return DECREASE_BPM;
+  }
+
+  if (msg.includes('reverb')) {
+    if (msg.includes('more')) {
+      return MORE_REVERB;
+    }
+    if (msg.includes('less')) {
+      return LESS_REVERB;
+    }
+  }
+
+  if (msg.includes('filter')) {
+    if (msg.includes('more')) {
+      return MORE_FILTER;
+    }
+    if (msg.includes('less')) {
+      return LESS_FILTER;
+    }
+  }
+
+  if (msg.includes('reverb') && msg.includes('more')) {
+    return MORE_REVERB;
+  }
+
+  if (msg.includes('reverb') && msg.includes('less')) {
+    return LESS_REVERB;
+  }
+
+  return null;
+}
+
+function consumeNextCommand() {
+  if (!data.commands) {
+    return;
+  }
+  if (data.commands.length === 0) {
+    return;
+  }
+
+  const { authorName, content, id } = data.commands.shift();
+  console.log(`${id}`);
+
+  if (callbacks[id]) {
+    showTextInBubbleFor(`${authorName}: ${content}`);
+    callbacks[id]();
+  }
+}
+
+async function showTextInBubbleFor(text, time = 2000) {
+  bubbleDiv.textContent = text;
+  bubbleDiv.style.display = 'block';
+  setTimeout(() => {
+    bubbleDiv.style.display = 'none';
+  }, time);
+}
+
 async function onClickConnect() {
-  if (fetchIntervalId) {
+  if (data.fetchintervalid) {
     disconnectYoutubeLiveChat();
     return;
   }
@@ -2023,7 +2226,7 @@ async function onClickConnect() {
   youtubePromptText.textContent = '[connected]';
   connectYoutubeButton.classList.remove('disabledbutton');
   let nextPageToken;
-  fetchIntervalId = setInterval(async () => {
+  data.fetchintervalid = setInterval(async () => {
     d = await fetchData(getChatMessagesUrl(apiKey, chatId, nextPageToken));
     if (d.error) {
       youtubePromptDiv.innerHTML = '';
@@ -2038,7 +2241,7 @@ async function onClickConnect() {
       return;
     }
     nextPageToken = d.nextPageToken;
-    console.log('new messages', d.items);
+    console.log(`${d.items.length} new messages`);
     for (let i = 0; i < d.items.length; i++) {
       const item = d.items[i];
       let time = new Date(item.snippet.publishedAt).getTime();
@@ -2050,7 +2253,7 @@ async function onClickConnect() {
         const el = document.createElement('LI');
         el.textContent = line;
         youtubePromptDiv.appendChild(el);
-        handleMessage(content);
+        handleMessage(content, authorName);
       }
     }
   }, listenPeriod);
@@ -2062,8 +2265,8 @@ function disconnectYoutubeLiveChat() {
   connectYoutubeButton.textContent = 'connect';
   connectYoutubeButton.classList.add('is-success');
   connectYoutubeButton.classList.remove('is-error');
-  clearInterval(fetchIntervalId);
-  fetchIntervalId = undefined;
+  clearInterval(data.fetchintervalid);
+  data.fetchintervalid = undefined;
 }
 
 function onClickCloseYoutube() {
