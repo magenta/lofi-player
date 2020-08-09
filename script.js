@@ -71,6 +71,7 @@ const TOTAL_TICKS = TOTAL_BAR_COUNTS * TICKS_PER_BAR;
 const MODEL_BAR_COUNT = 2;
 const MAIN_CANVAS_PADDING = 0;
 const NUM_INTERPOLATIONS = 5;
+const TRANSITION_PROB = 0.2;
 
 const SAMPLES_BASE_URL = "./samples";
 const SYNTHS = 0;
@@ -80,6 +81,7 @@ const ELETRIC_GUITAR = 3;
 const NUM_INSTRUMENTS = 4;
 const CHANNEL_ID = "UCizuHuCAHmpTa6EFeZS2Hqg";
 
+const sleep = (m) => new Promise((r) => setTimeout(r, m));
 const worker = new Worker("worker.js");
 const ac = Tone.context._context;
 let presetMelodiesCount = 4;
@@ -87,6 +89,7 @@ let fetchIntervalId;
 
 const data = {
   loading: true,
+  started: false,
   loadEventsCount: 0,
   showPanel: false,
   backgroundSounds: {
@@ -170,8 +173,8 @@ const assets = {
 };
 
 addImages();
-initModel();
 loadMidiFiles();
+initModel();
 initSounds();
 initCanvas();
 
@@ -426,7 +429,7 @@ function addImages() {
   dragElement(
     assets.light,
     () => {
-      triggerStart();
+      toggleStart();
     },
     { horizontal: true }
   );
@@ -890,10 +893,10 @@ function addImages() {
 
   assets.window.addEventListener("click", () => {
     if (checkStarted()) {
-      const n = backgroundSoundsNames.length;
+      const n = data.backgroundSounds.names.length;
       data.backgroundSounds.switch((data.backgroundSounds.index + 1) % n);
     } else {
-      triggerStart();
+      toggleStart();
     }
   });
 
@@ -1244,7 +1247,7 @@ function seqCallback(time, b) {
           toggleDrumMute(false, true, time);
         }
       } else {
-        if (Math.random() > 0.5) {
+        if (Math.random() < TRANSITION_PROB) {
           toggleDrumMute(true, true, time);
         }
       }
@@ -1297,7 +1300,7 @@ function checkFinishLoading() {
   }
 }
 
-function triggerStart() {
+function toggleStart() {
   if (ac.state !== "started") {
     ac.resume();
   }
@@ -1331,7 +1334,11 @@ function onFinishLoading() {
   canvasOverlay.style.backgroundColor = "rgba(0, 0, 0, 0.5)";
   startButton.textContent = "start";
   startButton.addEventListener("click", () => {
-    triggerStart();
+    if (!data.started) {
+      data.started = true;
+      onFirstTimeStarted();
+    }
+    toggleStart();
   });
 
   changeBpm(data.master.bpm);
@@ -1448,21 +1455,6 @@ function onFinishLoading() {
     canvas.height = canvasDiv.clientHeight;
   });
 
-  // window.addEventListener("keydown", (e) => {
-  //   const callbacks = {
-  //     9: () => {
-  //       switchCallback();
-  //     },
-  //     32: () => {
-  //       triggerStart();
-  //     },
-  //   };
-  //   if (callbacks[e.keyCode]) {
-  //     e.preventDefault();
-  //     callbacks[e.keyCode]();
-  //   }
-  // });
-
   // show canvas
   data.canvas.moveMelodyCanvasToRoom();
 
@@ -1475,8 +1467,51 @@ function onFinishLoading() {
     melodyVolumeSlider.value = v * 100;
   };
 
-  // start youtube video
-  // assets.youtube.src = getYoutubeEmbedUrlFromId();
+  setupPageVisibilityCallback();
+}
+
+function setupKeyboardEvents() {
+  window.addEventListener("keydown", (e) => {
+    const callbacks = {
+      9: () => {
+        switchCallback();
+      },
+      32: () => {
+        toggleStart();
+      },
+    };
+    if (callbacks[e.keyCode]) {
+      e.preventDefault();
+      callbacks[e.keyCode]();
+    }
+  });
+}
+
+async function onFirstTimeStarted() {
+  const interval = 1000;
+  await sleep(interval * 2);
+  bubbleDiv.textContent = `It's crazy out there.`;
+
+  await sleep(interval * 5);
+  bubbleDiv.style.width = "120%";
+  bubbleDiv.textContent = `Try click the window.`;
+
+  await sleep(interval * 10);
+  bubbleDiv.textContent = `Click me to give me coffee.`;
+
+  await sleep(interval * 10);
+  assets.catGroup.appendChild(bubbleDiv);
+  bubbleDiv.style.width = "150%";
+  bubbleDiv.textContent = `meow...`;
+
+  await sleep(interval * 10);
+  assets.avatarGroup.appendChild(bubbleDiv);
+  bubbleDiv.style.width = "110%";
+  bubbleDiv.textContent = "Enjoy the magical room...";
+
+  await sleep(interval * 10);
+  bubbleDiv.style.width = "100%";
+  bubbleDiv.style.display = "none";
 }
 
 function onTransportStart() {
@@ -1752,8 +1787,8 @@ function setClock() {
   return time;
 }
 
-// https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
 function parseYoutubeId(url) {
+  // https://stackoverflow.com/questions/3452546/how-do-i-get-the-youtube-video-id-from-a-url
   var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
   var match = url.match(regExp);
   return match && match[7].length == 11 ? match[7] : false;
@@ -1836,6 +1871,42 @@ function dragElement(el, onClickCallback = () => {}, params = {}) {
   }
 }
 
+function setupPageVisibilityCallback() {
+  // https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API
+
+  let hidden;
+  let visibilityChange;
+  if (typeof document.hidden !== "undefined") {
+    hidden = "hidden";
+    visibilityChange = "visibilitychange";
+  } else if (typeof document.msHidden !== "undefined") {
+    hidden = "msHidden";
+    visibilityChange = "msvisibilitychange";
+  } else if (typeof document.webkitHidden !== "undefined") {
+    hidden = "webkitHidden";
+    visibilityChange = "webkitvisibilitychange";
+  }
+
+  if (
+    typeof document.addEventListener === "undefined" ||
+    hidden === undefined
+  ) {
+    console.log(
+      "This demo requires a browser, such as Google Chrome or Firefox, that supports the Page Visibility API."
+    );
+  } else {
+    document.addEventListener(
+      visibilityChange,
+      () => {
+        if (document[hidden]) {
+          stopTransport();
+        }
+      },
+      false
+    );
+  }
+}
+
 function getApiKeyFromParams() {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get("key");
@@ -1913,16 +1984,16 @@ async function fetchData(url, callback = () => {}, onError = () => {}) {
 function handleMessage(msg) {
   const callbacks = {
     start: () => {
-      triggerStart();
+      toggleStart();
     },
     "turn on the light": () => {
-      triggerStart();
+      toggleStart();
     },
     "turn off the light": () => {
-      triggerStart();
+      toggleStart();
     },
     "click the window": () => {
-      const n = backgroundSoundsNames.length;
+      const n = data.backgroundSounds.names.length;
       data.backgroundSounds.switch((data.backgroundSounds.index + 1) % n);
     },
     "click the cat": () => {
