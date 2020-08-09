@@ -71,33 +71,32 @@ const TOTAL_TICKS = TOTAL_BAR_COUNTS * TICKS_PER_BAR;
 const MODEL_BAR_COUNT = 2;
 const MAIN_CANVAS_PADDING = 0;
 const NUM_INTERPOLATIONS = 5;
-let NUM_PRESET_MELODIES = 4;
 
+const SAMPLES_BASE_URL = "./samples";
 const SYNTHS = 0;
 const PIANO = 1;
 const ACOUSTIC_GUITAR = 2;
 const ELETRIC_GUITAR = 3;
 const NUM_INSTRUMENTS = 4;
-
 const CHANNEL_ID = "UCizuHuCAHmpTa6EFeZS2Hqg";
-let fetchIntervalId;
 
 const worker = new Worker("worker.js");
-const samplesBaseUrl = "./samples";
 const ac = Tone.context._context;
-let loadEventsCounts = 0;
-
-let seq;
-let drumSamples;
-let drumNames = ["kk", "sn", "hh"];
-let drumMute = false;
-let drumPatternIndex = 0;
+let presetMelodiesCount = 4;
+let fetchIntervalId;
 
 const data = {
   loading: true,
+  loadEventsCount: 0,
   showPanel: false,
-  backgroundSounds: {},
+  backgroundSounds: {
+    samples: [],
+    names: ["rain", "waves", "street", "kids"],
+    index: 0,
+  },
+  instruments: {},
   melody: {
+    part: null,
     gain: 1,
     swing: 0,
     changeGain: (v) => {
@@ -107,13 +106,19 @@ const data = {
     waitingInterpolation: true,
     midis: [],
     toneNotes: [],
+    index: 0,
+    secondIndex: 1,
     interpolationToneNotes: [],
     interpolationData: [],
     interpolationIndex: 0,
   },
   chords: {
+    part: null,
+    index: 0,
     gain: 1,
     swing: 0,
+    midis: null,
+    instrumentIndex: 0,
   },
   bass: {
     notes: [
@@ -124,8 +129,13 @@ const data = {
     ],
   },
   canvas: {},
+  seq: {},
   drum: {
+    mute: false,
+    names: ["kk", "sn", "hh"],
+    samples: [],
     auto: true,
+    patternIndex: 0,
     scale: {
       kk: 1,
       sn: 1,
@@ -147,25 +157,9 @@ const data = {
     gain: new Tone.Gain(0.3),
   },
 };
-let backgroundSounds = [];
-let backgroundSoundsNames = ["rain", "waves", "street", "kids"];
-let backgroundSoundsIndex = 0;
-
-let melodyPart;
-let melodyIndex = 0;
-let secondMelodyIndex = 1;
-let chordsMidis;
-let chordsPart;
-let chordsIndex = 0;
-let chordsInstrumentIndex = 0;
-
-let piano;
-let acousticGuitar;
-let electricGuitar;
-let synth;
-let chordsInstruments;
 
 const assets = {
+  defaultBoardText: "Vibert Thio 2020.",
   catIndex: 0,
   avatarUrls: [`./assets/avatar-2.png`, `./assets/avatar.png`],
   catUrls: [
@@ -204,8 +198,10 @@ function initSounds() {
   data.master.reverb.wet.value = 0;
 
   const drumUrls = {};
-  drumNames.forEach((n) => (drumUrls[n] = `${samplesBaseUrl}/drums/${n}.mp3`));
-  drumSamples = new Tone.Players(drumUrls, () => {
+  data.drum.names.forEach(
+    (n) => (drumUrls[n] = `${SAMPLES_BASE_URL}/drums/${n}.mp3`)
+  );
+  data.drum.samples = new Tone.Players(drumUrls, () => {
     console.log("drums loaded");
     checkFinishLoading();
   }).toMaster();
@@ -216,32 +212,32 @@ function initSounds() {
     data.backgroundSounds.gain
   );
   const sampleUrls = {};
-  backgroundSoundsNames.forEach(
-    (n) => (sampleUrls[n] = `${samplesBaseUrl}/fx/${n}.mp3`)
+  data.backgroundSounds.names.forEach(
+    (n) => (sampleUrls[n] = `${SAMPLES_BASE_URL}/fx/${n}.mp3`)
   );
-  backgroundSounds = new Tone.Players(sampleUrls, () => {
+  data.backgroundSounds.samples = new Tone.Players(sampleUrls, () => {
     console.log("background sounds loaded");
     checkFinishLoading();
   }).connect(data.backgroundSounds.hpf);
 
   data.effects.beep = new Tone.Player(
-    `${samplesBaseUrl}/effects/beep.mp3`,
+    `${SAMPLES_BASE_URL}/effects/beep.mp3`,
     () => {
       checkFinishLoading();
     }
   ).toMaster();
 
-  backgroundSoundsNames.forEach((name) => {
-    backgroundSounds.get(name).loop = true;
+  data.backgroundSounds.names.forEach((name) => {
+    data.backgroundSounds.samples.get(name).loop = true;
   });
-  seq = new Tone.Sequence(
+  data.seq = new Tone.Sequence(
     seqCallback,
     Array(128)
       .fill(null)
       .map((_, i) => i),
     "16n"
   );
-  seq.start(0);
+  data.seq.start(0);
 
   const reverb = new Tone.Reverb({
     decay: 8.5,
@@ -256,7 +252,7 @@ function initSounds() {
   const hpf = new Tone.Filter(1, "highpass").connect(lpf);
   const chorus = new Tone.Chorus(4, 2.5, 0.1).connect(hpf);
 
-  synth = new Tone.PolySynth(10, Tone.Synth, {
+  data.instruments[SYNTHS] = new Tone.PolySynth(10, Tone.Synth, {
     envelope: {
       attack: 0.02,
       decay: 0.1,
@@ -265,17 +261,17 @@ function initSounds() {
     },
   }).connect(chorus);
 
-  piano = SampleLibrary.load({
+  data.instruments[PIANO] = SampleLibrary.load({
     instruments: "piano",
   });
-  acousticGuitar = SampleLibrary.load({
+  data.instruments[ACOUSTIC_GUITAR] = SampleLibrary.load({
     instruments: "guitar-acoustic",
   });
-  electricGuitar = SampleLibrary.load({
+  data.instruments[ELETRIC_GUITAR] = SampleLibrary.load({
     instruments: "guitar-electric",
   });
-  const { bass } = data;
 
+  const { bass } = data;
   bass.gain = new Tone.Gain(1).connect(reverb);
   bass.lpf = new Tone.Filter(200, "lowpass").connect(bass.gain);
   bass.instrument = new Tone.Synth({
@@ -300,12 +296,11 @@ function initSounds() {
   bass.part.loop = true;
   bass.part.loopEnd = "4:0:0";
 
-  piano.connect(chorus);
-  acousticGuitar.connect(chorus);
-  electricGuitar.connect(chorus);
+  data.instruments[PIANO].connect(chorus);
+  data.instruments[ACOUSTIC_GUITAR].connect(chorus);
+  data.instruments[ELETRIC_GUITAR].connect(chorus);
 
-  chordsInstruments = [synth, piano, acousticGuitar, electricGuitar];
-  data.melody.instrument = piano;
+  data.melody.instrument = data.instruments[PIANO];
 
   Tone.Buffer.on("load", () => {
     checkFinishLoading();
@@ -333,10 +328,10 @@ function initModel() {
 
       data.melody.interpolationToneNotes = result.map(modelFormatToToneNotes);
       data.melody.interpolationToneNotes[0] =
-        data.melody.toneNotes[melodyIndex];
+        data.melody.toneNotes[data.melody.index];
       data.melody.interpolationToneNotes[
         data.melody.interpolationToneNotes.length - 1
-      ] = data.melody.toneNotes[secondMelodyIndex];
+      ] = data.melody.toneNotes[data.melody.secondIndex];
 
       data.melody.waitingInterpolation = false;
 
@@ -358,7 +353,7 @@ function initModel() {
       const n = data.melody.toneNotes.length;
       data.melody.toneNotes[n - 1] = notes; // update toneNotes
       changeMelody(notes); // change played melody part
-      melodyIndex = n - 1; // change index
+      data.melody.index = n - 1; // change index
       firstMelodySelect.value = n - 1; // change ui index
       sendInterpolationMessage(result); // update interpolation
     }
@@ -472,13 +467,15 @@ function addImages() {
 
   assets.windowGifs = [rainGif, wavesGif, kidsGif, streetGif];
 
-  assets.cat = addImageToCanvasDiv(assets.catUrls[assets.catIndex], {
+  assets.catGroup = addImageToCanvasDiv(assets.catUrls[assets.catIndex], {
     class: "large-on-hover",
     width: "6%",
     bottom: "33%",
     left: "43%",
     zIndex: "4",
+    group: true,
   });
+  assets.cat = assets.catGroup.childNodes[0];
 
   assets.avatarGroup = addImageToCanvasDiv(assets.avatarUrls[1], {
     class: "large-on-hover-micro",
@@ -548,7 +545,7 @@ function addImages() {
   });
   const textInput = document.createElement("textarea");
   textInput.id = "board-input";
-  textInput.value = "Try play with the cat...";
+  textInput.value = assets.defaultBoardText;
   textInput.spellcheck = false;
   assets.textInput = textInput;
   assets.board.appendChild(textInput);
@@ -590,7 +587,7 @@ function addImages() {
   // dragElement(assets.plant);
   // dragElement(assets.secondPlant);
   dragElement(assets.shelf, () => {
-    changeChords(chordsIndex + 1);
+    changeChords(data.chords.index + 1);
   });
 
   assets.tvStand = addImageToCanvasDiv("./assets/tv-stand.png", {
@@ -789,13 +786,6 @@ function addImages() {
       togglePanel();
     });
   }
-  // assets.electricGuitar = addImageToCanvasDiv("./assets/electric-guitar.png", {
-  //   class: "large-on-hover",
-  //   height: "35%",
-  //   right: "17%",
-  //   bottom: "2%",
-  //   zIndex: "3",
-  // });
 
   assets.lamp.addEventListener("click", () => {
     data.effects.beep.start();
@@ -829,7 +819,7 @@ function addImages() {
   dragElement(
     assets.avatarGroup,
     () => {
-      toggleDrumMute();
+      toggleDrumMute(undefined, true, Tone.now());
     },
     { horizontal: true }
   );
@@ -850,13 +840,13 @@ function addImages() {
     }
 
     if (assets.catIndex === 2) {
-      assets.cat.style.left = "41.5%";
-      assets.cat.style.width = "9%";
-      assets.cat.style.bottom = "39%";
+      assets.catGroup.style.left = "42%";
+      assets.catGroup.style.width = "8%";
+      assets.catGroup.style.bottom = "39%";
     } else {
-      assets.cat.style.left = "43%";
-      assets.cat.style.width = "6%";
-      assets.cat.style.bottom = "33%";
+      assets.catGroup.style.left = "43%";
+      assets.catGroup.style.width = "6%";
+      assets.catGroup.style.bottom = "33%";
     }
 
     // MACRO
@@ -886,7 +876,7 @@ function addImages() {
       assets.cat.style.display = "block";
     };
   };
-  dragElement(assets.cat, assets.catCallback, {
+  dragElement(assets.catGroup, assets.catCallback, {
     horizontal: false,
   });
 
@@ -901,7 +891,7 @@ function addImages() {
   assets.window.addEventListener("click", () => {
     if (checkStarted()) {
       const n = backgroundSoundsNames.length;
-      data.backgroundSounds.switch((backgroundSoundsIndex + 1) % n);
+      data.backgroundSounds.switch((data.backgroundSounds.index + 1) % n);
     } else {
       triggerStart();
     }
@@ -947,17 +937,16 @@ function addImages() {
     switchPanel("master");
     togglePanel();
   });
-  // assets.piano.addEventListener("click", () => {
-  //   changeChordsInstrument(1);
-  // });
-  // assets.acousticGuitar.addEventListener("click", () => {
-  //   changeChordsInstrument(2);
-  // });
+
   data.backgroundSounds.switch = function (index) {
-    backgroundSounds.get(backgroundSoundsNames[backgroundSoundsIndex]).stop();
-    backgroundSoundsIndex = index;
+    data.backgroundSounds.samples
+      .get(data.backgroundSounds.names[data.backgroundSounds.index])
+      .stop();
+    data.backgroundSounds.index = index;
     backgroundSoundsSelect.value = index;
-    backgroundSounds.get(backgroundSoundsNames[backgroundSoundsIndex]).start();
+    data.backgroundSounds.samples
+      .get(data.backgroundSounds.names[data.backgroundSounds.index])
+      .start();
 
     // change background
     for (let i = 0; i < assets.windowGifs.length; i++) {
@@ -1073,7 +1062,7 @@ function drawMainCanvas() {
 
   // if (data.melody.midis) {
   //   drawRect(ctx, 357, 102, 111, 61, "rgba(255, 11, 174, 0.8)");
-  //   drawMidi(ctx, 357, 102, 111, 61, data.melody.midis[melodyIndex]);
+  //   drawMidi(ctx, 357, 102, 111, 61, data.melody.midis[data.melody.index]);
 
   //   // kick
   //   drawRect(ctx, 519, 131, 52, 190, "rgba(255, 11, 174, 0.8)");
@@ -1210,39 +1199,39 @@ function drawDrums(ctx, x, y, w, h) {
 }
 
 function seqCallback(time, b) {
-  if (!drumMute) {
-    if (drumPatternIndex === 0) {
+  if (!data.drum.mute) {
+    if (data.drum.patternIndex === 0) {
       if (b % 16 === 0) {
         data.drum.scale.kk = 1;
-        drumSamples.get("kk").start(time);
+        data.drum.samples.get("kk").start(time);
       }
       if (b % 16 === 8) {
         data.drum.scale.sn = 1;
-        drumSamples.get("sn").start(time);
+        data.drum.samples.get("sn").start(time);
       }
       if (b % 2 === 0) {
         data.drum.scale.hh = 1;
-        drumSamples.get("hh").start(time);
+        data.drum.samples.get("hh").start(time);
       }
-    } else if (drumPatternIndex === 1) {
+    } else if (data.drum.patternIndex === 1) {
       if (b % 32 === 0 || b % 32 === 20) {
-        drumSamples.get("kk").start(time);
+        data.drum.samples.get("kk").start(time);
       }
       if (b % 16 === 8) {
-        drumSamples.get("sn").start(time);
+        data.drum.samples.get("sn").start(time);
       }
       if (b % 2 === 0) {
-        drumSamples.get("hh").start(time + 0.07);
+        data.drum.samples.get("hh").start(time + 0.07);
       }
-    } else if (drumPatternIndex === 2) {
+    } else if (data.drum.patternIndex === 2) {
       if (b % 16 === 0 || b % 16 === 10 || (b % 32 >= 16 && b % 16 === 11)) {
-        drumSamples.get("kk").start(time);
+        data.drum.samples.get("kk").start(time);
       }
       if (b % 8 === 4) {
-        drumSamples.get("sn").start(time);
+        data.drum.samples.get("sn").start(time);
       }
       if (b % 2 === 0) {
-        drumSamples.get("hh").start(time + 0.07);
+        data.drum.samples.get("hh").start(time + 0.07);
       }
     }
   }
@@ -1250,19 +1239,13 @@ function seqCallback(time, b) {
   // Markov chain
   if (data.drum.auto) {
     if (b % 32 === 31) {
-      if (drumMute) {
+      if (data.drum.mute) {
         if (Math.random() > 0.05) {
-          toggleDrumMute(false);
-
-          // transition
-          data.master.lpf.frequency.linearRampTo(20000, 1, time);
+          toggleDrumMute(false, true, time);
         }
       } else {
-        if (Math.random() > 0.8) {
-          toggleDrumMute(true);
-
-          // transition
-          data.master.lpf.frequency.linearRampTo(200, 0.5, time);
+        if (Math.random() > 0.5) {
+          toggleDrumMute(true, true, time);
         }
       }
     }
@@ -1273,7 +1256,7 @@ function seqCallback(time, b) {
 }
 
 async function loadMidiFiles() {
-  chordsMidis = await Promise.all([
+  data.chords.midis = await Promise.all([
     Midi.fromUrl("./midi/IV_IV_I_I/IV_IV_I_I_C_1.mid"),
     Midi.fromUrl("./midi/IV_IV_I_I/IV_IV_I_I_C_3.mid"),
     Midi.fromUrl("./midi/IV_IV_I_I/IV_IV_I_I_C_2.mid"),
@@ -1281,7 +1264,7 @@ async function loadMidiFiles() {
     // Midi.fromUrl("./midi/VI_i_VI_v_Am.mid"),
   ]);
 
-  changeChords(chordsIndex);
+  changeChords(data.chords.index);
 
   data.melody.midis = await Promise.all([
     Midi.fromUrl("./midi/IV_IV_I_I/melody/m_1_C.mid"),
@@ -1292,7 +1275,7 @@ async function loadMidiFiles() {
   data.melody.midis[4] = data.melody.midis[0]; // placeholder
   data.melody.toneNotes = data.melody.midis.map(midiToToneNotes);
 
-  changeMelodyByIndex(melodyIndex);
+  changeMelodyByIndex(data.melody.index);
 
   console.log("midi loaded");
   // console.log("midi loaded", data.melody.midis[0]);
@@ -1300,15 +1283,15 @@ async function loadMidiFiles() {
 }
 
 function checkFinishLoading() {
-  loadEventsCounts += 1;
-  console.log(`[${loadEventsCounts}/${LOAD_EVENTS_COUNTS_THRESHOLD}]`);
-  if (data.loading && loadEventsCounts >= LOAD_EVENTS_COUNTS_THRESHOLD) {
+  data.loadEventsCount += 1;
+  console.log(`[${data.loadEventsCount}/${LOAD_EVENTS_COUNTS_THRESHOLD}]`);
+  if (data.loading && data.loadEventsCount >= LOAD_EVENTS_COUNTS_THRESHOLD) {
     data.loading = false;
     console.log("Finish loading!");
     onFinishLoading();
   } else if (data.loading) {
     const percentage = Math.floor(
-      (loadEventsCounts / LOAD_EVENTS_COUNTS_THRESHOLD) * 100
+      (data.loadEventsCount / LOAD_EVENTS_COUNTS_THRESHOLD) * 100
     );
     startButton.textContent = `loading...${percentage}/100%`;
   }
@@ -1365,7 +1348,7 @@ function onFinishLoading() {
 
   drumPatternsSelect.addEventListener("change", () => {
     changeDrumPattern(parseInt(drumPatternsSelect.value, 10));
-    // drumPatternIndex = parseInt(drumPatternsSelect.value, 10);
+    // data.drum.patternIndex = parseInt(drumPatternsSelect.value, 10);
   });
 
   chordsSelect.addEventListener("change", () => {
@@ -1380,7 +1363,7 @@ function onFinishLoading() {
   });
 
   secondMelodySelect.addEventListener("change", () => {
-    secondMelodyIndex = secondMelodySelect.value;
+    data.melody.secondIndex = secondMelodySelect.value;
     sendInterpolationMessage(data.melody.interpolationData[0]);
   });
 
@@ -1490,7 +1473,6 @@ function onFinishLoading() {
   data.melody.changeGain = function (v) {
     data.melody.gain = v;
     melodyVolumeSlider.value = v * 100;
-    assets.ampSlider.value = v * 100;
   };
 
   // start youtube video
@@ -1498,74 +1480,86 @@ function onFinishLoading() {
 }
 
 function onTransportStart() {
-  backgroundSounds.get(backgroundSoundsNames[backgroundSoundsIndex]).start();
+  data.backgroundSounds.samples
+    .get(data.backgroundSounds.names[data.backgroundSounds.index])
+    .start();
 }
 
 function onTransportStop() {
-  backgroundSounds.get(backgroundSoundsNames[backgroundSoundsIndex]).stop();
+  data.backgroundSounds.samples
+    .get(data.backgroundSounds.names[data.backgroundSounds.index])
+    .stop();
 }
 
-function toggleDrumMute(value) {
+function toggleDrumMute(value, changeFilter = false, time = 0) {
   if (value === undefined) {
-    drumMute = !drumMute;
+    data.drum.mute = !data.drum.mute;
   } else {
-    drumMute = value;
+    data.drum.mute = value;
+  }
+
+  if (changeFilter) {
+    if (!data.drum.mute) {
+      data.master.lpf.frequency.linearRampTo(20000, 1, time);
+    } else {
+      data.master.lpf.frequency.linearRampTo(200, 0.5, time);
+    }
   }
 
   // sync ui
-  drumToggle.checked = !drumMute;
-  assets.switchAvatar(drumMute);
+  drumToggle.checked = !data.drum.mute;
+  assets.switchAvatar(data.drum.mute);
 }
 
 function changeChords(index = 0) {
-  index = index % chordsMidis.length;
-  if (chordsPart) {
-    chordsPart.cancel(0);
+  index = index % data.chords.midis.length;
+  if (data.chords.part) {
+    data.chords.part.cancel(0);
   }
-  chordsIndex = index;
-  chordsPart = new Tone.Part((time, note) => {
-    chordsInstruments[chordsInstrumentIndex].triggerAttackRelease(
-      toFreq(note.pitch - (chordsInstrumentIndex === 0 ? 0 : 12)),
+  data.chords.index = index;
+  data.chords.part = new Tone.Part((time, note) => {
+    data.instruments[data.chords.instrumentIndex].triggerAttackRelease(
+      toFreq(note.pitch - (data.chords.instrumentIndex === 0 ? 0 : 12)),
       note.duration,
       time + data.chords.swing * (75 / data.master.bpm) * Math.random() * 0.1,
       note.velocity * data.chords.gain
     );
-  }, midiToToneNotes(chordsMidis[chordsIndex])).start(0);
+  }, midiToToneNotes(data.chords.midis[data.chords.index])).start(0);
 
-  backgroundImage.src = `./assets/rooom-${chordsIndex}.png`;
+  backgroundImage.src = `./assets/rooom-${data.chords.index}.png`;
 }
 
 function changeMelodyByIndex(index = 0) {
-  if (melodyPart) {
-    melodyPart.cancel(0);
+  if (data.melody.part) {
+    data.melody.part.cancel(0);
   }
-  melodyIndex = index;
+  data.melody.index = index;
   if (index === data.melody.toneNotes.length - 1) {
     console.log("rnn");
     sendContinueMessage();
     return;
   }
 
-  melodyPart = new Tone.Part((time, note) => {
+  data.melody.part = new Tone.Part((time, note) => {
     data.melody.instrument.triggerAttackRelease(
       toFreq(note.pitch - 12),
       note.duration,
       time + Math.random() * (75 / data.master.bpm) * 0.3 * data.melody.swing,
       note.velocity * data.melody.gain
     );
-  }, data.melody.toneNotes[melodyIndex]).start(0);
+  }, data.melody.toneNotes[data.melody.index]).start(0);
 
-  melodyPart.loop = false;
+  data.melody.part.loop = false;
 
   firstMelodySelect.value = index;
   sendInterpolationMessage();
 }
 
 function changeMelody(readyMidi) {
-  if (melodyPart) {
-    melodyPart.cancel(0);
+  if (data.melody.part) {
+    data.melody.part.cancel(0);
   }
-  melodyPart = new Tone.Part((time, note) => {
+  data.melody.part = new Tone.Part((time, note) => {
     data.melody.instrument.triggerAttackRelease(
       toFreq(note.pitch - 12),
       note.duration,
@@ -1573,8 +1567,8 @@ function changeMelody(readyMidi) {
       note.velocity * data.melody.gain
     );
   }, readyMidi).start(0);
-  melodyPart.loop = true;
-  melodyPart.loopEnd = "4:0:0";
+  data.melody.part.loop = true;
+  data.melody.part.loopEnd = "4:0:0";
 }
 
 function changeInterpolationIndex(index) {
@@ -1589,11 +1583,11 @@ function sendInterpolationMessage(m1, m2, id = 0) {
   data.melody.waitingInterpolation = true;
   melodyInteractionDivs[0].classList.add("disabledbutton");
 
-  // console.log(`interpolate ${melodyIndex} ${secondMelodyIndex}`);
-  const firstMelody = data.melody.midis[melodyIndex];
+  // console.log(`interpolate ${data.melody.index} ${data.melody.secondIndex}`);
+  const firstMelody = data.melody.midis[data.melody.index];
   const left = m1 ? m1 : midiToModelFormat(firstMelody);
 
-  const secondMelody = data.melody.midis[secondMelodyIndex];
+  const secondMelody = data.melody.midis[data.melody.secondIndex];
   const right = m2 ? m2 : midiToModelFormat(secondMelody);
 
   data.melody.interpolationData[0] = left;
@@ -1624,7 +1618,7 @@ function changeChordsInstrument(index) {
     }
   }
 
-  chordsInstrumentIndex = index;
+  data.chords.instrumentIndex = index;
 }
 
 function changeMelodyInstrument(index) {
@@ -1638,7 +1632,7 @@ function changeMelodyInstrument(index) {
 
   melodyInstrumentSelect.value = index;
   data.melody.instrumentIndex = index;
-  data.melody.instrument = chordsInstruments[index];
+  data.melody.instrument = data.instruments[index];
 }
 
 function changeBpm(v) {
@@ -1649,7 +1643,7 @@ function changeBpm(v) {
 }
 
 function changeDrumPattern(index) {
-  drumPatternIndex = index;
+  data.drum.patternIndex = index;
   drumPatternsSelect.value = index;
 }
 
@@ -1929,7 +1923,7 @@ function handleMessage(msg) {
     },
     "click the window": () => {
       const n = backgroundSoundsNames.length;
-      data.backgroundSounds.switch((backgroundSoundsIndex + 1) % n);
+      data.backgroundSounds.switch((data.backgroundSounds.index + 1) % n);
     },
     "click the cat": () => {
       assets.catCallback();
