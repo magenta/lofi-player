@@ -73,9 +73,9 @@ const LESS_REVERB = 'less_reverb';
 const MORE_FILTER = 'more_filter';
 const LESS_FILTER = 'less_filter';
 
-// TODO: temporary
-// const LOAD_EVENTS_COUNTS_THRESHOLD = 6;
-const LOAD_EVENTS_COUNTS_THRESHOLD = 8;
+// TODO: prevent loading models
+const LOAD_ML_MODELS = false;
+const LOAD_EVENTS_COUNTS_THRESHOLD = LOAD_ML_MODELS ? 8 : 6;
 const TOTAL_BAR_COUNTS = 8;
 const TICKS_PER_BAR = 384;
 const BEATS_PER_BAR = 4;
@@ -96,8 +96,7 @@ const DEFAULT_GUIDANCE_INTERVAL = 100;
 const SAMPLES_BASE_URL = './samples';
 const CHANNEL_ID = 'UCizuHuCAHmpTa6EFeZS2Hqg';
 
-// TODO: temporary
-const worker = new Worker('worker.js');
+const worker = LOAD_ML_MODELS ? new Worker('worker.js') : null;
 const callbacks = {};
 const data = {
   loading: true,
@@ -179,8 +178,7 @@ const assets = {
 
 addImages();
 loadMidiFiles();
-// TODO: temporary
-initModel();
+LOAD_ML_MODELS && initModel();
 initSounds();
 initCanvas();
 initMessageCallbacks();
@@ -1630,13 +1628,13 @@ function sendInterpolationMessage(m1, m2, id = 0) {
   data.melody.interpolationData[0] = left;
   data.melody.interpolationData[NUM_INTERPOLATIONS - 1] = right;
 
-  // TODO: temporary
-  worker.postMessage({
-    id,
-    msg: 'interpolate',
-    left,
-    right,
-  });
+  LOAD_ML_MODELS &&
+    worker.postMessage({
+      id,
+      msg: 'interpolate',
+      left,
+      right,
+    });
 }
 
 function sendContinueMessage() {
