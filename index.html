@@ -18,20 +18,17 @@
     <meta property="og:site_name" content="Lo-Fi Player" />
     <meta name="twitter:image:alt" content="interactive lofi room" />
 
-    <title>Lo-Fi Player (Stream)</title>
+    <title>Lo-Fi Player</title>
 
     <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=UA-102358307-1"
-    ></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-102358307-1"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag() {
         dataLayer.push(arguments);
       }
-      gtag("js", new Date());
-      gtag("config", "UA-102358307-1");
+      gtag('js', new Date());
+      gtag('config', 'UA-102358307-1');
     </script>
 
     <!-- import the webpage's stylesheet -->
@@ -39,10 +36,7 @@
       href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
       rel="stylesheet"
     />
-    <link
-      href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css"
-      rel="stylesheet"
-    />
+    <link href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="./style.css" />
 
     <!-- favicon -->
@@ -64,25 +58,17 @@
       <div id="warning-overlay">
         <div id="warning-div" class="nes-balloon from-left">
           <p>
-            Your screen is too small for the optimal experience. It's
-            recommended to play on desktop with window wider than 700px. Watch
-            the shared player on youtube stream where you can play with others
-            together.
+            Your screen is too small for the optimal experience. It's recommended to play on desktop
+            with window wider than 700px. Watch the shared player on youtube stream where you can
+            play with others together.
           </p>
           <div>
-            <a
-              href="https://www.youtube.com/channel/UCizuHuCAHmpTa6EFeZS2Hqg/live"
-              target="_blank"
-            >
+            <a href="https://www.youtube.com/channel/UCizuHuCAHmpTa6EFeZS2Hqg/live" target="_blank">
               <button id="youtube-button" class="nes-btn is-error">
                 youtube live
               </button>
             </a>
-            <button
-              id="whatever-button"
-              class="nes-btn"
-              onclick="onClickWhatever()"
-            >
+            <button id="whatever-button" class="nes-btn" onclick="onClickWhatever()">
               whatever
             </button>
           </div>
@@ -124,12 +110,7 @@
                   <span>time</span>
                   <span id="check-time-text">0:0:0</span>
                 </p>
-                <progress
-                  id="time-progress"
-                  class="nes-progress"
-                  value="0"
-                  max="100"
-                ></progress>
+                <progress id="time-progress" class="nes-progress" value="0" max="100"></progress>
 
                 <hr />
                 <label>volume</label>
@@ -169,10 +150,7 @@
                 Create your melodies by mixing!
               </p>
               <p>
-                <a
-                  href="https://magenta.tensorflow.org/music-vae"
-                  target="_blank"
-                >
+                <a href="https://magenta.tensorflow.org/music-vae" target="_blank">
                   How does this work?</a
                 >
               </p>
@@ -361,21 +339,11 @@
             <div class="panel" id="drum-div">
               <h3>Drum</h3>
               <label>
-                <input
-                  type="checkbox"
-                  id="drum-toggle"
-                  class="nes-checkbox"
-                  checked
-                />
+                <input type="checkbox" id="drum-toggle" class="nes-checkbox" checked />
                 <span>on/off</span>
               </label>
               <label>
-                <input
-                  type="checkbox"
-                  id="drum-auto-toggle"
-                  class="nes-checkbox"
-                  checked
-                />
+                <input type="checkbox" id="drum-auto-toggle" class="nes-checkbox" checked />
                 <span>auto</span>
               </label>
               <div>
@@ -390,58 +358,38 @@
             <div class="panel" id="info-div">
               <h3>Lo-Fi Player</h3>
               <p>
-                It's an interactive room full of lofi vibe. Designed and built
-                by
-                <a href="https://vibertthio.com/portfolio/" target="_blank"
-                  >Vibert Thio</a
-                >. Powered by magic from
-                <a href="https://magenta.tensorflow.org/" target="_blank"
-                  >Magenta</a
-                >. Thanks
-                <a href="https://soundcloud.com/cone-head" target="_blank"
-                  >Conehead</a
-                >
+                It's an interactive room full of lofi vibe. Designed and built by
+                <a href="https://vibertthio.com/portfolio/" target="_blank">Vibert Thio</a>. Powered
+                by magic from <a href="https://magenta.tensorflow.org/" target="_blank">Magenta</a>.
+                Thanks
+                <a href="https://soundcloud.com/cone-head" target="_blank">Conehead</a>
                 and
-                <a href="https://soundcloud.com/eveyichenmusic" target="_blank"
-                  >E V E</a
-                >
+                <a href="https://soundcloud.com/eveyichenmusic" target="_blank">E V E</a>
                 for the counsel on music. Also, it was developed in
-                <a
-                  href="https://research.google/teams/brain/"
-                  target="_blank"
-                ></a
-                >Google Brain.
+                <a href="https://research.google/teams/brain/" target="_blank"></a>Google Brain.
               </p>
               <br />
               <h3>Credits</h3>
               <ul>
                 <li>
                   rain gif:
-                  <a href="https://giphy.com/colorful-courier" target="_blank"
-                    >@colorful-courier</a
-                  >
+                  <a href="https://giphy.com/colorful-courier" target="_blank">@colorful-courier</a>
                 </li>
                 <li>
                   waves gif:
-                  <a
-                    href="https://weheartit.com/entry/310371956"
-                    target="_blank"
+                  <a href="https://weheartit.com/entry/310371956" target="_blank"
                     >@catarina_lalanda</a
                   >
                 </li>
                 <li>
                   sunset gif:
-                  <a
-                    href="https://stiong124.wixsite.com/shynha/animation"
-                    target="_blank"
+                  <a href="https://stiong124.wixsite.com/shynha/animation" target="_blank"
                     >@Sheena Tiong</a
                   >
                 </li>
                 <li>
                   city gif:
-                  <a href="https://thunderbolt.tumblr.com/" target="_blank"
-                    >@TM24</a
-                  >
+                  <a href="https://thunderbolt.tumblr.com/" target="_blank">@TM24</a>
                 </li>
               </ul>
             </div>
@@ -449,16 +397,10 @@
             <button class="melody-panel-button" id="melody-panel-close">
               X
             </button>
-            <button
-              class="melody-panel-button disabledbutton"
-              id="melody-panel-right"
-            >
+            <button class="melody-panel-button disabledbutton" id="melody-panel-right">
               >
             </button>
-            <button
-              class="melody-panel-button disabledbutton"
-              id="melody-panel-left"
-            >
+            <button class="melody-panel-button disabledbutton" id="melody-panel-left">
               &lt;
             </button>
           </div>
@@ -472,18 +414,12 @@
 
     <div id="youtube-div">
       <h3>
-        <a
-          href="https://www.youtube.com/channel/UCizuHuCAHmpTa6EFeZS2Hqg/live"
-          target="_blank"
+        <a href="https://www.youtube.com/channel/UCizuHuCAHmpTa6EFeZS2Hqg/live" target="_blank"
           >Youtube Live</a
         >
       </h3>
       <div id="youtube-buttons">
-        <button
-          id="connect-youtube-button"
-          class="nes-btn is-success"
-          onclick="onClickConnect()"
-        >
+        <button id="connect-youtube-button" class="nes-btn is-success" onclick="onClickConnect()">
           connect
         </button>
 
@@ -500,9 +436,8 @@
         <p id="youtube-prompt-text">[wait...]</p>
         <div id="youtube-prompt-div">
           <p>
-            You can get api key from youtube service and connect this project to
-            your youtube stream, and this block will show the live comments
-            real-time. Hope you enjoy this.
+            You can get api key from youtube service and connect this project to your youtube
+            stream, and this block will show the live comments real-time. Hope you enjoy this.
           </p>
           <p>Regards,</p>
           <p>Vibert</p>
