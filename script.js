@@ -1494,7 +1494,7 @@ async function onFirstTimeStarted() {
 
   await sleep(interval * 5);
   bubbleDiv.style.width = '120%';
-  bubbleDiv.textContent = `Try click the window.`;
+  bubbleDiv.textContent = `Try clicking the window.`;
 
   await sleep(interval * 10);
   bubbleDiv.textContent = `Click me to give me coffee.`;
@@ -2324,14 +2324,20 @@ async function onClickConnect() {
   youtubePromptText.textContent = '[connected]';
   connectYoutubeButton.classList.remove('disabledbutton');
   let nextPageToken;
-  data.fetchintervalid = setInterval(async () => {
+  const intervalCallback = async () => {
     d = await fetchData(getChatMessagesUrl(apiKey, chatId, nextPageToken));
+
+    if (d.pollingIntervalMillis) {
+      listenPeriod = d.pollingIntervalMillis;
+    }
+    data.fetchintervalid = setTimeout(intervalCallback, listenPeriod);
+
     if (d.error) {
       youtubePromptDiv.innerHTML = '';
       const el = document.createElement('P');
       el.textContent = d.error.message;
       youtubePromptDiv.appendChild(el);
-      disconnectYoutubeLiveChat();
+      // disconnectYoutubeLiveChat();
       return;
     }
     youtubePromptDiv.innerHTML = '';
@@ -2354,7 +2360,8 @@ async function onClickConnect() {
         handleMessage(content, authorName);
       }
     }
-  }, listenPeriod);
+  };
+  data.fetchintervalid = setTimeout(intervalCallback, listenPeriod);
 }
 
 function disconnectYoutubeLiveChat() {
