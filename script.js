@@ -101,6 +101,7 @@ const data = {
   commands: [],
   showPanel: false,
   backgroundSounds: {
+    mute: false,
     samples: [],
     names: ['rain', 'waves', 'street', 'kids'],
     index: 0,
@@ -172,6 +173,7 @@ const data = {
 const assets = {
   defaultBoardText: 'Vibert Thio 2020.',
   catIndex: 0,
+  windowUrls: ['./assets/window-0.png', './assets/window-1.png'],
   avatarUrls: [`./assets/avatar-1-0.png`, `./assets/avatar-1-1.png`, `./assets/avatar-1-2.png`],
   catUrls: ['./assets/cat-75-purple.gif', './assets/cat-90.gif', './assets/dog-100.gif'],
 };
@@ -212,7 +214,8 @@ function initSounds() {
     checkFinishLoading();
   }).toMaster();
 
-  data.backgroundSounds.gain = new Tone.Gain(1).toMaster();
+  data.backgroundSounds.gate = new Tone.Gain(1).toMaster();
+  data.backgroundSounds.gain = new Tone.Gain(1).connect(data.backgroundSounds.gate);
   // data.backgroundSounds.hpf = new Tone.Filter(0, "highpass").connect(data.backgroundSounds.gain);
   data.backgroundSounds.hpf = new Tone.Filter(20000, 'lowpass').connect(data.backgroundSounds.gain);
   const sampleUrls = {};
@@ -429,7 +432,7 @@ function addImages() {
     { horizontal: true }
   );
 
-  assets.window = addImageToCanvasDiv('./assets/window-1.png', {
+  assets.window = addImageToCanvasDiv(assets.windowUrls[0], {
     class: 'large-on-hover-micro',
     width: '38%',
     left: '17%',
@@ -1290,7 +1293,6 @@ function startTransport() {
   Tone.Transport.start();
   onTransportStart();
   startButton.textContent = 'stop';
-  assets.window.src = './assets/window-0.png';
   assets.light.src = './assets/light-on.png';
   canvasOverlay.style.display = 'none';
 }
@@ -1299,7 +1301,6 @@ function stopTransport() {
   Tone.Transport.stop();
   onTransportStop();
   startButton.textContent = 'start';
-  assets.window.src = './assets/window-1.png';
   assets.light.src = './assets/light-off.png';
   canvasOverlay.style.display = 'flex';
 }
@@ -1352,6 +1353,9 @@ function onFinishLoading() {
     sendInterpolationMessage(data.melody.interpolationData[0]);
   });
 
+  backgroundSoundsMuteCheckbox.addEventListener('change', () => {
+    toggleBackgroundSounds(!backgroundSoundsMuteCheckbox.checked);
+  });
   backgroundSoundsSelect.addEventListener('change', () => {
     data.backgroundSounds.switch(backgroundSoundsSelect.value);
   });
@@ -1541,6 +1545,22 @@ function onTransportStop() {
   data.backgroundSounds.samples
     .get(data.backgroundSounds.names[data.backgroundSounds.index])
     .stop();
+}
+
+function toggleBackgroundSounds(value) {
+  if (value !== undefined) {
+    data.backgroundSounds.mute = value;
+  } else {
+    data.backgroundSounds.mute = !data.backgroundSounds.mute;
+  }
+
+  if (data.backgroundSounds.mute) {
+    data.backgroundSounds.gate.gain.value = 0;
+    assets.window.src = assets.windowUrls[1];
+  } else {
+    data.backgroundSounds.gate.gain.value = 1;
+    assets.window.src = assets.windowUrls[0];
+  }
 }
 
 function toggleChords(value) {
