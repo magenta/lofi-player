@@ -4,7 +4,6 @@ const whateverButton = document.getElementById('whatever-button');
 const bpmInput = document.getElementById('bpm-input');
 const drumPatternsSelect = document.getElementById('drum-patterns-select');
 const drumToggle = document.getElementById('drum-toggle');
-const drumAutoToggle = document.getElementById('drum-auto-toggle');
 const chordsSelect = document.getElementById('chords-select');
 const chordsInstrumentSelect = document.getElementById('chords-instrument-select');
 const backgroundSoundsSelect = document.getElementById('background-samples-select');
@@ -101,7 +100,7 @@ const data = {
   commands: [],
   showPanel: false,
   backgroundSounds: {
-    mute: false,
+    mute: true,
     samples: [],
     names: ['rain', 'waves', 'street', 'kids'],
     index: 0,
@@ -123,7 +122,7 @@ const data = {
     interpolationIndex: 0,
   },
   chords: {
-    mute: false,
+    mute: true,
     part: null,
     index: 0,
     gain: 1,
@@ -132,7 +131,7 @@ const data = {
     instrumentIndex: 0,
   },
   bass: {
-    mute: false,
+    mute: true,
     notes: [
       { time: '0:0:0', note: 'F2', duration: { '1m': 0.7 }, velocity: 1.0 },
       { time: '1:0:0', note: 'F2', duration: { '1m': 0.7 }, velocity: 1.0 },
@@ -143,7 +142,7 @@ const data = {
   canvas: {},
   seq: {},
   drum: {
-    mute: false,
+    mute: true,
     names: ['kk', 'sn', 'hh'],
     samples: [],
     auto: false,
@@ -173,7 +172,7 @@ const data = {
 const assets = {
   defaultBoardText: 'Vibert Thio 2020.',
   catIndex: 0,
-  windowUrls: ['./assets/window-0.png', './assets/window-1.png'],
+  windowUrls: ['./assets/window-0.png', './assets/window-3.png'],
   avatarUrls: [`./assets/avatar-1-0.png`, `./assets/avatar-1-1.png`, `./assets/avatar-1-2.png`],
   catUrls: ['./assets/cat-75-purple.gif', './assets/cat-90.gif', './assets/dog-100.gif'],
 };
@@ -214,7 +213,7 @@ function initSounds() {
     checkFinishLoading();
   }).toMaster();
 
-  data.backgroundSounds.gate = new Tone.Gain(1).toMaster();
+  data.backgroundSounds.gate = new Tone.Gain(data.backgroundSounds.mute ? 0 : 1).toMaster();
   data.backgroundSounds.gain = new Tone.Gain(1).connect(data.backgroundSounds.gate);
   // data.backgroundSounds.hpf = new Tone.Filter(0, "highpass").connect(data.backgroundSounds.gain);
   data.backgroundSounds.hpf = new Tone.Filter(20000, 'lowpass').connect(data.backgroundSounds.gain);
@@ -274,7 +273,7 @@ function initSounds() {
   });
 
   const { bass } = data;
-  bass.gate = new Tone.Gain(1).connect(reverb);
+  bass.gate = new Tone.Gain(0).connect(reverb);
   bass.gain = new Tone.Gain(1).connect(bass.gate);
   bass.lpf = new Tone.Filter(200, 'lowpass').connect(bass.gain);
   bass.instrument = new Tone.Synth({
@@ -432,7 +431,7 @@ function addImages() {
     { horizontal: true }
   );
 
-  assets.window = addImageToCanvasDiv(assets.windowUrls[0], {
+  assets.window = addImageToCanvasDiv(assets.windowUrls[data.backgroundSounds.mute ? 1 : 0], {
     class: 'large-on-hover-micro',
     width: '38%',
     left: '17%',
@@ -498,7 +497,15 @@ function addImages() {
     width: '3%',
     bottom: '39%',
     left: '38%',
+    group: true,
   });
+  const cactusArrow = createCircleElement();
+  if (!data.backgroundSounds.mute) {
+    cactusArrow.classList.add('hidden');
+  } else {
+    assets.cactus.childNodes[0].classList.add('transparent');
+  }
+  assets.cactus.appendChild(cactusArrow);
 
   assets.chair = addImageToCanvasDiv('./assets/chair-red.png', {
     width: '10%',
@@ -702,56 +709,61 @@ function addImages() {
     // bottom: "100%",
     group: true,
   });
+  const clockArrow = createCircleElement();
+  clockArrow.classList.add('hidden');
+  assets.clock.appendChild(clockArrow);
   assets.clock.appendChild(assets.time);
   assets.cabinetRight.appendChild(assets.clock);
 
-  assets.bass = addImageToCanvasDiv('./assets/bass-wall.png', {
+  assets.bassGroup = addImageToCanvasDiv('./assets/bass-wall.png', {
     class: 'large-on-hover',
-    height: '40%',
+    width: '6%',
     right: '10%',
     top: '10%',
     zIndex: '0',
+    group: true,
   });
-
-  // assets.acousticGuitar = addImageToCanvasDiv("./assets/acoustic-guitar.png", {
-  //   class: "large-on-hover",
-  //   height: "30%",
-  //   right: "17%",
-  //   bottom: "2%",
-  //   zIndex: "3",
-  // });
+  assets.bass = assets.bassGroup.childNodes[0];
+  assets.bassGroup.appendChild(createCircleElement());
+  if (data.bass.mute) {
+    assets.bass.classList.add('transparent');
+  }
 
   assets.chordsInstruments = [
     addImageToCanvasDiv('./assets/synth.png', {
       class: 'large-on-hover',
-      height: '28%',
+      width: '30%',
       right: '30%',
       top: '-28%',
       zIndex: '2',
+      group: true,
     }),
     addImageToCanvasDiv('./assets/piano.png', {
       class: 'large-on-hover',
-      height: '28%',
+      width: '30%',
       right: '30%',
       top: '-28%',
       zIndex: '2',
       display: 'none',
+      group: true,
     }),
     addImageToCanvasDiv('./assets/acoustic-guitar.png', {
       class: 'large-on-hover',
-      height: '120%',
+      width: '19%',
       left: '40%',
       bottom: '-10%',
       zIndex: '3',
       display: 'none',
+      group: true,
     }),
     addImageToCanvasDiv('./assets/electric-guitar.png', {
       class: 'large-on-hover',
-      height: '130%',
+      width: '19%',
       left: '40%',
       bottom: '-10%',
       zIndex: '3',
       display: 'none',
+      group: true,
     }),
   ];
 
@@ -763,6 +775,7 @@ function addImages() {
       bottom: '45%',
       zIndex: '3',
       display: 'none',
+      group: true,
     }),
     addImageToCanvasDiv('./assets/piano.png', {
       class: 'large-on-hover',
@@ -770,27 +783,40 @@ function addImages() {
       right: '52%',
       bottom: '45%',
       zIndex: '3',
+      group: true,
     }),
     addImageToCanvasDiv('./assets/acoustic-guitar.png', {
       class: 'large-on-hover',
-      height: '120%',
-      left: '15%',
+      width: '17%',
+      left: '19%',
       bottom: '-10%',
       zIndex: '3',
       display: 'none',
+      group: true,
     }),
     addImageToCanvasDiv('./assets/electric-guitar.png', {
       class: 'large-on-hover',
-      height: '130%',
-      left: '15%',
+      width: '17%',
+      left: '19%',
       bottom: '-10%',
       zIndex: '3',
       display: 'none',
+      group: true,
     }),
   ];
 
   for (let i = 0; i < NUM_INSTRUMENTS; i++) {
     const mi = assets.melodyInstruments[i];
+    if (data.melody.mute) {
+      mi.classList.add('transparent');
+    }
+    const melodyArrow = createCircleElement();
+    if (data.melody.mute) {
+      mi.classList.add('transparent');
+    } else {
+      melodyArrow.classList.add('hidden');
+    }
+    mi.appendChild(melodyArrow);
     assets.sofa.appendChild(mi);
     dragElement(mi, () => {
       switchPanel('melody');
@@ -798,6 +824,13 @@ function addImages() {
     });
 
     const ci = assets.chordsInstruments[i];
+    const chordsArrow = createCircleElement();
+    if (data.chords.mute) {
+      ci.classList.add('transparent');
+    } else {
+      chordsArrow.classList.add('hidden');
+    }
+    ci.appendChild(chordsArrow);
     assets.sofa.appendChild(ci);
     dragElement(ci, () => {
       switchPanel('chords');
@@ -935,7 +968,7 @@ function addImages() {
     window.open('https://magenta.tensorflow.org/', '_blank');
   });
 
-  dragElement(assets.bass, () => {
+  dragElement(assets.bassGroup, () => {
     // data.bass.gain.gain.value = data.bass.gain.gain.value > 0.5 ? 0 : 1;
     switchPanel('bass');
     togglePanel();
@@ -1021,7 +1054,11 @@ function addImageToCanvasDiv(src, params) {
   }
 
   if (params.class) {
-    img.classList.add(params.class);
+    if (params.class.includes(' ')) {
+      img.classList.add(...params.class.split(' '));
+    } else {
+      img.classList.add(params.class);
+    }
   }
   img.style.position = 'absolute';
 
@@ -1322,11 +1359,9 @@ function onFinishLoading() {
     changeBpm(bpmInput.value);
   });
 
+  drumToggle.checked = !data.drum.mute;
   drumToggle.addEventListener('change', (e) => {
-    toggleDrum(!e.target.checked);
-  });
-  drumAutoToggle.addEventListener('change', (e) => {
-    data.drum.auto = e.target.checked;
+    toggleDrum(!drumToggle.checked);
   });
 
   drumPatternsSelect.addEventListener('change', () => {
@@ -1334,6 +1369,7 @@ function onFinishLoading() {
     // data.drum.patternIndex = parseInt(drumPatternsSelect.value, 10);
   });
 
+  chordsMuteCheckbox.checked = !data.chords.mute;
   chordsMuteCheckbox.addEventListener('change', () => {
     toggleChords(!chordsMuteCheckbox.checked);
   });
@@ -1353,6 +1389,7 @@ function onFinishLoading() {
     sendInterpolationMessage(data.melody.interpolationData[0]);
   });
 
+  backgroundSoundsMuteCheckbox.checked = !data.backgroundSounds.mute;
   backgroundSoundsMuteCheckbox.addEventListener('change', () => {
     toggleBackgroundSounds(!backgroundSoundsMuteCheckbox.checked);
   });
@@ -1360,6 +1397,7 @@ function onFinishLoading() {
     data.backgroundSounds.switch(backgroundSoundsSelect.value);
   });
 
+  melodyMuteCheckbox.checked = !data.melody.mute;
   melodyMuteCheckbox.addEventListener('change', () => {
     toggleMelody(!melodyMuteCheckbox.checked);
   });
@@ -1388,6 +1426,7 @@ function onFinishLoading() {
     data.chords.gain = e.target.value / 100;
   });
 
+  bassMuteCheckbox.checked = !data.bass.mute;
   bassMuteCheckbox.addEventListener('change', () => {
     toggleBass(!bassMuteCheckbox.checked);
   });
@@ -1555,9 +1594,13 @@ function toggleBackgroundSounds(value) {
   }
 
   if (data.backgroundSounds.mute) {
+    assets.cactus.childNodes[0].classList.add('transparent');
+    assets.cactus.childNodes[1].classList.remove('hidden');
     data.backgroundSounds.gate.gain.value = 0;
     assets.window.src = assets.windowUrls[1];
   } else {
+    assets.cactus.childNodes[0].classList.remove('transparent');
+    assets.cactus.childNodes[1].classList.add('hidden');
     data.backgroundSounds.gate.gain.value = 1;
     assets.window.src = assets.windowUrls[0];
   }
@@ -1571,9 +1614,15 @@ function toggleChords(value) {
   }
 
   if (data.chords.mute) {
-    assets.chordsInstruments.forEach((i) => i.classList.add('transparent'));
+    assets.chordsInstruments.forEach((i) => {
+      i.classList.add('transparent');
+      i.childNodes[1].classList.remove('hidden');
+    });
   } else {
-    assets.chordsInstruments.forEach((i) => i.classList.remove('transparent'));
+    assets.chordsInstruments.forEach((i) => {
+      i.classList.remove('transparent');
+      i.childNodes[1].classList.add('hidden');
+    });
   }
 }
 function toggleMelody(value) {
@@ -1584,9 +1633,15 @@ function toggleMelody(value) {
   }
 
   if (data.melody.mute) {
-    assets.melodyInstruments.forEach((i) => i.classList.add('transparent'));
+    assets.melodyInstruments.forEach((i) => {
+      i.classList.add('transparent');
+      i.childNodes[1].classList.remove('hidden');
+    });
   } else {
-    assets.melodyInstruments.forEach((i) => i.classList.remove('transparent'));
+    assets.melodyInstruments.forEach((i) => {
+      i.classList.remove('transparent');
+      i.childNodes[1].classList.add('hidden');
+    });
   }
 }
 function toggleBass(value) {
@@ -1599,9 +1654,11 @@ function toggleBass(value) {
   if (data.bass.mute) {
     data.bass.gate.gain.value = 0;
     assets.bass.classList.add('transparent');
+    assets.bassGroup.childNodes[1].classList.remove('hidden');
   } else {
     data.bass.gate.gain.value = 1;
     assets.bass.classList.remove('transparent');
+    assets.bassGroup.childNodes[1].classList.add('hidden');
   }
 }
 
@@ -1613,9 +1670,13 @@ function toggleDrum(value, changeFilter = false, time = 0) {
   }
 
   if (data.drum.mute) {
-    assets.clock.classList.add('transparent');
+    assets.clock.childNodes[0].classList.add('transparent');
+    assets.clock.childNodes[2].classList.add('transparent');
+    assets.clock.childNodes[1].classList.remove('hidden');
   } else {
-    assets.clock.classList.remove('transparent');
+    assets.clock.childNodes[0].classList.remove('transparent');
+    assets.clock.childNodes[2].classList.remove('transparent');
+    assets.clock.childNodes[1].classList.add('hidden');
   }
 
   if (changeFilter) {
@@ -1887,6 +1948,12 @@ function filterNotesInScaleSingle(notes) {
     const p = pitch % 12;
     return [0, 2, 4, 5, 7, 9, 11].includes(p);
   });
+}
+
+function createCircleElement() {
+  const el = document.createElement('DIV');
+  el.classList.add('circle', 'blink');
+  return el;
 }
 
 function removeElement(el) {
