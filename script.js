@@ -92,7 +92,7 @@ const NUM_INSTRUMENTS = 4;
 const NUM_PRESET_MELODIES = 4;
 const NUM_PRESET_CHORD_PROGRESSIONS = 3;
 const NUM_DRUM_PATTERNS = 3;
-const DEFAULT_GUIDANCE_INTERVAL = 1000;
+const DEFAULT_GUIDANCE_INTERVAL = 500;
 const SAMPLES_BASE_URL = './samples';
 const CHANNEL_ID = 'UCizuHuCAHmpTa6EFeZS2Hqg';
 
@@ -146,7 +146,7 @@ const data = {
     mute: false,
     names: ['kk', 'sn', 'hh'],
     samples: [],
-    auto: true,
+    auto: false,
     patternIndex: 0,
     scale: {
       kk: 1,
@@ -1489,15 +1489,18 @@ function setupKeyboardEvents() {
 
 async function onFirstTimeStarted() {
   const interval = DEFAULT_GUIDANCE_INTERVAL;
+  await sleep(interval);
+  bubbleDiv.style.display = 'block';
+
   await sleep(interval * 2);
-  bubbleDiv.textContent = `It's crazy out there.`;
+  bubbleDiv.textContent = `It's raining.`;
 
   await sleep(interval * 5);
   bubbleDiv.style.width = '120%';
-  bubbleDiv.textContent = `Try clicking the window.`;
+  bubbleDiv.textContent = `Try clicking on the window.`;
 
   await sleep(interval * 10);
-  bubbleDiv.textContent = `Click me to give me coffee.`;
+  bubbleDiv.textContent = `Click on me to give me coffee.`;
 
   await sleep(interval * 10);
   assets.catGroup.appendChild(bubbleDiv);

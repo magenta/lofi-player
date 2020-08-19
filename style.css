@@ -445,6 +445,7 @@ footer {
 }
 
 #bubble-div {
+  display: none;
   position: absolute;
   padding: 0.1rem;
   bottom: 90%;
