@@ -59,17 +59,17 @@
         <div id="warning-div" class="nes-balloon from-left">
           <p>
             Your screen is too small for the optimal experience. It's recommended to play on desktop
-            with window wider than 700px. Watch the shared player on youtube stream where you can
+            with window wider than 700px. Watch the shared player on "YouTube Live" where you can
             play with others together.
           </p>
           <div>
             <a href="https://www.youtube.com/channel/UCizuHuCAHmpTa6EFeZS2Hqg/live" target="_blank">
               <button id="youtube-button" class="nes-btn is-error">
-                youtube live
+                YouTube Live
               </button>
             </a>
             <button id="whatever-button" class="nes-btn" onclick="onClickWhatever()">
-              whatever
+              Whatever
             </button>
           </div>
         </div>
@@ -83,80 +83,84 @@
         <canvas id="main-canvas"> </canvas>
         <div id="canvas-overlay">
           <h1 id="title" class="nes-container is-rounded">Lo-Fi Player</h1>
-          <button id="start-button" class="nes-btn">loading...</button>
+          <button id="start-button" class="nes-btn disabled">loading...</button>
         </div>
         <div id="melody-panel-div">
           <div id="melody-panel">
             <div class="panel" id="master-div">
               <h3 class="title">Master</h3>
 
-              <div>
-                <p>
-                  <span>bpm</span>
-                  <span id="bpm-value">75</span>
-                </p>
-                <input
-                  type="range"
-                  class="nes-progress"
-                  id="bpm-input"
-                  value="75"
-                  min="60"
-                  max="100"
-                  step="5"
-                />
+              <div class="panel-control-div">
+                <div>
+                  <label>bpm</label>
+                  <input
+                    type="range"
+                    class="nes-progress"
+                    id="bpm-input"
+                    value="75"
+                    min="60"
+                    max="100"
+                    step="5"
+                  />
+                </div>
 
-                <br />
-                <p>
-                  <span>time</span>
-                  <span id="check-time-text">0:0:0</span>
-                </p>
-                <progress id="time-progress" class="nes-progress" value="0" max="100"></progress>
+                <div>
+                  <label>tone</label>
+                  <input
+                    id="master-tone-slider"
+                    type="range"
+                    class="nes-progress"
+                    min="0"
+                    max="100"
+                    value="100"
+                  />
+                </div>
 
-                <hr />
-                <label>volume</label>
-                <input
-                  id="master-volume-slider"
-                  type="range"
-                  class="nes-progress"
-                  min="0"
-                  max="100"
-                  value="30"
-                />
-                <br />
-                <label>reverb</label>
-                <input
-                  id="master-reverb-slider"
-                  type="range"
-                  class="nes-progress"
-                  min="0"
-                  max="100"
-                  value="0"
-                />
-                <br />
-                <label>tone</label>
-                <input
-                  id="master-tone-slider"
-                  type="range"
-                  class="nes-progress"
-                  min="0"
-                  max="100"
-                  value="100"
-                />
+                <div>
+                  <label>volume</label>
+                  <input
+                    id="master-volume-slider"
+                    type="range"
+                    class="nes-progress"
+                    min="0"
+                    max="100"
+                    value="30"
+                  />
+                </div>
+
+                <div>
+                  <label>reverb</label>
+                  <input
+                    id="master-reverb-slider"
+                    type="range"
+                    class="nes-progress"
+                    min="0"
+                    max="100"
+                    value="0"
+                  />
+                </div>
+
+                <div>
+                  <label>auto break</label>
+                  <label>
+                    <input type="checkbox" id="masterAutoBreakCheckbox" class="nes-checkbox" />
+                    <span></span>
+                  </label>
+                </div>
               </div>
             </div>
             <div class="panel" id="interpolation-div">
               <h3 class="nes-text">Melody Interpolation</h3>
               <p>
-                Create your melodies by mixing!
-              </p>
-              <p>
+                Create your melodies by mixing two melodies together!
                 <a href="https://magenta.tensorflow.org/music-vae" target="_blank">
                   How does this work?</a
                 >
               </p>
+              <p></p>
 
               <div>
-                <label>1st</label>
+                <!-- <span>1st</span> -->
                 <select id="first-melody-select">
                   <option value="0">chill</option>
                   <option value="1">dense</option>
@@ -164,20 +168,6 @@
                   <option value="3">moody</option>
                   <option value="4">RNN</option>
                 </select>
-
-                <label>2nd</label>
-                <select id="second-melody-select">
-                  <option value="0">chill</option>
-                  <option value="1" selected>dense</option>
-                  <option value="2">sad</option>
-                  <option value="3">moody</option>
-                </select>
-              </div>
-
-              <!-- <br /> -->
-
-              <div>
-                <label>1st</label>
                 <input
                   id="interpolation-slider"
                   type="range"
@@ -196,48 +186,81 @@
                   step="1"
                   value="0"
                 />
-                <label>2nd</label>
+                <select id="second-melody-select">
+                  <option value="0">chill</option>
+                  <option value="1" selected>dense</option>
+                  <option value="2">sad</option>
+                  <option value="3">moody</option>
+                </select>
+                <!-- <span>2nd</span> -->
               </div>
 
               <canvas id="melody-canvas"></canvas>
             </div>
             <div class="panel" id="bass-div">
               <h3>Bass</h3>
-              <div>
-                <label>volume</label>
-                <input
-                  id="bass-volume-slider"
-                  type="range"
-                  class="nes-progress"
-                  min="0"
-                  max="100"
-                  value="100"
-                />
-                <br />
-                <label>tone</label>
-                <input
-                  id="bass-tone-slider"
-                  type="range"
-                  class="nes-progress"
-                  min="0"
-                  max="100"
-                  value="100"
-                />
+              <div class="panel-control-div">
+                <div>
+                  <label>on/off</label>
+                  <label>
+                    <input type="checkbox" id="bassMuteCheckbox" class="nes-checkbox" />
+                    <span></span>
+                  </label>
+                </div>
+                <div>
+                  <label>volume</label>
+                  <input
+                    id="bass-volume-slider"
+                    type="range"
+                    class="nes-progress"
+                    min="0"
+                    max="100"
+                    value="100"
+                  />
+                </div>
+                <div>
+                  <label>tone</label>
+                  <input
+                    id="bass-tone-slider"
+                    type="range"
+                    class="nes-progress"
+                    min="0"
+                    max="100"
+                    value="100"
+                  />
+                </div>
               </div>
             </div>
             <div class="panel" id="melody-div">
               <h3>Melody</h3>
-              <div>
-                <label>volume</label>
-                <input
-                  id="melody-volume-slider"
-                  type="range"
-                  class="nes-progress"
-                  min="0"
-                  max="100"
-                  value="100"
-                />
-                <br />
+              <div class="panel-control-div">
+                <div>
+                  <label>on/off</label>
+                  <label>
+                    <input type="checkbox" id="melodyMuteCheckbox" class="nes-checkbox" checked />
+                    <span></span>
+                  </label>
+                </div>
+                <div>
+                  <label>sound</label>
+                  <select id="melody-instrument-select">
+                    <option value="0">synths</option>
+                    <option value="1" selected>piano</option>
+                    <option value="2">acoustic guitar</option>
+                    <option value="3">electric guitar</option>
+                  </select>
+                </div>
+                <div>
+                  <label>volume</label>
+                  <input
+                    id="melody-volume-slider"
+                    type="range"
+                    class="nes-progress"
+                    min="0"
+                    max="100"
+                    value="100"
+                  />
+                </div>
                 <div>
                   <label>swing</label>
                   <input
@@ -249,47 +272,47 @@
                     value="0"
                   />
                 </div>
-
-                <label>instrument</label>
-                <select id="melody-instrument-select">
-                  <option value="0">synths</option>
-                  <option value="1" selected>piano</option>
-                  <option value="2">acoustic guitar</option>
-                  <option value="3">electric guitar</option>
-                </select>
               </div>
             </div>
             <div class="panel" id="chords-div">
               <h3>Chords</h3>
-              <div>
-                <label>volume</label>
-                <input
-                  id="chords-volume-slider"
-                  type="range"
-                  class="nes-progress"
-                  min="0"
-                  max="100"
-                  value="100"
-                />
-                <br />
-                <label>vibe</label>
-                <select name="chords" id="chords-select">
-                  <option value="0">mellow</option>
-                  <option value="1">sad</option>
-                  <option value="2">basic</option>
-                  <!-- <option value="2">warm</option> -->
-                  <!-- <option value="3">ninja</option> -->
-                </select>
+              <div class="panel-control-div">
+                <div>
+                  <label>on/off</label>
+                  <label>
+                    <input type="checkbox" id="chordsMuteCheckbox" class="nes-checkbox" checked />
+                    <span></span>
+                  </label>
+                </div>
+                <div>
+                  <label>vibe</label>
+                  <select name="chords" id="chords-select">
+                    <option value="0">mellow</option>
+                    <option value="1">sad</option>
+                    <option value="2">basic</option>
+                  </select>
+                </div>
 
-                <br />
-
-                <label>instrument</label>
-                <select name="chords-instrument" id="chords-instrument-select">
-                  <option value="0">synths</option>
-                  <option value="1">piano</option>
-                  <option value="2">acoustic guitar</option>
-                  <option value="3">electric guitar</option>
-                </select>
+                <div>
+                  <label>sound</label>
+                  <select name="chords-instrument" id="chords-instrument-select">
+                    <option value="0">synths</option>
+                    <option value="1">piano</option>
+                    <option value="2">acoustic guitar</option>
+                    <option value="3">electric guitar</option>
+                  </select>
+                </div>
+                <div>
+                  <label>volume</label>
+                  <input
+                    id="chords-volume-slider"
+                    type="range"
+                    class="nes-progress"
+                    min="0"
+                    max="100"
+                    value="100"
+                  />
+                </div>
 
                 <div>
                   <label>swing</label>
@@ -307,70 +330,95 @@
 
             <div class="panel" id="background-div">
               <h3>Background Sounds</h3>
-              <select id="background-samples-select">
-                <option value="0">Raindrops</option>
-                <option value="1">Waves</option>
-                <option value="2">City Street</option>
-                <option value="3">Kids</option>
-              </select>
+              <div class="panel-control-div">
+                <div>
+                  <label>on/off</label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      id="backgroundSoundsMuteCheckbox"
+                      class="nes-checkbox"
+                      checked
+                    />
+                    <span></span>
+                  </label>
+                </div>
+                <div>
+                  <label>sound</label>
+                  <select id="background-samples-select">
+                    <option value="0">Raindrops</option>
+                    <option value="1">Waves</option>
+                    <option value="2">City Street</option>
+                    <option value="3">People</option>
+                  </select>
+                </div>
 
-              <!-- <h4>effects</h4> -->
-              <hr />
-              <label>volume</label>
-              <input
-                id="background-volume-slider"
-                type="range"
-                class="nes-progress"
-                min="0"
-                max="100"
-                value="100"
-              />
-              <br />
-              <label>tone</label>
-              <input
-                id="background-tone-slider"
-                type="range"
-                class="nes-progress"
-                min="0"
-                max="100"
-                value="100"
-              />
+                <div>
+                  <label>volume</label>
+                  <input
+                    id="background-volume-slider"
+                    type="range"
+                    class="nes-progress"
+                    min="0"
+                    max="100"
+                    value="100"
+                  />
+                </div>
+
+                <div>
+                  <label>tone</label>
+                  <input
+                    id="background-tone-slider"
+                    type="range"
+                    class="nes-progress"
+                    min="0"
+                    max="100"
+                    value="100"
+                  />
+                </div>
+              </div>
             </div>
             <div class="panel" id="drum-div">
               <h3>Drum</h3>
-              <label>
-                <input type="checkbox" id="drum-toggle" class="nes-checkbox" checked />
-                <span>on/off</span>
-              </label>
-              <label>
-                <input type="checkbox" id="drum-auto-toggle" class="nes-checkbox" checked />
-                <span>auto</span>
-              </label>
-              <div>
-                <select id="drum-patterns-select">
-                  <option value="0">classic</option>
-                  <option value="1">lazy</option>
-                  <option value="2">dense</option>
-                </select>
+              <div class="panel-control-div">
+                <div>
+                  <label>on/off</label>
+                  <label>
+                    <input type="checkbox" id="drum-toggle" class="nes-checkbox" checked />
+                    <span></span>
+                  </label>
+                </div>
+
+                <div>
+                  <label>pattern</label>
+                  <select id="drum-patterns-select">
+                    <option value="0">classic</option>
+                    <option value="1">lazy</option>
+                    <option value="2">dense</option>
+                  </select>
+                </div>
               </div>
             </div>
 
             <div class="panel" id="info-div">
               <h3>Lo-Fi Player</h3>
               <p>
-                It's an interactive room full of lofi vibe. Designed and built by
-                <a href="https://vibertthio.com/portfolio/" target="_blank">Vibert Thio</a>. Powered
-                by magic from <a href="https://magenta.tensorflow.org/" target="_blank">Magenta</a>.
-                Thanks
-                <a href="https://soundcloud.com/cone-head" target="_blank">Conehead</a>
-                and
-                <a href="https://soundcloud.com/eveyichenmusic" target="_blank">E V E</a>
-                for the counsel on music. Also, it was developed in
-                <a href="https://research.google/teams/brain/" target="_blank"></a>Google Brain.
+                An interactive room full of lofi vibe. Designed and built by
+                <a href="https://vibertthio.com/portfolio/" target="_blank">Vibert Thio</a> in
+                <a href="https://research.google/teams/brain/" target="_blank">Google Brain</a>.
+                Powered by magic from
+                <a href="https://magenta.tensorflow.org/" target="_blank">Magenta</a>.
               </p>
               <br />
               <h3>Credits</h3>
               <ul>
+                <li>
+                  Thanks
+                  <a href="https://soundcloud.com/cone-head" target="_blank">Conehead</a>
+                  and
+                  <a href="https://soundcloud.com/eveyichenmusic" target="_blank">E V E</a>
+                  for the counsel on music.
+                </li>
                 <li>
                   rain gif:
                   <a href="https://giphy.com/colorful-courier" target="_blank">@colorful-courier</a>
@@ -408,7 +456,7 @@
       </div>
 
       <footer>
-        <span style="color: white;">v.0.7</span>
+        <span style="color: white;">v.0.9</span>
       </footer>
     </div>
 

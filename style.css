@@ -2,6 +2,7 @@
   --canvas-width: 885px;
   --canvas-height: 435px;
   --background-color: rgba(255, 11, 174, 1);
+  --black-color: rgba(0, 0, 0, 1);
   /* --background-color: rgb(0, 0, 0); */
 
   --text-color: #373fff;
@@ -12,10 +13,13 @@
   --bright-green: rgba(127, 246, 102, 1);
   /* --shadow: 10px 10px 5px black; */
   --shadow: 0 8px 12px 0 rgba(0, 0, 0, 0.8), 0 12px 25px 0 rgba(0, 0, 0, 0.7);
+
+  --no-shadow: 0 8px 12px 0 rgba(0, 0, 0, 0), 0 12px 25px 0 rgba(0, 0, 0, 0);
 }
 
 * {
-  font-family: "Press Start 2P", cursive;
+  font-family: 'Press Start 2P', cursive;
+  user-select: none;
 }
 
 html {
@@ -61,6 +65,12 @@ p,
 option,
 label {
   font-size: 0.8rem;
+}
+
+select {
+  font-size: 0.6rem;
+  padding: 0.2rem;
+  border: solid var(--black-color) 0.25rem;
 }
 
 input {
@@ -136,7 +146,11 @@ button {
 }
 
 #main-canvas {
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   z-index: 0;
 }
 
@@ -145,6 +159,7 @@ button {
   /* margin: 1rem 0 0.5rem 0; */
   position: relative;
   width: 100%;
+  padding-top: 48%;
   /* max-width: 800px; */
   /* height: 435px; */
   border: solid var(--text-color) var(--border-width);
@@ -190,7 +205,7 @@ button {
   position: relative;
   background-color: var(--text-background-color);
   border: solid var(--text-color) var(--border-width);
-  width: 70%;
+  width: 65%;
   height: 80%;
   padding: 1rem;
 
@@ -205,13 +220,16 @@ button {
 #melody-panel-close {
   top: 0;
   right: 0;
+  padding: 0.8rem;
 }
 
 #melody-panel-right {
+  display: none;
   top: 40%;
   right: 5px;
 }
 #melody-panel-left {
+  display: none;
   top: 40%;
   left: 5px;
 }
@@ -238,23 +256,69 @@ button {
   width: 100%;
   height: 100%;
   overflow: scroll;
-  padding: 0 10%;
+  padding: 0.8rem 10%;
   /* align-items: center; */
+}
+
+.panel label {
+  min-width: 8rem;
+}
+
+.panel-control-div div {
+  margin: 0.7rem 0;
 }
 
 #interpolation-div {
   text-align: center;
 }
-#interpolation-div label,
-#interpolation-div select,
 #interpolation-div p {
   font-size: 0.6rem;
 }
+#interpolation-div select {
+  font-size: 0.6rem;
+  margin: 0 0.5rem;
+}
+#interpolation-div div {
+  margin: 0.5rem 0 0 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 #interpolation-div canvas {
+  margin-top: 0.5rem;
   width: 100%;
   height: 30%;
 }
 /* buttons */
+
+.circle {
+  position: absolute;
+  top: -1.2rem;
+  left: 50%;
+  transform: translate(-50%, 0%);
+  width: 0.8rem;
+  height: 0.8rem;
+  /* border-radius: 0.5rem; */
+  /* background-color: var(--bright-green); */
+  background-image: url('./assets/stars-3.png');
+  background-size: 100% 100%;
+}
+
+.hidden {
+  display: none;
+}
+
+.display-block {
+  display: block;
+}
+
+.disabled {
+  pointer-events: none;
+}
+
+.transparent {
+  opacity: 0.6;
+}
 
 .disabledbutton {
   pointer-events: none;
@@ -309,7 +373,7 @@ button {
 }
 
 /* range input */
-input[type="range"]::-webkit-slider-thumb {
+input[type='range']::-webkit-slider-thumb {
   box-shadow: 0px 0px 0px #ffffff;
   border: 0px solid #000000;
   height: var(--input-thumb-size);
@@ -319,7 +383,7 @@ input[type="range"]::-webkit-slider-thumb {
   cursor: pointer;
   -webkit-appearance: none;
 }
-input[type="range"]::-moz-range-thumb {
+input[type='range']::-moz-range-thumb {
   box-shadow: 0px 0px 0px #ffffff;
   border: 0px solid #000000;
   height: var(--input-thumb-size);
@@ -328,7 +392,7 @@ input[type="range"]::-moz-range-thumb {
   background: #000000;
   cursor: pointer;
 }
-input[type="range"]::-ms-thumb {
+input[type='range']::-ms-thumb {
   margin-top: 1px;
   box-shadow: 0px 0px 0px #ffffff;
   border: 0px solid #000000;
@@ -378,6 +442,9 @@ footer {
 #info-div p,
 #info-div ul {
   font-size: 0.7rem;
+  margin: 0;
+  padding: 0;
+  padding-left: 2rem;
 }
 
 #youtube-div {
@@ -446,6 +513,7 @@ footer {
 }
 
 #bubble-div {
+  display: none;
   position: absolute;
   padding: 0.1rem;
   bottom: 90%;
@@ -453,6 +521,23 @@ footer {
   width: 100%;
   z-index: 2;
   font-size: 0.5rem;
+}
+
+.blink {
+  animation-name: blink;
+  animation-duration: 1s;
+  animation-iteration-count: infinite;
+}
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 @media only screen and (max-width: 720px) {
@@ -520,10 +605,12 @@ footer {
   #warning-div {
     width: 90%;
     max-width: 500px;
+    padding: 2rem 1rem;
   }
   #warning-div p {
     text-align: center;
     font-size: 0.8rem;
+    line-height: 1.5;
   }
   #warning-div div {
     padding: 0;

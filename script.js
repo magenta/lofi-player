@@ -1,13 +1,9 @@
 const warningOverlay = document.getElementById('warning-overlay');
 const startButton = document.getElementById('start-button');
 const whateverButton = document.getElementById('whatever-button');
-const checkTimeButton = document.getElementById('check-time-button');
-const checkTimeText = document.getElementById('check-time-text');
 const bpmInput = document.getElementById('bpm-input');
-const bpmValueSpan = document.getElementById('bpm-value');
 const drumPatternsSelect = document.getElementById('drum-patterns-select');
 const drumToggle = document.getElementById('drum-toggle');
-const drumAutoToggle = document.getElementById('drum-auto-toggle');
 const chordsSelect = document.getElementById('chords-select');
 const chordsInstrumentSelect = document.getElementById('chords-instrument-select');
 const backgroundSoundsSelect = document.getElementById('background-samples-select');
@@ -28,7 +24,6 @@ const canvasOverlay = document.getElementById('canvas-overlay');
 const melodyPanelDiv = document.getElementById('melody-panel-div');
 const interpolationDiv = document.getElementById('interpolation-div');
 const melodyPanelCloseSpan = document.getElementById('melody-panel-close');
-const timeProgress = document.getElementById('time-progress');
 const backgroundImage = document.getElementById('background-image');
 const bassVolumeSlider = document.getElementById('bass-volume-slider');
 const bassToneSlider = document.getElementById('bass-tone-slider');
@@ -92,7 +87,7 @@ const NUM_INSTRUMENTS = 4;
 const NUM_PRESET_MELODIES = 4;
 const NUM_PRESET_CHORD_PROGRESSIONS = 3;
 const NUM_DRUM_PATTERNS = 3;
-const DEFAULT_GUIDANCE_INTERVAL = 1000;
+const DEFAULT_GUIDANCE_INTERVAL = 500;
 const SAMPLES_BASE_URL = './samples';
 const CHANNEL_ID = 'UCizuHuCAHmpTa6EFeZS2Hqg';
 
@@ -105,12 +100,14 @@ const data = {
   commands: [],
   showPanel: false,
   backgroundSounds: {
+    mute: true,
     samples: [],
     names: ['rain', 'waves', 'street', 'kids'],
     index: 0,
   },
   instruments: {},
   melody: {
+    mute: false,
     part: null,
     gain: 1,
     swing: 0,
@@ -125,6 +122,7 @@ const data = {
     interpolationIndex: 0,
   },
   chords: {
+    mute: true,
     part: null,
     index: 0,
     gain: 1,
@@ -133,6 +131,7 @@ const data = {
     instrumentIndex: 0,
   },
   bass: {
+    mute: true,
     notes: [
       { time: '0:0:0', note: 'F2', duration: { '1m': 0.7 }, velocity: 1.0 },
       { time: '1:0:0', note: 'F2', duration: { '1m': 0.7 }, velocity: 1.0 },
@@ -143,10 +142,10 @@ const data = {
   canvas: {},
   seq: {},
   drum: {
-    mute: false,
+    mute: true,
     names: ['kk', 'sn', 'hh'],
     samples: [],
-    auto: true,
+    auto: false,
     patternIndex: 0,
     scale: {
       kk: 1,
@@ -156,6 +155,7 @@ const data = {
   },
   effects: {},
   master: {
+    autoBreak: false,
     masterCompressor: new Tone.Compressor({
       threshold: -15,
       ratio: 7,
@@ -172,6 +172,7 @@ const data = {
 const assets = {
   defaultBoardText: 'Vibert Thio 2020.',
   catIndex: 0,
+  windowUrls: ['./assets/window-0.png', './assets/window-3.png'],
   avatarUrls: [`./assets/avatar-1-0.png`, `./assets/avatar-1-1.png`, `./assets/avatar-1-2.png`],
   catUrls: ['./assets/cat-75-purple.gif', './assets/cat-90.gif', './assets/dog-100.gif'],
 };
@@ -212,7 +213,8 @@ function initSounds() {
     checkFinishLoading();
   }).toMaster();
 
-  data.backgroundSounds.gain = new Tone.Gain(1).toMaster();
+  data.backgroundSounds.gate = new Tone.Gain(data.backgroundSounds.mute ? 0 : 1).toMaster();
+  data.backgroundSounds.gain = new Tone.Gain(1).connect(data.backgroundSounds.gate);
   // data.backgroundSounds.hpf = new Tone.Filter(0, "highpass").connect(data.backgroundSounds.gain);
   data.backgroundSounds.hpf = new Tone.Filter(20000, 'lowpass').connect(data.backgroundSounds.gain);
   const sampleUrls = {};
@@ -271,7 +273,8 @@ function initSounds() {
   });
 
   const { bass } = data;
-  bass.gain = new Tone.Gain(1).connect(reverb);
+  bass.gate = new Tone.Gain(0).connect(reverb);
+  bass.gain = new Tone.Gain(1).connect(bass.gate);
   bass.lpf = new Tone.Filter(200, 'lowpass').connect(bass.gain);
   bass.instrument = new Tone.Synth({
     oscillator: {
@@ -428,7 +431,7 @@ function addImages() {
     { horizontal: true }
   );
 
-  assets.window = addImageToCanvasDiv('./assets/window-1.png', {
+  assets.window = addImageToCanvasDiv(assets.windowUrls[data.backgroundSounds.mute ? 1 : 0], {
     class: 'large-on-hover-micro',
     width: '38%',
     left: '17%',
@@ -494,7 +497,15 @@ function addImages() {
     width: '3%',
     bottom: '39%',
     left: '38%',
+    group: true,
   });
+  const cactusArrow = createCircleElement();
+  if (!data.backgroundSounds.mute) {
+    cactusArrow.classList.add('hidden');
+  } else {
+    assets.cactus.childNodes[0].classList.add('transparent');
+  }
+  assets.cactus.appendChild(cactusArrow);
 
   assets.chair = addImageToCanvasDiv('./assets/chair-red.png', {
     width: '10%',
@@ -504,13 +515,14 @@ function addImages() {
   dragElement(assets.chair, undefined, { horizontal: true });
 
   assets.desk = addImageToCanvasDiv('./assets/desk.png', {
+    class: 'large-on-hover-micro',
     width: '21%',
     left: '1%',
     group: true,
   });
 
   assets.lamp = addImageToCanvasDiv('./assets/lamp-on.png', {
-    class: 'large-on-hover',
+    // class: 'large-on-hover',
     width: '20%',
     left: '20%',
     bottom: '100%',
@@ -520,7 +532,7 @@ function addImages() {
   assets.lampOn = true;
 
   assets.pens = addImageToCanvasDiv('./assets/pens.png', {
-    class: 'large-on-hover',
+    // class: 'large-on-hover',
     width: '12%',
     right: '40%',
     bottom: '100%',
@@ -528,7 +540,18 @@ function addImages() {
   });
 
   assets.desk.appendChild(assets.pens);
-  dragElement(assets.desk, undefined, { horizontal: true });
+  dragElement(
+    assets.desk,
+    () => {
+      switchPanel('master');
+      togglePanel();
+    },
+    { horizontal: true }
+  );
+  dragElement(assets.pens, () => {
+    // switchPanel('master');
+    // togglePanel();
+  });
 
   assets.shelfWithBooks = addImageToCanvasDiv('./assets/shelf.png', {
     class: 'large-on-hover',
@@ -686,56 +709,68 @@ function addImages() {
     // bottom: "100%",
     group: true,
   });
+  const clockArrow = createCircleElement();
+
+  assets.clock.appendChild(clockArrow);
   assets.clock.appendChild(assets.time);
+
+  if (data.drum.mute) {
+    assets.clock.childNodes[0].classList.add('transparent');
+    assets.clock.childNodes[2].classList.add('transparent');
+  } else {
+    clockArrow.classList.add('hidden');
+  }
   assets.cabinetRight.appendChild(assets.clock);
 
-  assets.bass = addImageToCanvasDiv('./assets/bass-wall.png', {
+  assets.bassGroup = addImageToCanvasDiv('./assets/bass-wall.png', {
     class: 'large-on-hover',
-    height: '40%',
+    width: '6%',
     right: '10%',
     top: '10%',
     zIndex: '0',
+    group: true,
   });
-
-  // assets.acousticGuitar = addImageToCanvasDiv("./assets/acoustic-guitar.png", {
-  //   class: "large-on-hover",
-  //   height: "30%",
-  //   right: "17%",
-  //   bottom: "2%",
-  //   zIndex: "3",
-  // });
+  assets.bass = assets.bassGroup.childNodes[0];
+  assets.bassGroup.appendChild(createCircleElement());
+  if (data.bass.mute) {
+    assets.bass.classList.add('transparent');
+  }
 
   assets.chordsInstruments = [
     addImageToCanvasDiv('./assets/synth.png', {
       class: 'large-on-hover',
-      height: '28%',
+      width: '30%',
       right: '30%',
       top: '-28%',
       zIndex: '2',
+      group: true,
     }),
     addImageToCanvasDiv('./assets/piano.png', {
       class: 'large-on-hover',
-      height: '28%',
+      width: '30%',
       right: '30%',
       top: '-28%',
       zIndex: '2',
       display: 'none',
+      group: true,
     }),
     addImageToCanvasDiv('./assets/acoustic-guitar.png', {
       class: 'large-on-hover',
-      height: '120%',
+      width: '19%',
       left: '40%',
       bottom: '-10%',
       zIndex: '3',
       display: 'none',
+      group: true,
     }),
     addImageToCanvasDiv('./assets/electric-guitar.png', {
       class: 'large-on-hover',
-      height: '130%',
+      width: '19%',
       left: '40%',
       bottom: '-10%',
       zIndex: '3',
       display: 'none',
+      group: true,
     }),
   ];
 
@@ -747,6 +782,7 @@ function addImages() {
       bottom: '45%',
       zIndex: '3',
       display: 'none',
+      group: true,
     }),
     addImageToCanvasDiv('./assets/piano.png', {
       class: 'large-on-hover',
@@ -754,27 +790,40 @@ function addImages() {
       right: '52%',
       bottom: '45%',
       zIndex: '3',
+      group: true,
     }),
     addImageToCanvasDiv('./assets/acoustic-guitar.png', {
       class: 'large-on-hover',
-      height: '120%',
-      left: '15%',
+      width: '17%',
+      left: '19%',
       bottom: '-10%',
       zIndex: '3',
       display: 'none',
+      group: true,
     }),
     addImageToCanvasDiv('./assets/electric-guitar.png', {
       class: 'large-on-hover',
-      height: '130%',
-      left: '15%',
+      width: '17%',
+      left: '19%',
       bottom: '-10%',
       zIndex: '3',
       display: 'none',
+      group: true,
     }),
   ];
 
   for (let i = 0; i < NUM_INSTRUMENTS; i++) {
     const mi = assets.melodyInstruments[i];
+    if (data.melody.mute) {
+      mi.classList.add('transparent');
+    }
+    const melodyArrow = createCircleElement();
+    if (data.melody.mute) {
+      mi.classList.add('transparent');
+    } else {
+      melodyArrow.classList.add('hidden');
+    }
+    mi.appendChild(melodyArrow);
     assets.sofa.appendChild(mi);
     dragElement(mi, () => {
       switchPanel('melody');
@@ -782,6 +831,13 @@ function addImages() {
     });
 
     const ci = assets.chordsInstruments[i];
+    const chordsArrow = createCircleElement();
+    if (data.chords.mute) {
+      ci.classList.add('transparent');
+    } else {
+      chordsArrow.classList.add('hidden');
+    }
+    ci.appendChild(chordsArrow);
     assets.sofa.appendChild(ci);
     dragElement(ci, () => {
       switchPanel('chords');
@@ -829,7 +885,7 @@ function addImages() {
   dragElement(
     assets.avatarGroup,
     () => {
-      toggleDrumMute(undefined, true, Tone.now());
+      toggleDrum(undefined, true, Tone.now());
     },
     { horizontal: true }
   );
@@ -919,7 +975,7 @@ function addImages() {
     window.open('https://magenta.tensorflow.org/', '_blank');
   });
 
-  dragElement(assets.bass, () => {
+  dragElement(assets.bassGroup, () => {
     // data.bass.gain.gain.value = data.bass.gain.gain.value > 0.5 ? 0 : 1;
     switchPanel('bass');
     togglePanel();
@@ -941,10 +997,6 @@ function addImages() {
   });
   dragElement(assets.shelfWithBooks, () => {
     switchPanel('info');
-    togglePanel();
-  });
-  dragElement(assets.pens, () => {
-    switchPanel('master');
     togglePanel();
   });
 
@@ -1009,7 +1061,11 @@ function addImageToCanvasDiv(src, params) {
   }
 
   if (params.class) {
-    img.classList.add(params.class);
+    if (params.class.includes(' ')) {
+      img.classList.add(...params.class.split(' '));
+    } else {
+      img.classList.add(params.class);
+    }
   }
   img.style.position = 'absolute';
 
@@ -1209,22 +1265,19 @@ function seqCallback(time, b) {
   }
 
   // Markov chain
-  if (data.drum.auto) {
+  if (data.master.autoBreak) {
     if (b % 32 === 31) {
       if (data.drum.mute) {
         if (Math.random() > 0.05) {
-          toggleDrumMute(false, true, time);
+          toggleDrum(false, true, time);
         }
       } else {
         if (Math.random() < TRANSITION_PROB) {
-          toggleDrumMute(true, true, time);
+          toggleDrum(true, true, time);
         }
       }
     }
   }
-
-  checkTimeText.textContent = Tone.Transport.position;
-  timeProgress.value = Tone.Transport.progress * 100;
 }
 
 async function loadMidiFiles() {
@@ -1284,7 +1337,6 @@ function startTransport() {
   Tone.Transport.start();
   onTransportStart();
   startButton.textContent = 'stop';
-  assets.window.src = './assets/window-0.png';
   assets.light.src = './assets/light-on.png';
   canvasOverlay.style.display = 'none';
 }
@@ -1293,7 +1345,6 @@ function stopTransport() {
   Tone.Transport.stop();
   onTransportStop();
   startButton.textContent = 'start';
-  assets.window.src = './assets/window-1.png';
   assets.light.src = './assets/light-off.png';
   canvasOverlay.style.display = 'flex';
 }
@@ -1301,6 +1352,7 @@ function stopTransport() {
 function onFinishLoading() {
   canvasOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
   startButton.textContent = 'start';
+  startButton.classList.remove('disabled');
   startButton.addEventListener('click', () => {
     if (!data.started) {
       data.started = true;
@@ -1314,11 +1366,9 @@ function onFinishLoading() {
     changeBpm(bpmInput.value);
   });
 
+  drumToggle.checked = !data.drum.mute;
   drumToggle.addEventListener('change', (e) => {
-    toggleDrumMute(!e.target.checked);
-  });
-  drumAutoToggle.addEventListener('change', (e) => {
-    data.drum.auto = e.target.checked;
+    toggleDrum(!drumToggle.checked);
   });
 
   drumPatternsSelect.addEventListener('change', () => {
@@ -1326,6 +1376,10 @@ function onFinishLoading() {
     // data.drum.patternIndex = parseInt(drumPatternsSelect.value, 10);
   });
 
+  chordsMuteCheckbox.checked = !data.chords.mute;
+  chordsMuteCheckbox.addEventListener('change', () => {
+    toggleChords(!chordsMuteCheckbox.checked);
+  });
   chordsSelect.addEventListener('change', () => {
     changeChords(chordsSelect.value);
   });
@@ -1342,19 +1396,21 @@ function onFinishLoading() {
     sendInterpolationMessage(data.melody.interpolationData[0]);
   });
 
+  backgroundSoundsMuteCheckbox.checked = !data.backgroundSounds.mute;
+  backgroundSoundsMuteCheckbox.addEventListener('change', () => {
+    toggleBackgroundSounds(!backgroundSoundsMuteCheckbox.checked);
+  });
   backgroundSoundsSelect.addEventListener('change', () => {
     data.backgroundSounds.switch(backgroundSoundsSelect.value);
   });
 
+  melodyMuteCheckbox.checked = !data.melody.mute;
+  melodyMuteCheckbox.addEventListener('change', () => {
+    toggleMelody(!melodyMuteCheckbox.checked);
+  });
   melodyInstrumentSelect.addEventListener('change', () => {
     changeMelodyInstrument(melodyInstrumentSelect.value);
   });
-
-  // melodyInteractionSelect.addEventListener("change", () => {
-  //   const mode = melodyInteractionSelect.value;
-  //   melodyInteractionDivs[mode].style.display = "block";
-  //   melodyInteractionDivs[1 - mode].style.display = "none";
-  // });
 
   interpolationSlider.addEventListener('change', (e) => {
     e.stopPropagation();
@@ -1377,6 +1433,10 @@ function onFinishLoading() {
     data.chords.gain = e.target.value / 100;
   });
 
+  bassMuteCheckbox.checked = !data.bass.mute;
+  bassMuteCheckbox.addEventListener('change', () => {
+    toggleBass(!bassMuteCheckbox.checked);
+  });
   bassVolumeSlider.addEventListener('input', () => {
     data.bass.changeGain(bassVolumeSlider.value / 100);
   });
@@ -1391,6 +1451,10 @@ function onFinishLoading() {
   backgroundToneSlider.addEventListener('input', () => {
     const frq = backgroundToneSlider.value * 200;
     data.backgroundSounds.hpf.frequency.value = frq;
+  });
+
+  masterAutoBreakCheckbox.addEventListener('change', () => {
+    data.master.autoBreak = masterAutoBreakCheckbox.checked;
   });
 
   masterReverbSlider.addEventListener('input', () => {
@@ -1489,17 +1553,20 @@ function setupKeyboardEvents() {
 
 async function onFirstTimeStarted() {
   const interval = DEFAULT_GUIDANCE_INTERVAL;
-  await sleep(interval * 2);
-  bubbleDiv.textContent = `It's crazy out there.`;
+  await sleep(interval);
+  bubbleDiv.style.display = 'block';
 
   await sleep(interval * 5);
-  bubbleDiv.style.width = '120%';
-  bubbleDiv.textContent = `Try click the window.`;
+  bubbleDiv.textContent = `Can you hear the piano?`;
 
-  await sleep(interval * 10);
-  bubbleDiv.textContent = `Click me to give me coffee.`;
+  await sleep(interval * 5);
+  bubbleDiv.style.width = '130%';
+  bubbleDiv.textContent = `Tinker the objects in this room and listen carefully.`;
 
-  await sleep(interval * 10);
+  // await sleep(interval * 10);
+  // bubbleDiv.textContent = `Click on me to give me coffee.`;
+
+  await sleep(interval * 15);
   assets.catGroup.appendChild(bubbleDiv);
   bubbleDiv.style.width = '150%';
   bubbleDiv.textContent = `meow...`;
@@ -1507,7 +1574,7 @@ async function onFirstTimeStarted() {
   await sleep(interval * 10);
   assets.avatarGroup.appendChild(bubbleDiv);
   bubbleDiv.style.width = '110%';
-  bubbleDiv.textContent = 'Enjoy the magical room...';
+  bubbleDiv.textContent = 'Enjoy the magical room.';
 
   await sleep(interval * 10);
   bubbleDiv.style.width = '100%';
@@ -1526,11 +1593,97 @@ function onTransportStop() {
     .stop();
 }
 
-function toggleDrumMute(value, changeFilter = false, time = 0) {
+function toggleBackgroundSounds(value) {
+  if (value !== undefined) {
+    data.backgroundSounds.mute = value;
+  } else {
+    data.backgroundSounds.mute = !data.backgroundSounds.mute;
+  }
+
+  if (data.backgroundSounds.mute) {
+    assets.cactus.childNodes[0].classList.add('transparent');
+    assets.cactus.childNodes[1].classList.remove('hidden');
+    data.backgroundSounds.gate.gain.value = 0;
+    assets.window.src = assets.windowUrls[1];
+  } else {
+    assets.cactus.childNodes[0].classList.remove('transparent');
+    assets.cactus.childNodes[1].classList.add('hidden');
+    data.backgroundSounds.gate.gain.value = 1;
+    assets.window.src = assets.windowUrls[0];
+  }
+}
+
+function toggleChords(value) {
+  if (value !== undefined) {
+    data.chords.mute = value;
+  } else {
+    data.chords.mute = !data.chords.mute;
+  }
+
+  if (data.chords.mute) {
+    assets.chordsInstruments.forEach((i) => {
+      i.classList.add('transparent');
+      i.childNodes[1].classList.remove('hidden');
+    });
+  } else {
+    assets.chordsInstruments.forEach((i) => {
+      i.classList.remove('transparent');
+      i.childNodes[1].classList.add('hidden');
+    });
+  }
+}
+function toggleMelody(value) {
+  if (value !== undefined) {
+    data.melody.mute = value;
+  } else {
+    data.melody.mute = !data.melody.mute;
+  }
+
+  if (data.melody.mute) {
+    assets.melodyInstruments.forEach((i) => {
+      i.classList.add('transparent');
+      i.childNodes[1].classList.remove('hidden');
+    });
+  } else {
+    assets.melodyInstruments.forEach((i) => {
+      i.classList.remove('transparent');
+      i.childNodes[1].classList.add('hidden');
+    });
+  }
+}
+function toggleBass(value) {
+  if (value !== undefined) {
+    data.bass.mute = value;
+  } else {
+    data.bass.mute = !data.bass.mute;
+  }
+
+  if (data.bass.mute) {
+    data.bass.gate.gain.value = 0;
+    assets.bass.classList.add('transparent');
+    assets.bassGroup.childNodes[1].classList.remove('hidden');
+  } else {
+    data.bass.gate.gain.value = 1;
+    assets.bass.classList.remove('transparent');
+    assets.bassGroup.childNodes[1].classList.add('hidden');
+  }
+}
+
+function toggleDrum(value, changeFilter = false, time = 0) {
   if (value === undefined) {
     data.drum.mute = !data.drum.mute;
   } else {
     data.drum.mute = value;
+  }
+
+  if (data.drum.mute) {
+    assets.clock.childNodes[0].classList.add('transparent');
+    assets.clock.childNodes[2].classList.add('transparent');
+    assets.clock.childNodes[1].classList.remove('hidden');
+  } else {
+    assets.clock.childNodes[0].classList.remove('transparent');
+    assets.clock.childNodes[2].classList.remove('transparent');
+    assets.clock.childNodes[1].classList.add('hidden');
   }
 
   if (changeFilter) {
@@ -1553,12 +1706,13 @@ function changeChords(index = 0) {
   }
   data.chords.index = index;
   data.chords.part = new Tone.Part((time, note) => {
-    data.instruments[data.chords.instrumentIndex].triggerAttackRelease(
-      toFreq(note.pitch - (data.chords.instrumentIndex === 0 ? 0 : 12)),
-      note.duration,
-      time + data.chords.swing * (75 / data.master.bpm) * Math.random() * 0.1,
-      note.velocity * data.chords.gain
-    );
+    !data.chords.mute &&
+      data.instruments[data.chords.instrumentIndex].triggerAttackRelease(
+        toFreq(note.pitch - (data.chords.instrumentIndex === 0 ? 0 : 12)),
+        note.duration,
+        time + data.chords.swing * (75 / data.master.bpm) * Math.random() * 0.1,
+        note.velocity * data.chords.gain
+      );
   }, midiToToneNotes(data.chords.midis[data.chords.index])).start(0);
 
   backgroundImage.src = `./assets/rooom-${data.chords.index}.png`;
@@ -1570,18 +1724,18 @@ function changeMelodyByIndex(index = 0) {
   }
   data.melody.index = index;
   if (index === data.melody.toneNotes.length - 1) {
-    console.log('rnn');
     sendContinueMessage();
     return;
   }
 
   data.melody.part = new Tone.Part((time, note) => {
-    data.melody.instrument.triggerAttackRelease(
-      toFreq(note.pitch - 12),
-      note.duration,
-      time + Math.random() * (75 / data.master.bpm) * 0.3 * data.melody.swing,
-      note.velocity * data.melody.gain
-    );
+    !data.melody.mute &&
+      data.melody.instrument.triggerAttackRelease(
+        toFreq(note.pitch - 12),
+        note.duration,
+        time + Math.random() * (75 / data.master.bpm) * 0.3 * data.melody.swing,
+        note.velocity * data.melody.gain
+      );
   }, data.melody.toneNotes[data.melody.index]).start(0);
 
   data.melody.part.loop = false;
@@ -1595,12 +1749,13 @@ function changeMelody(readyMidi) {
     data.melody.part.cancel(0);
   }
   data.melody.part = new Tone.Part((time, note) => {
-    data.melody.instrument.triggerAttackRelease(
-      toFreq(note.pitch - 12),
-      note.duration,
-      time + Math.random() * (75 / data.master.bpm) * 0.3 * data.melody.swing,
-      note.velocity * data.melody.gain
-    );
+    !data.melody.mute &&
+      data.melody.instrument.triggerAttackRelease(
+        toFreq(note.pitch - 12),
+        note.duration,
+        time + Math.random() * (75 / data.master.bpm) * 0.3 * data.melody.swing,
+        note.velocity * data.melody.gain
+      );
   }, readyMidi).start(0);
   data.melody.part.loop = true;
   data.melody.part.loopEnd = '4:0:0';
@@ -1674,7 +1829,6 @@ function changeMelodyInstrument(index) {
 function changeBpm(v) {
   v = Math.min(Math.max(60, v), 100);
   bpmInput.value = v;
-  bpmValueSpan.textContent = `${v}`;
   data.master.bpm = v;
   Tone.Transport.bpm.value = v;
 }
@@ -1803,6 +1957,12 @@ function filterNotesInScaleSingle(notes) {
   });
 }
 
+function createCircleElement() {
+  const el = document.createElement('DIV');
+  el.classList.add('circle', 'blink');
+  return el;
+}
+
 function removeElement(el) {
   el.parentNode.removeChild(el);
 }
@@ -1884,7 +2044,9 @@ function setupPageVisibilityCallback() {
       visibilityChange,
       () => {
         if (document[hidden]) {
-          stopTransport();
+          if (Tone.Transport.state === 'started') {
+            stopTransport();
+          }
         }
       },
       false
@@ -2054,7 +2216,7 @@ function initMessageCallbacks() {
     }
   };
   callbacks[TRIGGER_DRUM] = () => {
-    toggleDrumMute();
+    toggleDrum();
   };
   callbacks[TRIGGER_BASS] = () => {
     if (data.bass.gain.gain.value > 0.5) {
@@ -2098,7 +2260,7 @@ function initMessageCallbacks() {
     }
   };
   callbacks[DRINK_COFFEE] = () => {
-    toggleDrumMute(undefined, true, Tone.now());
+    toggleDrum(undefined, true, Tone.now());
   };
   callbacks[WRITE_ON_BOARD] = ({ textContent }) => {
     assets.textInput.value = textContent;
@@ -2324,14 +2486,20 @@ async function onClickConnect() {
   youtubePromptText.textContent = '[connected]';
   connectYoutubeButton.classList.remove('disabledbutton');
   let nextPageToken;
-  data.fetchintervalid = setInterval(async () => {
+  const intervalCallback = async () => {
     d = await fetchData(getChatMessagesUrl(apiKey, chatId, nextPageToken));
+
+    if (d.pollingIntervalMillis) {
+      listenPeriod = d.pollingIntervalMillis;
+    }
+    data.fetchintervalid = setTimeout(intervalCallback, listenPeriod);
+
     if (d.error) {
       youtubePromptDiv.innerHTML = '';
       const el = document.createElement('P');
       el.textContent = d.error.message;
       youtubePromptDiv.appendChild(el);
-      disconnectYoutubeLiveChat();
+      // disconnectYoutubeLiveChat();
       return;
     }
     youtubePromptDiv.innerHTML = '';
@@ -2354,7 +2522,8 @@ async function onClickConnect() {
         handleMessage(content, authorName);
       }
     }
-  }, listenPeriod);
+  };
+  data.fetchintervalid = setTimeout(intervalCallback, listenPeriod);
 }
 
 function disconnectYoutubeLiveChat() {
