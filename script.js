@@ -1,10 +1,7 @@
 const warningOverlay = document.getElementById('warning-overlay');
 const startButton = document.getElementById('start-button');
 const whateverButton = document.getElementById('whatever-button');
-const checkTimeButton = document.getElementById('check-time-button');
-const checkTimeText = document.getElementById('check-time-text');
 const bpmInput = document.getElementById('bpm-input');
-const bpmValueSpan = document.getElementById('bpm-value');
 const drumPatternsSelect = document.getElementById('drum-patterns-select');
 const drumToggle = document.getElementById('drum-toggle');
 const drumAutoToggle = document.getElementById('drum-auto-toggle');
@@ -28,7 +25,6 @@ const canvasOverlay = document.getElementById('canvas-overlay');
 const melodyPanelDiv = document.getElementById('melody-panel-div');
 const interpolationDiv = document.getElementById('interpolation-div');
 const melodyPanelCloseSpan = document.getElementById('melody-panel-close');
-const timeProgress = document.getElementById('time-progress');
 const backgroundImage = document.getElementById('background-image');
 const bassVolumeSlider = document.getElementById('bass-volume-slider');
 const bassToneSlider = document.getElementById('bass-tone-slider');
@@ -1222,9 +1218,6 @@ function seqCallback(time, b) {
       }
     }
   }
-
-  checkTimeText.textContent = Tone.Transport.position;
-  timeProgress.value = Tone.Transport.progress * 100;
 }
 
 async function loadMidiFiles() {
@@ -1301,6 +1294,7 @@ function stopTransport() {
 function onFinishLoading() {
   canvasOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
   startButton.textContent = 'start';
+  startButton.classList.remove('disabled');
   startButton.addEventListener('click', () => {
     if (!data.started) {
       data.started = true;
@@ -1677,7 +1671,6 @@ function changeMelodyInstrument(index) {
 function changeBpm(v) {
   v = Math.min(Math.max(60, v), 100);
   bpmInput.value = v;
-  bpmValueSpan.textContent = `${v}`;
   data.master.bpm = v;
   Tone.Transport.bpm.value = v;
 }
