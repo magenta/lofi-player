@@ -107,6 +107,7 @@ const data = {
   },
   instruments: {},
   melody: {
+    mute: false,
     part: null,
     gain: 1,
     swing: 0,
@@ -121,6 +122,7 @@ const data = {
     interpolationIndex: 0,
   },
   chords: {
+    mute: false,
     part: null,
     index: 0,
     gain: 1,
@@ -129,6 +131,7 @@ const data = {
     instrumentIndex: 0,
   },
   bass: {
+    mute: false,
     notes: [
       { time: '0:0:0', note: 'F2', duration: { '1m': 0.7 }, velocity: 1.0 },
       { time: '1:0:0', note: 'F2', duration: { '1m': 0.7 }, velocity: 1.0 },
@@ -152,6 +155,7 @@ const data = {
   },
   effects: {},
   master: {
+    autoBreak: false,
     masterCompressor: new Tone.Compressor({
       threshold: -15,
       ratio: 7,
@@ -267,7 +271,8 @@ function initSounds() {
   });
 
   const { bass } = data;
-  bass.gain = new Tone.Gain(1).connect(reverb);
+  bass.gate = new Tone.Gain(1).connect(reverb);
+  bass.gain = new Tone.Gain(1).connect(bass.gate);
   bass.lpf = new Tone.Filter(200, 'lowpass').connect(bass.gain);
   bass.instrument = new Tone.Synth({
     oscillator: {
@@ -837,7 +842,7 @@ function addImages() {
   dragElement(
     assets.avatarGroup,
     () => {
-      toggleDrumMute(undefined, true, Tone.now());
+      toggleDrum(undefined, true, Tone.now());
     },
     { horizontal: true }
   );
@@ -1213,15 +1218,15 @@ function seqCallback(time, b) {
   }
 
   // Markov chain
-  if (data.drum.auto) {
+  if (data.master.autoBreak) {
     if (b % 32 === 31) {
       if (data.drum.mute) {
         if (Math.random() > 0.05) {
-          toggleDrumMute(false, true, time);
+          toggleDrum(false, true, time);
         }
       } else {
         if (Math.random() < TRANSITION_PROB) {
-          toggleDrumMute(true, true, time);
+          toggleDrum(true, true, time);
         }
       }
     }
@@ -1317,7 +1322,7 @@ function onFinishLoading() {
   });
 
   drumToggle.addEventListener('change', (e) => {
-    toggleDrumMute(!e.target.checked);
+    toggleDrum(!e.target.checked);
   });
   drumAutoToggle.addEventListener('change', (e) => {
     data.drum.auto = e.target.checked;
@@ -1328,6 +1333,9 @@ function onFinishLoading() {
     // data.drum.patternIndex = parseInt(drumPatternsSelect.value, 10);
   });
 
+  chordsMuteCheckbox.addEventListener('change', () => {
+    toggleChords(!chordsMuteCheckbox.checked);
+  });
   chordsSelect.addEventListener('change', () => {
     changeChords(chordsSelect.value);
   });
@@ -1348,15 +1356,12 @@ function onFinishLoading() {
     data.backgroundSounds.switch(backgroundSoundsSelect.value);
   });
 
+  melodyMuteCheckbox.addEventListener('change', () => {
+    toggleMelody(!melodyMuteCheckbox.checked);
+  });
   melodyInstrumentSelect.addEventListener('change', () => {
     changeMelodyInstrument(melodyInstrumentSelect.value);
   });
-
-  // melodyInteractionSelect.addEventListener("change", () => {
-  //   const mode = melodyInteractionSelect.value;
-  //   melodyInteractionDivs[mode].style.display = "block";
-  //   melodyInteractionDivs[1 - mode].style.display = "none";
-  // });
 
   interpolationSlider.addEventListener('change', (e) => {
     e.stopPropagation();
@@ -1379,6 +1384,9 @@ function onFinishLoading() {
     data.chords.gain = e.target.value / 100;
   });
 
+  bassMuteCheckbox.addEventListener('change', () => {
+    toggleBass(!bassMuteCheckbox.checked);
+  });
   bassVolumeSlider.addEventListener('input', () => {
     data.bass.changeGain(bassVolumeSlider.value / 100);
   });
@@ -1393,6 +1401,10 @@ function onFinishLoading() {
   backgroundToneSlider.addEventListener('input', () => {
     const frq = backgroundToneSlider.value * 200;
     data.backgroundSounds.hpf.frequency.value = frq;
+  });
+
+  masterAutoBreakCheckbox.addEventListener('change', () => {
+    data.master.autoBreak = masterAutoBreakCheckbox.checked;
   });
 
   masterReverbSlider.addEventListener('input', () => {
@@ -1531,11 +1543,59 @@ function onTransportStop() {
     .stop();
 }
 
-function toggleDrumMute(value, changeFilter = false, time = 0) {
+function toggleChords(value) {
+  if (value !== undefined) {
+    data.chords.mute = value;
+  } else {
+    data.chords.mute = !data.chords.mute;
+  }
+
+  if (data.chords.mute) {
+    assets.chordsInstruments.forEach((i) => i.classList.add('transparent'));
+  } else {
+    assets.chordsInstruments.forEach((i) => i.classList.remove('transparent'));
+  }
+}
+function toggleMelody(value) {
+  if (value !== undefined) {
+    data.melody.mute = value;
+  } else {
+    data.melody.mute = !data.melody.mute;
+  }
+
+  if (data.melody.mute) {
+    assets.melodyInstruments.forEach((i) => i.classList.add('transparent'));
+  } else {
+    assets.melodyInstruments.forEach((i) => i.classList.remove('transparent'));
+  }
+}
+function toggleBass(value) {
+  if (value !== undefined) {
+    data.bass.mute = value;
+  } else {
+    data.bass.mute = !data.bass.mute;
+  }
+
+  if (data.bass.mute) {
+    data.bass.gate.gain.value = 0;
+    assets.bass.classList.add('transparent');
+  } else {
+    data.bass.gate.gain.value = 1;
+    assets.bass.classList.remove('transparent');
+  }
+}
+
+function toggleDrum(value, changeFilter = false, time = 0) {
   if (value === undefined) {
     data.drum.mute = !data.drum.mute;
   } else {
     data.drum.mute = value;
+  }
+
+  if (data.drum.mute) {
+    assets.clock.classList.add('transparent');
+  } else {
+    assets.clock.classList.remove('transparent');
   }
 
   if (changeFilter) {
@@ -1558,12 +1618,13 @@ function changeChords(index = 0) {
   }
   data.chords.index = index;
   data.chords.part = new Tone.Part((time, note) => {
-    data.instruments[data.chords.instrumentIndex].triggerAttackRelease(
-      toFreq(note.pitch - (data.chords.instrumentIndex === 0 ? 0 : 12)),
-      note.duration,
-      time + data.chords.swing * (75 / data.master.bpm) * Math.random() * 0.1,
-      note.velocity * data.chords.gain
-    );
+    !data.chords.mute &&
+      data.instruments[data.chords.instrumentIndex].triggerAttackRelease(
+        toFreq(note.pitch - (data.chords.instrumentIndex === 0 ? 0 : 12)),
+        note.duration,
+        time + data.chords.swing * (75 / data.master.bpm) * Math.random() * 0.1,
+        note.velocity * data.chords.gain
+      );
   }, midiToToneNotes(data.chords.midis[data.chords.index])).start(0);
 
   backgroundImage.src = `./assets/rooom-${data.chords.index}.png`;
@@ -1575,18 +1636,18 @@ function changeMelodyByIndex(index = 0) {
   }
   data.melody.index = index;
   if (index === data.melody.toneNotes.length - 1) {
-    console.log('rnn');
     sendContinueMessage();
     return;
   }
 
   data.melody.part = new Tone.Part((time, note) => {
-    data.melody.instrument.triggerAttackRelease(
-      toFreq(note.pitch - 12),
-      note.duration,
-      time + Math.random() * (75 / data.master.bpm) * 0.3 * data.melody.swing,
-      note.velocity * data.melody.gain
-    );
+    !data.melody.mute &&
+      data.melody.instrument.triggerAttackRelease(
+        toFreq(note.pitch - 12),
+        note.duration,
+        time + Math.random() * (75 / data.master.bpm) * 0.3 * data.melody.swing,
+        note.velocity * data.melody.gain
+      );
   }, data.melody.toneNotes[data.melody.index]).start(0);
 
   data.melody.part.loop = false;
@@ -1600,12 +1661,13 @@ function changeMelody(readyMidi) {
     data.melody.part.cancel(0);
   }
   data.melody.part = new Tone.Part((time, note) => {
-    data.melody.instrument.triggerAttackRelease(
-      toFreq(note.pitch - 12),
-      note.duration,
-      time + Math.random() * (75 / data.master.bpm) * 0.3 * data.melody.swing,
-      note.velocity * data.melody.gain
-    );
+    !data.melody.mute &&
+      data.melody.instrument.triggerAttackRelease(
+        toFreq(note.pitch - 12),
+        note.duration,
+        time + Math.random() * (75 / data.master.bpm) * 0.3 * data.melody.swing,
+        note.velocity * data.melody.gain
+      );
   }, readyMidi).start(0);
   data.melody.part.loop = true;
   data.melody.part.loopEnd = '4:0:0';
@@ -2058,7 +2120,7 @@ function initMessageCallbacks() {
     }
   };
   callbacks[TRIGGER_DRUM] = () => {
-    toggleDrumMute();
+    toggleDrum();
   };
   callbacks[TRIGGER_BASS] = () => {
     if (data.bass.gain.gain.value > 0.5) {
@@ -2102,7 +2164,7 @@ function initMessageCallbacks() {
     }
   };
   callbacks[DRINK_COFFEE] = () => {
-    toggleDrumMute(undefined, true, Tone.now());
+    toggleDrum(undefined, true, Tone.now());
   };
   callbacks[WRITE_ON_BOARD] = ({ textContent }) => {
     assets.textInput.value = textContent;

@@ -259,7 +259,7 @@ button {
 }
 
 .panel label {
-  width: 7rem;
+  min-width: 8rem;
 }
 
 .panel-control-div div {
@@ -291,6 +291,10 @@ button {
 
 .disabled {
   pointer-events: none;
+}
+
+.transparent {
+  opacity: 0.6;
 }
 
 .disabledbutton {
