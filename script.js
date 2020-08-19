@@ -500,13 +500,14 @@ function addImages() {
   dragElement(assets.chair, undefined, { horizontal: true });
 
   assets.desk = addImageToCanvasDiv('./assets/desk.png', {
+    class: 'large-on-hover-micro',
     width: '21%',
     left: '1%',
     group: true,
   });
 
   assets.lamp = addImageToCanvasDiv('./assets/lamp-on.png', {
-    class: 'large-on-hover',
+    // class: 'large-on-hover',
     width: '20%',
     left: '20%',
     bottom: '100%',
@@ -516,7 +517,7 @@ function addImages() {
   assets.lampOn = true;
 
   assets.pens = addImageToCanvasDiv('./assets/pens.png', {
-    class: 'large-on-hover',
+    // class: 'large-on-hover',
     width: '12%',
     right: '40%',
     bottom: '100%',
@@ -524,7 +525,18 @@ function addImages() {
   });
 
   assets.desk.appendChild(assets.pens);
-  dragElement(assets.desk, undefined, { horizontal: true });
+  dragElement(
+    assets.desk,
+    () => {
+      switchPanel('master');
+      togglePanel();
+    },
+    { horizontal: true }
+  );
+  dragElement(assets.pens, () => {
+    // switchPanel('master');
+    // togglePanel();
+  });
 
   assets.shelfWithBooks = addImageToCanvasDiv('./assets/shelf.png', {
     class: 'large-on-hover',
@@ -937,10 +949,6 @@ function addImages() {
   });
   dragElement(assets.shelfWithBooks, () => {
     switchPanel('info');
-    togglePanel();
-  });
-  dragElement(assets.pens, () => {
-    switchPanel('master');
     togglePanel();
   });
 
