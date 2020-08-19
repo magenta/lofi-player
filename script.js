@@ -710,9 +710,16 @@ function addImages() {
     group: true,
   });
   const clockArrow = createCircleElement();
-  clockArrow.classList.add('hidden');
+
   assets.clock.appendChild(clockArrow);
   assets.clock.appendChild(assets.time);
+
+  if (data.drum.mute) {
+    assets.clock.childNodes[0].classList.add('transparent');
+    assets.clock.childNodes[2].classList.add('transparent');
+  } else {
+    clockArrow.classList.add('hidden');
+  }
   assets.cabinetRight.appendChild(assets.clock);
 
   assets.bassGroup = addImageToCanvasDiv('./assets/bass-wall.png', {
@@ -1549,17 +1556,17 @@ async function onFirstTimeStarted() {
   await sleep(interval);
   bubbleDiv.style.display = 'block';
 
-  await sleep(interval * 2);
-  bubbleDiv.textContent = `It's raining.`;
+  await sleep(interval * 5);
+  bubbleDiv.textContent = `Can you hear the piano?`;
 
   await sleep(interval * 5);
-  bubbleDiv.style.width = '120%';
-  bubbleDiv.textContent = `Try clicking on the window.`;
+  bubbleDiv.style.width = '130%';
+  bubbleDiv.textContent = `Tinker the objects in this room and listen carefully.`;
 
-  await sleep(interval * 10);
-  bubbleDiv.textContent = `Click on me to give me coffee.`;
+  // await sleep(interval * 10);
+  // bubbleDiv.textContent = `Click on me to give me coffee.`;
 
-  await sleep(interval * 10);
+  await sleep(interval * 15);
   assets.catGroup.appendChild(bubbleDiv);
   bubbleDiv.style.width = '150%';
   bubbleDiv.textContent = `meow...`;
@@ -1567,7 +1574,7 @@ async function onFirstTimeStarted() {
   await sleep(interval * 10);
   assets.avatarGroup.appendChild(bubbleDiv);
   bubbleDiv.style.width = '110%';
-  bubbleDiv.textContent = 'Enjoy the magical room...';
+  bubbleDiv.textContent = 'Enjoy the magical room.';
 
   await sleep(interval * 10);
   bubbleDiv.style.width = '100%';
@@ -2037,7 +2044,9 @@ function setupPageVisibilityCallback() {
       visibilityChange,
       () => {
         if (document[hidden]) {
-          stopTransport();
+          if (Tone.Transport.state === 'started') {
+            stopTransport();
+          }
         }
       },
       false
