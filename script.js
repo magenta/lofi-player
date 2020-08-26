@@ -1527,6 +1527,8 @@ function onFinishLoading() {
 
     canvas.width = canvasDiv.clientWidth;
     canvas.height = canvasDiv.clientHeight;
+
+    draw();
   });
 
   // show canvas
