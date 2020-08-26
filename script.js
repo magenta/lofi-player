@@ -104,6 +104,7 @@ const NUM_INSTRUMENTS = 4;
 const NUM_PRESET_MELODIES = 4;
 const NUM_PRESET_CHORD_PROGRESSIONS = 3;
 const NUM_DRUM_PATTERNS = 3;
+const CURRENT_NOTE_ENLARGE_RATIO = 1.0;
 const DEFAULT_GUIDANCE_INTERVAL = 500;
 const SAMPLES_BASE_URL = './samples';
 const CHANNEL_ID = 'UCizuHuCAHmpTa6EFeZS2Hqg';
@@ -189,7 +190,7 @@ const data = {
 const assets = {
   defaultBoardText: 'Vibert Thio 2020.',
   catIndex: 0,
-  windowUrls: ['./assets/window-0.png', './assets/window-3.png'],
+  windowUrls: ['./assets/window-0.png', './assets/window-1.png'],
   avatarUrls: [`./assets/avatar-1-0.png`, `./assets/avatar-1-1.png`, `./assets/avatar-1-2.png`],
   catUrls: ['./assets/cat-75-purple.gif', './assets/cat-90.gif', './assets/dog-100.gif'],
 };
@@ -1128,9 +1129,9 @@ function draw() {
   drawMainCanvas();
   drawMelodyCanvas();
 
-  requestAnimationFrame(() => {
-    draw();
-  });
+  // requestAnimationFrame(() => {
+  //   draw();
+  // });
 }
 
 function drawMainCanvas() {
@@ -1222,10 +1223,30 @@ function drawModelData(ctx, x, y, w, h, data) {
     ctx.save();
     const xpos = (w * quantizedStartStep) / totalQuantizedSteps;
     const ypos = h * (1 - (pitch - 64) / 64);
-    const ww = (w * (quantizedEndStep - quantizedStartStep)) / totalQuantizedSteps;
+    const ww = (0.85 * (w * (quantizedEndStep - quantizedStartStep))) / totalQuantizedSteps;
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 1)';
-    ctx.fillRect(xpos, ypos, ww, hh);
+    let current = false;
+
+    if (Tone.Transport.state === 'started') {
+      const p = (Tone.Transport.progress * 2) % 1;
+      if (
+        p > quantizedStartStep / totalQuantizedSteps &&
+        p < quantizedEndStep / totalQuantizedSteps
+      ) {
+        current = true;
+      }
+    }
+
+    if (current) {
+      ctx.fillStyle = '#373fff';
+      const hhh = hh * (1 + CURRENT_NOTE_ENLARGE_RATIO);
+      const yyy = ypos - hh * CURRENT_NOTE_ENLARGE_RATIO * 0.5;
+      ctx.fillRect(xpos, yyy, ww, hhh);
+    } else {
+      ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+      ctx.fillRect(xpos, ypos, ww, hh);
+    }
+
     ctx.restore();
   }
 
@@ -1279,6 +1300,10 @@ function seqCallback(time, b) {
     } else if (b % 16 === 8) {
       assets.makeAvatarDropFoot();
     }
+  }
+
+  if (b % 2 === 0) {
+    draw();
   }
 
   // Markov chain
@@ -1759,6 +1784,8 @@ function changeMelodyByIndex(index = 0) {
 
   firstMelodySelect.value = index;
   sendInterpolationMessage();
+
+  draw();
 }
 
 function changeMelody(readyMidi) {
@@ -1776,6 +1803,8 @@ function changeMelody(readyMidi) {
   }, readyMidi).start(0);
   data.melody.part.loop = true;
   data.melody.part.loopEnd = '4:0:0';
+
+  draw();
 }
 
 function changeInterpolationIndex(index) {
