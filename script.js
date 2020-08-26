@@ -1578,7 +1578,7 @@ async function onFirstTimeStarted() {
 
   await sleep(interval * 5);
   bubbleDiv.style.width = '130%';
-  bubbleDiv.textContent = `Tinker the objects in this room and listen carefully.`;
+  bubbleDiv.textContent = `Tinker with the objects in this room and listen carefully.`;
 
   // await sleep(interval * 10);
   // bubbleDiv.textContent = `Click on me to give me coffee.`;
@@ -1868,7 +1868,7 @@ function midiToToneNotes(midi) {
     return {
       time: `${Math.floor(note.ticks / TICKS_PER_BAR)}:${
         Math.floor(note.ticks / ticksPerBeat) % BEATS_PER_BAR
-        }:${(note.ticks / ticksPerFourthNote) % 4}`,
+      }:${(note.ticks / ticksPerFourthNote) % 4}`,
       pitch: note.midi,
       duration: note.duration,
       velocity: note.velocity,
@@ -1906,7 +1906,7 @@ function modelFormatToToneNotes(d) {
     return {
       time: `${Math.floor(quantizedStartStep / 8)}:${Math.floor((quantizedStartStep % 8) / 2)}:${
         (quantizedStartStep % 2) * 2
-        }`,
+      }`,
       pitch,
       duration: (quantizedEndStep - quantizedStartStep) * (data.master.bpm / 60) * (1 / 4),
       velocity: 0.7,
@@ -1984,7 +1984,7 @@ function removeElement(el) {
   el.parentNode.removeChild(el);
 }
 
-function dragElement(el, onClickCallback = () => { }, params = {}) {
+function dragElement(el, onClickCallback = () => {}, params = {}) {
   let pos1 = 0;
   let pos2 = 0;
   let pos3 = 0;
@@ -2139,7 +2139,7 @@ function getChatMessagesUrl(apiKey, chatId, pageToken) {
   );
 }
 
-async function fetchData(url, callback = () => { }) {
+async function fetchData(url, callback = () => {}) {
   try {
     let res = await fetch(url);
     const data = await res.json();
