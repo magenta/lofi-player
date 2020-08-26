@@ -118,7 +118,7 @@ const data = {
   commands: [],
   showPanel: false,
   backgroundSounds: {
-    mute: true,
+    mute: false,
     samples: [],
     names: ['rain', 'waves', 'street', 'kids'],
     index: 0,
