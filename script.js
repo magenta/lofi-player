@@ -427,13 +427,6 @@ function initCanvas() {
 }
 
 function addImages() {
-  const rainGif = addImageToCanvasDiv('./assets/snow.gif', {
-    width: '45%',
-    left: '20%',
-    zIndex: '-2',
-    bottom: '0',
-  });
-
   assets.light = addImageToCanvasDiv('./assets/light-off.png', {
     class: 'large-on-hover',
     width: '8%',
@@ -457,21 +450,28 @@ function addImages() {
     top: '20.3%',
   });
 
-  const wavesGif = addImageToCanvasDiv('./assets/waves.gif', {
-    width: '38%',
+  const rainGif = addImageToCanvasDiv('./assets/background/rain-0.gif', {
+    width: '35%',
+    top: '20%',
     left: '20%',
     zIndex: '-2',
-    top: '21%',
   });
 
-  const streetGif = addImageToCanvasDiv('./assets/city-2.gif', {
-    width: '60%',
+  const wavesGif = addImageToCanvasDiv('./assets/background/waves.gif', {
+    width: '35%',
+    left: '18%',
+    zIndex: '-2',
+    top: '22%',
+  });
+
+  const streetGif = addImageToCanvasDiv('./assets/background/city.gif', {
+    width: '33%',
     left: '20%',
     zIndex: '-2',
-    top: '-40%',
+    top: '22%',
   });
 
-  const kidsGif = addImageToCanvasDiv('./assets/city.gif', {
+  const kidsGif = addImageToCanvasDiv('./assets/background/city-sunset.gif', {
     width: '33%',
     left: '20%',
     zIndex: '-2',
@@ -939,6 +939,7 @@ function addImages() {
       changeMelodyInstrument(1);
       changeMelodyByIndex(0);
       changeChordsInstrument(0);
+      data.backgroundSounds.switch(0);
       data.backgroundSounds.gain.gain.value = 1.0;
     } else if (assets.catIndex === 1) {
       changeChords(1);
