@@ -114,6 +114,7 @@ const callbacks = {};
 const data = {
   loading: true,
   started: false,
+  pageVisible: true,
   loadEventsCount: 0,
   commands: [],
   showPanel: false,
@@ -1307,7 +1308,7 @@ function seqCallback(time, b) {
     }
   }
 
-  if (b % 2 === 0) {
+  if (data.pageVisible && b % 2 === 0) {
     draw();
   }
 
@@ -2102,9 +2103,12 @@ function setupPageVisibilityCallback() {
       visibilityChange,
       () => {
         if (document[hidden]) {
-          if (Tone.Transport.state === 'started') {
-            stopTransport();
-          }
+          // if (Tone.Transport.state === 'started') {
+          //   stopTransport();
+          // }
+          data.pageVisible = false;
+        } else {
+          data.pageVisible = true;
         }
       },
       false
