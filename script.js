@@ -374,6 +374,10 @@ function initModel() {
       data.melody.index = n - 1; // change index
       firstMelodySelect.value = n - 1; // change ui index
       sendInterpolationMessage(result); // update interpolation
+
+      data.melody.interpolationIndex = 0;
+      interpolationSlider.value = 0;
+      secondInterpolationSlider.value = 0;
     }
   };
 }
