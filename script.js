@@ -995,7 +995,7 @@ function addImages() {
 
   dragElement(assets.logo, () => {
     stopTransport();
-    window.open('https://magenta.tensorflow.org/', '_blank');
+    window.open('https://magenta.tensorflow.org/lofi-player', '_blank');
   });
 
   dragElement(assets.bassGroup, () => {
@@ -1581,13 +1581,18 @@ function onFinishLoading() {
   };
 
   setupPageVisibilityCallback();
+  setupKeyboardEvents();
 }
 
 function setupKeyboardEvents() {
   window.addEventListener('keydown', (e) => {
     const callbacks = {
       9: () => {
-        switchCallback();
+        if (youtubeDiv.style.display !== 'block') {
+          youtubeDiv.style.display = 'block';
+        } else {
+          youtubeDiv.style.display = 'none';
+        }
       },
       32: () => {
         toggleStart();
