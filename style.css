@@ -279,10 +279,13 @@ button {
 
 .panel label {
   min-width: 8rem;
+  margin-right: 1rem;
 }
 
 .panel-control-div div {
   margin: 0.7rem 0;
+  display: flex;
+  align-items: center;
 }
 
 #interpolation-div {
