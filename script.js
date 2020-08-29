@@ -2235,6 +2235,7 @@ function checkKeywords(str, keys = []) {
   }
   return true;
 }
+
 async function testMessageCallbacks() {
   handleMessage('more reverb');
   handleMessage('make melody swing');
@@ -2249,6 +2250,7 @@ async function testMessageCallbacks() {
   handleMessage('trigger melody');
   handleMessage('trigger melody');
 }
+
 function initMessageCallbacks() {
   callbacks[CLICK_CAT] = () => {
     assets.catCallback();
@@ -2489,107 +2491,111 @@ async function showTextInBubbleFor(text, time = 2000) {
 }
 
 async function onClickConnect() {
-  if (data.fetchintervalid) {
-    disconnectYoutubeLiveChat();
-    return;
-  }
-
-  connectYoutubeButton.classList.remove('is-success');
-  connectYoutubeButton.classList.add('is-error');
-  connectYoutubeButton.classList.add('disabledbutton');
-
-  connectYoutubeButton.textContent = 'disconnect';
-  youtubePromptText.textContent = '[loading...]';
-
-  let lastReadTime = Date.now();
-  let paramKey = getApiKeyFromParams();
-  let apiKey = paramKey;
-  let hint = 'API key';
-  while (!checkApiKeyIsValid(apiKey)) {
-    apiKey = prompt(hint, paramKey);
-    hint = 'Invalid API key. Try again.';
-  }
-  let channelId = prompt('Channel Id', CHANNEL_ID);
-  let listenPeriod = Number(prompt('Fetch every milliseconds: ', 5000));
-  if (!apiKey) {
-    apiKey = paramKey;
-  }
-  if (!channelId) {
-    channelId = CHANNEL_ID;
-  }
-  if (!checkPeriodIsValid(listenPeriod)) {
-    listenPeriod = 5000;
-  }
-
-  youtubePromptText.textContent = '[fetching live id...]';
-  let liveId;
-  let d = await fetchData(getVideoId(apiKey, channelId));
-
-  if (!d.error) {
-    liveId = d.items[0].id.videoId;
-  } else {
-    youtubePromptDiv.innerHTML = '';
-    const el = document.createElement('P');
-    el.textContent = d.error.message;
-    youtubePromptDiv.appendChild(el);
-    disconnectYoutubeLiveChat();
-    return;
-  }
-
-  youtubePromptText.textContent = '[fetching chat id...]';
-  let chatId;
-  d = await fetchData(getChatIdUrl(apiKey, liveId));
-  if (d.error) {
-    youtubePromptDiv.innerHTML = '';
-    const el = document.createElement('P');
-    el.textContent = d.error.message;
-    youtubePromptDiv.appendChild(el);
-    disconnectYoutubeLiveChat();
-    return;
-  }
-  chatId = d.items[0].liveStreamingDetails.activeLiveChatId;
-
-  youtubePromptText.textContent = '[connected]';
-  connectYoutubeButton.classList.remove('disabledbutton');
-  let nextPageToken;
-  const intervalCallback = async () => {
-    d = await fetchData(getChatMessagesUrl(apiKey, chatId, nextPageToken));
-
-    if (d.pollingIntervalMillis) {
-      listenPeriod = d.pollingIntervalMillis;
+  try {
+    if (data.fetchintervalid) {
+      disconnectYoutubeLiveChat();
+      return;
     }
-    data.fetchintervalid = setTimeout(intervalCallback, listenPeriod);
 
+    connectYoutubeButton.classList.remove('is-success');
+    connectYoutubeButton.classList.add('is-error');
+    connectYoutubeButton.classList.add('disabledbutton');
+
+    connectYoutubeButton.textContent = 'disconnect';
+    youtubePromptText.textContent = '[loading...]';
+
+    let lastReadTime = Date.now();
+    let paramKey = getApiKeyFromParams();
+    let apiKey = paramKey;
+    let hint = 'API key';
+    while (!checkApiKeyIsValid(apiKey)) {
+      apiKey = prompt(hint, paramKey);
+      hint = 'Invalid API key. Try again.';
+    }
+    let channelId = prompt('Channel Id', CHANNEL_ID);
+    let listenPeriod = Number(prompt('Fetch every milliseconds: ', 5000));
+    if (!apiKey) {
+      apiKey = paramKey;
+    }
+    if (!channelId) {
+      channelId = CHANNEL_ID;
+    }
+    if (!checkPeriodIsValid(listenPeriod)) {
+      listenPeriod = 5000;
+    }
+
+    youtubePromptText.textContent = '[fetching live id...]';
+    let liveId;
+    let d = await fetchData(getVideoId(apiKey, channelId));
+
+    if (!d.error) {
+      liveId = d.items[0].id.videoId;
+    } else {
+      youtubePromptDiv.innerHTML = '';
+      const el = document.createElement('P');
+      el.textContent = d.error.message;
+      youtubePromptDiv.appendChild(el);
+      disconnectYoutubeLiveChat();
+      return;
+    }
+
+    youtubePromptText.textContent = '[fetching chat id...]';
+    let chatId;
+    d = await fetchData(getChatIdUrl(apiKey, liveId));
     if (d.error) {
       youtubePromptDiv.innerHTML = '';
       const el = document.createElement('P');
       el.textContent = d.error.message;
       youtubePromptDiv.appendChild(el);
-      // disconnectYoutubeLiveChat();
+      disconnectYoutubeLiveChat();
       return;
     }
-    youtubePromptDiv.innerHTML = '';
-    if (!d.items) {
-      return;
-    }
-    nextPageToken = d.nextPageToken;
-    console.log(`${d.items.length} new messages`);
-    for (let i = 0; i < d.items.length; i++) {
-      const item = d.items[i];
-      let time = new Date(item.snippet.publishedAt).getTime();
-      if (lastReadTime < time) {
-        lastReadTime = time;
-        const content = item.snippet.displayMessage;
-        const authorName = item.authorDetails.displayName;
-        const line = `${authorName}: ${content}`;
-        const el = document.createElement('LI');
-        el.textContent = line;
-        youtubePromptDiv.appendChild(el);
-        handleMessage(content, authorName);
+    chatId = d.items[0].liveStreamingDetails.activeLiveChatId;
+
+    youtubePromptText.textContent = '[connected]';
+    connectYoutubeButton.classList.remove('disabledbutton');
+    let nextPageToken;
+    const intervalCallback = async () => {
+      d = await fetchData(getChatMessagesUrl(apiKey, chatId, nextPageToken));
+
+      if (d.pollingIntervalMillis) {
+        listenPeriod = d.pollingIntervalMillis;
       }
-    }
-  };
-  data.fetchintervalid = setTimeout(intervalCallback, listenPeriod);
+      data.fetchintervalid = setTimeout(intervalCallback, listenPeriod);
+
+      if (d.error) {
+        youtubePromptDiv.innerHTML = '';
+        const el = document.createElement('P');
+        el.textContent = d.error.message;
+        youtubePromptDiv.appendChild(el);
+        // disconnectYoutubeLiveChat();
+        return;
+      }
+      youtubePromptDiv.innerHTML = '';
+      if (!d.items) {
+        return;
+      }
+      nextPageToken = d.nextPageToken;
+      console.log(`${d.items.length} new messages`);
+      for (let i = 0; i < d.items.length; i++) {
+        const item = d.items[i];
+        let time = new Date(item.snippet.publishedAt).getTime();
+        if (lastReadTime < time) {
+          lastReadTime = time;
+          const content = item.snippet.displayMessage;
+          const authorName = item.authorDetails.displayName;
+          const line = `${authorName}: ${content}`;
+          const el = document.createElement('LI');
+          el.textContent = line;
+          youtubePromptDiv.appendChild(el);
+          handleMessage(content, authorName);
+        }
+      }
+    };
+    data.fetchintervalid = setTimeout(intervalCallback, listenPeriod);
+  } catch (e) {
+    console.warn('[youtube connection error]', e);
+  }
 }
 
 function disconnectYoutubeLiveChat() {

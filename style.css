@@ -482,8 +482,8 @@ footer {
   display: none;
   color: var(--text-color);
   position: absolute;
-  right: 1rem;
-  top: 1rem;
+  right: 10%;
+  top: 5%;
   width: 30%;
   max-width: 500px;
   height: 20%;
@@ -737,5 +737,11 @@ footer {
     height: 0.6rem;
     left: 5%;
     top: 27%;
+  }
+
+  #youtube-div {
+    width: 50%;
+    top: 2rem;
+    right: 2rem;
   }
 }
