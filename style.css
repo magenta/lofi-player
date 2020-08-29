@@ -26,6 +26,7 @@
   --text-background-color: rgba(255, 255, 255, 1);
 
   --input-thumb-size: 8px;
+  --input-thumb-size-small: 5px;
   --border-width: 8px;
   --bright-green: rgba(127, 246, 102, 1);
   /* --shadow: 10px 10px 5px black; */
@@ -44,14 +45,14 @@ html {
   width: 100%;
 }
 
+/* 
 ::-webkit-scrollbar {
   width: 0px;
-  background: transparent; /* make scrollbar transparent */
-}
+  background: transparent;
+} */
 
 body {
   font-family: helvetica, arial, sans-serif;
-  max-width: 900px;
 
   margin: 0 auto 0 auto;
   background-color: var(--background-color);
@@ -65,10 +66,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+
+  padding: 2rem;
 }
 
 #container {
   width: 100%;
+  max-width: 900px;
 }
 
 h3 {
@@ -229,7 +233,7 @@ button {
   border: solid var(--text-color) var(--border-width);
   width: 65%;
   height: 80%;
-  padding: 1rem;
+  padding: 0;
 
   display: flex;
   flex-direction: column;
@@ -274,12 +278,10 @@ button {
 .panel {
   display: flex;
   flex-direction: column;
-  /* align-items: center; */
   width: 100%;
   height: 100%;
   overflow: scroll;
-  padding: 0.8rem 10%;
-  /* align-items: center; */
+  padding: 2rem 3rem;
 }
 
 .panel label {
@@ -302,6 +304,10 @@ button {
 #interpolation-div select {
   font-size: 0.6rem;
   margin: 0 0.5rem;
+}
+#interpolation-div {
+  display: flex;
+  align-items: center;
 }
 #interpolation-div div {
   margin: 0.5rem 0 0 0;
@@ -462,10 +468,10 @@ input[type='range']::-ms-thumb {
 
 footer {
   text-align: center;
+  margin-top: 1rem;
 }
 
-#info-div p,
-#info-div ul {
+#info-div p {
   font-size: 0.7rem;
   margin: 0;
   padding: 0;
@@ -543,7 +549,7 @@ footer {
   padding: 0.1rem;
   bottom: 90%;
   left: 65%;
-  width: 100%;
+  width: 5rem;
   z-index: 2;
   font-size: 0.5rem;
 }
@@ -570,16 +576,16 @@ footer {
     --input-thumb-size: 8px;
     --border-width: 5px;
   }
+
+  body {
+    padding: 0.8rem;
+  }
   #title {
     width: 260px;
     font-size: 1.2rem;
     border: solid var(--text-color) var(--border-width);
     padding: 0.2rem;
     margin-bottom: 0.2rem;
-  }
-
-  body {
-    padding: 0.5rem;
   }
 
   span,
@@ -605,7 +611,7 @@ footer {
   }
   .nes-progress {
     width: auto;
-    height: 8px;
+    height: 5px;
     color: var(--text-color);
   }
 
@@ -645,5 +651,91 @@ footer {
   button {
     margin: 0;
     font-size: 0.6rem;
+  }
+  .panel {
+    padding: 1rem 1.5rem;
+  }
+  .panel label {
+    min-width: 3rem;
+    margin-right: 0.2rem;
+  }
+
+  #interpolation-div p {
+    font-size: 0.4rem;
+  }
+  #interpolation-div div {
+    width: 80%;
+  }
+  #interpolation-div select {
+    font-size: 0.4rem;
+    margin: 0 0.5rem;
+  }
+
+  #interpolation-div canvas {
+    margin-top: 0.5rem;
+    width: 80%;
+    height: 20%;
+  }
+
+  #melody-panel {
+    width: 70%;
+  }
+  .melody-panel-button {
+    font-size: 1rem;
+  }
+  #melody-panel-close {
+    padding: 0.3rem;
+  }
+
+  #info h3 {
+    margin-top: 0;
+  }
+  #info-div p {
+    font-size: 0.45rem;
+    margin: 0;
+    padding: 0;
+    padding-left: 0;
+  }
+
+  footer {
+    margin-top: 0.2rem;
+  }
+
+  /* range input */
+  input[type='range']::-webkit-slider-thumb {
+    box-shadow: 0px 0px 0px #ffffff;
+    border: 0px solid #000000;
+    height: var(--input-thumb-size-small);
+    width: var(--input-thumb-size-small);
+    border-radius: 0px;
+    background: #000000;
+    cursor: pointer;
+    -webkit-appearance: none;
+  }
+  input[type='range']::-moz-range-thumb {
+    box-shadow: 0px 0px 0px #ffffff;
+    border: 0px solid #000000;
+    height: var(--input-thumb-size-small);
+    width: var(--input-thumb-size-small);
+    border-radius: 0px;
+    background: #000000;
+    cursor: pointer;
+  }
+  input[type='range']::-ms-thumb {
+    margin-top: 1px;
+    box-shadow: 0px 0px 0px #ffffff;
+    border: 0px solid #000000;
+    height: var(--input-thumb-size-small);
+    width: var(--input-thumb-size-small);
+    border-radius: 0px;
+    background: #000000;
+    cursor: pointer;
+  }
+
+  #interpolation-slider-2 {
+    border: solid #000 0.15rem;
+    height: 0.6rem;
+    left: 5%;
+    top: 27%;
   }
 }

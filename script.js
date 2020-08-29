@@ -406,8 +406,8 @@ function initCanvas() {
   data.canvas.moveMelodyCanvasToPanel = function () {
     removeElement(melodyCanvas);
     melodyCanvas.style.position = 'static';
-    melodyCanvas.style.width = '100%';
-    melodyCanvas.style.height = '100%';
+    melodyCanvas.style.width = '80%';
+    melodyCanvas.style.height = '50%';
     melodyCanvas.style.opacity = 1.0;
     interpolationDiv.append(melodyCanvas);
   };
@@ -416,8 +416,8 @@ function initCanvas() {
     melodyCanvas.style.position = 'absolute';
     // melodyCanvas.style.top = "12%";
     // melodyCanvas.style.left = "23%";
-    // melodyCanvas.style.width = "45%";
-    // melodyCanvas.style.height = "41%";
+    // melodyCanvas.style.width = '45%';
+    // melodyCanvas.style.height = '41%';
     melodyCanvas.style.top = '16%';
     melodyCanvas.style.left = '7.5%';
     melodyCanvas.style.width = '78%';
@@ -1607,15 +1607,19 @@ function setupKeyboardEvents() {
 }
 
 async function onFirstTimeStarted() {
+  // if (window.innerWidth < 720) {
+  //   return;
+  // }
   const interval = DEFAULT_GUIDANCE_INTERVAL;
   await sleep(interval);
   bubbleDiv.style.display = 'block';
 
   await sleep(interval * 5);
+  bubbleDiv.style.width = '10rem';
   bubbleDiv.textContent = `Can you hear the piano?`;
 
   await sleep(interval * 5);
-  bubbleDiv.style.width = '130%';
+  bubbleDiv.style.width = '12rem';
   bubbleDiv.textContent = `Tinker with the objects in this room and listen carefully.`;
 
   // await sleep(interval * 10);
@@ -1623,16 +1627,16 @@ async function onFirstTimeStarted() {
 
   await sleep(interval * 15);
   assets.catGroup.appendChild(bubbleDiv);
-  bubbleDiv.style.width = '150%';
+  bubbleDiv.style.width = '5rem';
   bubbleDiv.textContent = `meow...`;
 
   await sleep(interval * 10);
   assets.avatarGroup.appendChild(bubbleDiv);
-  bubbleDiv.style.width = '110%';
+  bubbleDiv.style.width = '8rem';
   bubbleDiv.textContent = 'Enjoy the magical room.';
 
   await sleep(interval * 10);
-  bubbleDiv.style.width = '100%';
+  bubbleDiv.style.width = '0';
   bubbleDiv.style.display = 'none';
 }
 
