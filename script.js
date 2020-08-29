@@ -118,6 +118,7 @@ const data = {
   loadEventsCount: 0,
   commands: [],
   showPanel: false,
+  idleBarsCount: 0,
   backgroundSounds: {
     mute: false,
     samples: [],
@@ -952,7 +953,7 @@ function addImages() {
       changeMelodyByIndex(1);
       changeMelodyInstrument(3);
       data.backgroundSounds.switch(1);
-      data.backgroundSounds.gain.gain.value = 0.5;
+      data.backgroundSounds.gain.gain.value = 0.7;
     } else {
       changeChords(2);
       changeChordsInstrument(2);
@@ -1315,9 +1316,15 @@ function seqCallback(time, b) {
   // Markov chain
   if (data.master.autoBreak) {
     if (b % 32 === 31) {
+      data.idleBarsCount += 1;
+
       if (data.drum.mute) {
         if (Math.random() > 0.05) {
           toggleDrum(false, true, time);
+          if (data.idleBarsCount > 2) {
+            data.idleBarsCount = 0;
+            randomChange();
+          }
         }
       } else {
         if (Math.random() < TRANSITION_PROB) {
@@ -1598,6 +1605,9 @@ function setupKeyboardEvents() {
       32: () => {
         toggleStart();
       },
+      65: () => {
+        randomChange();
+      },
     };
     if (callbacks[e.keyCode]) {
       e.preventDefault();
@@ -1691,6 +1701,7 @@ function toggleChords(value) {
     });
   }
 }
+
 function toggleMelody(value) {
   if (value !== undefined) {
     data.melody.mute = value;
@@ -1710,6 +1721,7 @@ function toggleMelody(value) {
     });
   }
 }
+
 function toggleBass(value) {
   if (value !== undefined) {
     data.bass.mute = value;
@@ -1805,6 +1817,11 @@ function changeMelodyByIndex(index = 0) {
   draw();
 }
 
+function randomlyChangeMelodyByIndex() {
+  const index = Math.floor(Math.random() * NUM_PRESET_MELODIES);
+  changeMelodyByIndex(index);
+}
+
 function changeMelody(readyMidi) {
   if (data.melody.part) {
     data.melody.part.cancel(0);
@@ -1830,6 +1847,11 @@ function changeInterpolationIndex(index) {
 
   interpolationSlider.value = index;
   secondInterpolationSlider.value = index;
+}
+
+function randomlyChangeInterpolationIndex() {
+  const index = Math.floor(Math.random() * data.melody.interpolationToneNotes.length);
+  changeInterpolationIndex(index);
 }
 
 function sendInterpolationMessage(m1, m2, id = 0) {
@@ -1875,6 +1897,11 @@ function changeChordsInstrument(index) {
   data.chords.instrumentIndex = index;
 }
 
+function randomlyChangeChordsInstrument() {
+  const index = Math.floor(Math.random() * NUM_INSTRUMENTS);
+  changeChordsInstrument(index);
+}
+
 function changeMelodyInstrument(index) {
   for (let j = 0; j < NUM_INSTRUMENTS; j++) {
     if (j === parseInt(index)) {
@@ -1887,6 +1914,11 @@ function changeMelodyInstrument(index) {
   melodyInstrumentSelect.value = index;
   data.melody.instrumentIndex = index;
   data.melody.instrument = data.instruments[index];
+}
+
+function randomlyChangeMelodyInstrument() {
+  const index = Math.floor(Math.random() * NUM_INSTRUMENTS);
+  changeMelodyInstrument(index);
 }
 
 function changeBpm(v) {
@@ -1990,6 +2022,40 @@ function setClock() {
     }
   }, 500);
   return time;
+}
+
+function randomChange() {
+  let seed = Math.random();
+  if (seed > 0.95) {
+    randomlyChangeChordsInstrument();
+  } else if (seed < 0.05) {
+    randomlyChangeMelodyInstrument();
+  }
+
+  seed = Math.random();
+  if (seed > 0.5) {
+    randomlyChangeInterpolationIndex();
+    return;
+  }
+
+  seed = Math.random();
+  if (seed > 0.9) {
+    randomlyChangeMelodyByIndex();
+    return;
+  } else if (seed < 0.1) {
+    sendContinueMessage();
+    return;
+  }
+
+  seed = Math.random();
+  if (seed > 0.95) {
+    const index = Math.floor(Math.random() * NUM_PRESET_CHORD_PROGRESSIONS);
+    changeChords(index);
+    return;
+  } else if (seed < 0.05) {
+    const index = Math.floor(Math.random() * 4);
+    data.backgroundSounds.switch(index);
+  }
 }
 
 function parseYoutubeId(url) {
@@ -2477,6 +2543,7 @@ function consumeNextCommand() {
   console.log(`${id}`);
 
   if (callbacks[id]) {
+    data.idleBarsCount = 0;
     showTextInBubbleFor(`${authorName}: ${content}`);
     callbacks[id](args);
   }
