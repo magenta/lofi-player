@@ -44,6 +44,11 @@ html {
   width: 100%;
 }
 
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent; /* make scrollbar transparent */
+}
+
 body {
   font-family: helvetica, arial, sans-serif;
   max-width: 900px;
@@ -102,7 +107,7 @@ iframe {
 #title {
   font-style: italic;
   width: 420px;
-  font-size: 2rem;
+  font-size: 1.9rem;
   color: var(--text-color);
   background-color: var(--text-background-color);
   border: solid var(--text-color) var(--border-width);
