@@ -1608,6 +1608,9 @@ function setupKeyboardEvents() {
       65: () => {
         randomChange();
       },
+      66: () => {
+        testMessageCallbacks();
+      },
     };
     if (callbacks[e.keyCode]) {
       e.preventDefault();
@@ -1646,7 +1649,7 @@ async function onFirstTimeStarted() {
   bubbleDiv.textContent = 'Enjoy the magical room.';
 
   await sleep(interval * 10);
-  bubbleDiv.style.width = '0';
+  bubbleDiv.style.width = '10rem';
   bubbleDiv.style.display = 'none';
 }
 
@@ -2303,18 +2306,21 @@ function checkKeywords(str, keys = []) {
 }
 
 async function testMessageCallbacks() {
-  handleMessage('more reverb');
-  handleMessage('make melody swing');
-  handleMessage('slow');
-  handleMessage('fast');
-  handleMessage('more filter');
-  handleMessage('cat');
-  handleMessage('window');
-  handleMessage('rnn');
-  handleMessage('less filter');
-  handleMessage('interpolation');
+  handleMessage('trigger bass');
+  handleMessage('trigger chords');
+  handleMessage('trigger drum');
   handleMessage('trigger melody');
-  handleMessage('trigger melody');
+  // handleMessage('trigger melody');
+  // handleMessage('more reverb');
+  // handleMessage('make melody swing');
+  // handleMessage('slow');
+  // handleMessage('fast');
+  // handleMessage('more filter');
+  // handleMessage('cat');
+  // handleMessage('window');
+  // handleMessage('rnn');
+  // handleMessage('less filter');
+  // handleMessage('interpolation');
 }
 
 function initMessageCallbacks() {
@@ -2336,28 +2342,16 @@ function initMessageCallbacks() {
     changeInterpolationIndex(index);
   };
   callbacks[TRIGGER_MELODY] = () => {
-    if (data.melody.gain > 0.5) {
-      data.melody.changeGain(0);
-    } else {
-      data.melody.changeGain(1);
-    }
+    toggleMelody();
   };
   callbacks[TRIGGER_CHORDS] = () => {
-    if (data.chords.gain > 0.5) {
-      data.chords.changeGain(0);
-    } else {
-      data.chords.changeGain(1);
-    }
+    toggleChords();
   };
   callbacks[TRIGGER_DRUM] = () => {
     toggleDrum();
   };
   callbacks[TRIGGER_BASS] = () => {
-    if (data.bass.gain.gain.value > 0.5) {
-      data.bass.changeGain(0);
-    } else {
-      data.bass.changeGain(1);
-    }
+    toggleBass();
   };
   callbacks[CHANGE_MELODY_INSTRUMENT] = () => {
     const index = Math.floor(Math.random() * NUM_INSTRUMENTS);
