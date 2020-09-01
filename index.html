@@ -1,0 +1,501 @@
+<!-- Copyright 2020 Google Inc. All Rights Reserved.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta property="og:title" content="Lo-Fi Player" />
+    <meta property="og:description" content="Interactive lofi beat player." />
+    <meta
+      property="og:image"
+      content="https://magenta.github.io/lofi-player/assets/screenshots/screenshot_v.1.0.png"
+    />
+    <meta property="og:url" content="https://magenta.github.io/lofi-player/" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!--  Non-Essential, But Recommended -->
+
+    <meta property="og:site_name" content="Lo-Fi Player" />
+    <meta name="twitter:image:alt" content="interactive lofi room" />
+
+    <title>Lo-Fi Player</title>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-102358307-3"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag('js', new Date());
+      gtag('config', 'UA-102358307-3');
+    </script>
+
+    <!-- import the webpage's stylesheet -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="./style.css" />
+
+    <!-- favicon -->
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/240/apple/237/fire_1f525.png"
+    />
+
+    <!-- import the webpage's javascript file -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/13.8.25/Tone.js"></script>
+    <script src="https://unpkg.com/@tonejs/midi"></script>
+    <script src="./third_party/Tonejs-Instruments.js"></script>
+    <script src="./script.js" defer></script>
+  </head>
+  <body>
+    <div id="container">
+      <div id="warning-overlay">
+        <div id="warning-div" class="nes-balloon from-left">
+          <p>
+            Your screen is too small for the optimal experience. It's recommended to play on desktop
+            with window wider than 700px. Watch the shared player on "YouTube Live" where you can
+            play with others together.
+          </p>
+          <div>
+            <a href="https://www.youtube.com/channel/UCizuHuCAHmpTa6EFeZS2Hqg/live" target="_blank">
+              <button id="youtube-button" class="nes-btn is-error">YouTube Live</button>
+            </a>
+            <button id="whatever-button" class="nes-btn" onclick="onClickWhatever()">
+              Whatever
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="canvas-div">
+        <div id="bubble-div" class="nes-balloon from-left">Hi there</div>
+        <img src="./assets/rooom-0.png" alt="room" id="background-image" />
+        <canvas id="main-canvas"> </canvas>
+        <div id="canvas-overlay">
+          <h1 id="title">Lo-Fi Player</h1>
+          <button id="start-button" class="nes-btn disabled">loading...</button>
+        </div>
+        <div id="melody-panel-div">
+          <div id="melody-panel">
+            <div class="panel" id="master-div">
+              <h3 class="title">Master</h3>
+
+              <div class="panel-control-div">
+                <div>
+                  <label>bpm</label>
+                  <input
+                    type="range"
+                    class="nes-progress"
+                    id="bpm-input"
+                    value="75"
+                    min="60"
+                    max="100"
+                    step="5"
+                  />
+                </div>
+
+                <div>
+                  <label>tone</label>
+                  <input
+                    id="master-tone-slider"
+                    type="range"
+                    class="nes-progress"
+                    min="0"
+                    max="100"
+                    value="100"
+                  />
+                </div>
+
+                <div>
+                  <label>volume</label>
+                  <input
+                    id="master-volume-slider"
+                    type="range"
+                    class="nes-progress"
+                    min="0"
+                    max="100"
+                    value="30"
+                  />
+                </div>
+
+                <div>
+                  <label>reverb</label>
+                  <input
+                    id="master-reverb-slider"
+                    type="range"
+                    class="nes-progress"
+                    min="0"
+                    max="100"
+                    value="0"
+                  />
+                </div>
+
+                <div>
+                  <label
+                    >auto random <br />
+                    change sometimes</label
+                  >
+                  <label>
+                    <input type="checkbox" id="masterAutoBreakCheckbox" class="nes-checkbox" />
+                    <span></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="panel" id="interpolation-div">
+              <h3 class="nes-text">Melody Interpolation</h3>
+              <p>
+                Create your melodies by mixing two melodies together!
+                <a href="https://magenta.tensorflow.org/music-vae" target="_blank">
+                  How does this work?</a
+                >
+                <a
+                  href="https://magenta.tensorflow.org/2016/06/10/recurrent-neural-network-generation-tutorial"
+                  target="_blank"
+                >
+                  What is RNN?</a
+                >
+              </p>
+              <p></p>
+
+              <div>
+                <!-- <span>1st</span> -->
+                <select id="first-melody-select">
+                  <option value="0">chill</option>
+                  <option value="1">dense</option>
+                  <option value="2">sad</option>
+                  <option value="3">moody</option>
+                  <option value="4">RNN</option>
+                </select>
+                <input
+                  id="interpolation-slider"
+                  type="range"
+                  class="nes-progress"
+                  min="0"
+                  max="4"
+                  step="1"
+                  value="0"
+                />
+                <input
+                  id="interpolation-slider-2"
+                  type="range"
+                  class="nes-progress"
+                  min="0"
+                  max="4"
+                  step="1"
+                  value="0"
+                />
+                <select id="second-melody-select">
+                  <option value="0">chill</option>
+                  <option value="1" selected>dense</option>
+                  <option value="2">sad</option>
+                  <option value="3">moody</option>
+                </select>
+                <!-- <span>2nd</span> -->
+              </div>
+
+              <canvas id="melody-canvas"></canvas>
+            </div>
+            <div class="panel" id="bass-div">
+              <h3>Bass</h3>
+              <div class="panel-control-div">
+                <div>
+                  <label>on/off</label>
+                  <label>
+                    <input type="checkbox" id="bassMuteCheckbox" class="nes-checkbox" />
+                    <span></span>
+                  </label>
+                </div>
+                <div>
+                  <label>volume</label>
+                  <input
+                    id="bass-volume-slider"
+                    type="range"
+                    class="nes-progress"
+                    min="0"
+                    max="100"
+                    value="100"
+                  />
+                </div>
+                <div>
+                  <label>tone</label>
+                  <input
+                    id="bass-tone-slider"
+                    type="range"
+                    class="nes-progress"
+                    min="0"
+                    max="100"
+                    value="100"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="panel" id="melody-div">
+              <h3>Melody</h3>
+              <div class="panel-control-div">
+                <div>
+                  <label>on/off</label>
+                  <label>
+                    <input type="checkbox" id="melodyMuteCheckbox" class="nes-checkbox" checked />
+                    <span></span>
+                  </label>
+                </div>
+                <div>
+                  <label>sound</label>
+                  <select id="melody-instrument-select">
+                    <option value="0">synths</option>
+                    <option value="1" selected>piano</option>
+                    <option value="2">acoustic guitar</option>
+                    <option value="3">electric guitar</option>
+                  </select>
+                </div>
+                <div>
+                  <label>volume</label>
+                  <input
+                    id="melody-volume-slider"
+                    type="range"
+                    class="nes-progress"
+                    min="0"
+                    max="100"
+                    value="100"
+                  />
+                </div>
+                <div>
+                  <label>swing</label>
+                  <input
+                    id="melody-swing-slider"
+                    type="range"
+                    class="nes-progress"
+                    min="0"
+                    max="100"
+                    value="0"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="panel" id="chords-div">
+              <h3>Chords</h3>
+              <div class="panel-control-div">
+                <div>
+                  <label>on/off</label>
+                  <label>
+                    <input type="checkbox" id="chordsMuteCheckbox" class="nes-checkbox" checked />
+                    <span></span>
+                  </label>
+                </div>
+                <div>
+                  <label>vibe</label>
+                  <select name="chords" id="chords-select">
+                    <option value="0">mellow</option>
+                    <option value="1">sad</option>
+                    <option value="2">basic</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label>sound</label>
+                  <select name="chords-instrument" id="chords-instrument-select">
+                    <option value="0">synths</option>
+                    <option value="1">piano</option>
+                    <option value="2">acoustic guitar</option>
+                    <option value="3">electric guitar</option>
+                  </select>
+                </div>
+                <div>
+                  <label>volume</label>
+                  <input
+                    id="chords-volume-slider"
+                    type="range"
+                    class="nes-progress"
+                    min="0"
+                    max="100"
+                    value="100"
+                  />
+                </div>
+
+                <div>
+                  <label>swing</label>
+                  <input
+                    id="chords-swing-slider"
+                    type="range"
+                    class="nes-progress"
+                    min="0"
+                    max="100"
+                    value="0"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="panel" id="background-div">
+              <h3>Background Sounds</h3>
+              <div class="panel-control-div">
+                <div>
+                  <label>on/off</label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      id="backgroundSoundsMuteCheckbox"
+                      class="nes-checkbox"
+                      checked
+                    />
+                    <span></span>
+                  </label>
+                </div>
+                <div>
+                  <label>sound</label>
+                  <select id="background-samples-select">
+                    <option value="0">Raindrops</option>
+                    <option value="1">Waves</option>
+                    <option value="2">City Street</option>
+                    <option value="3">People</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label>volume</label>
+                  <input
+                    id="background-volume-slider"
+                    type="range"
+                    class="nes-progress"
+                    min="0"
+                    max="100"
+                    value="100"
+                  />
+                </div>
+
+                <div>
+                  <label>tone</label>
+                  <input
+                    id="background-tone-slider"
+                    type="range"
+                    class="nes-progress"
+                    min="0"
+                    max="100"
+                    value="100"
+                  />
+                </div>
+              </div>
+            </div>
+            <div class="panel" id="drum-div">
+              <h3>Drum</h3>
+              <div class="panel-control-div">
+                <div>
+                  <label>on/off</label>
+                  <label>
+                    <input type="checkbox" id="drum-toggle" class="nes-checkbox" checked />
+                    <span></span>
+                  </label>
+                </div>
+
+                <div>
+                  <label>pattern</label>
+                  <select id="drum-patterns-select">
+                    <option value="0">classic</option>
+                    <option value="1">lazy</option>
+                    <option value="2">dense</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel" id="info-div">
+              <h3>Lo-Fi Player</h3>
+              <p>
+                Welcome to our magical room! By interacting with elements in the room, you can build
+                your own custom music stream. Built by
+                <a href="https://vibertthio.com/portfolio/" target="_blank">Vibert Thio</a>, intern
+                on the Google Brain team. Powered by magic from
+                <a href="https://magenta.tensorflow.org/" target="_blank">Magenta</a>.
+              </p>
+              <br />
+              <p>
+                Read our
+                <a href="https://g.co/magenta/lofi-player" target="_blank">blog</a> for more info.
+                Or, play it on
+                <a href="https://goo.gl/magenta/lofi-stream" target="_blank">YouTube</a> with
+                others.
+              </p>
+              <br />
+              <h3>Credits</h3>
+              <p>
+                Thanks
+                <a href="https://soundcloud.com/cone-head" target="_blank">Conehead</a>
+                and
+                <a href="https://soundcloud.com/eveyichenmusic" target="_blank">E V E</a>
+                for the counsel on music. Thanks
+                <a href="https://stiong124.wixsite.com/shynha/animation" target="_blank"
+                  >@Sheena Tiong</a
+                >
+                for the sunset animated gif.
+              </p>
+            </div>
+
+            <button class="melody-panel-button" id="melody-panel-close">X</button>
+            <button class="melody-panel-button disabledbutton" id="melody-panel-right">></button>
+            <button class="melody-panel-button disabledbutton" id="melody-panel-left">&lt;</button>
+          </div>
+        </div>
+
+        <div id="shareButtonDiv">
+          <button id="shareButton" class="nes-btn">Share</button>
+          <p id="shareButtonHint">link copied to clipboard</p>
+          <input type="text" value="https://magenta.github.io/lofi-player/" id="hiddenUrlInput" />
+        </div>
+      </div>
+
+      <footer>
+        <span style="color: white">v.1.0</span>
+      </footer>
+    </div>
+
+    <div id="youtube-div">
+      <h3>
+        <a href="https://www.youtube.com/channel/UCizuHuCAHmpTa6EFeZS2Hqg/live" target="_blank"
+          >Youtube Live</a
+        >
+      </h3>
+      <div id="youtube-buttons">
+        <button id="connect-youtube-button" class="nes-btn is-success" onclick="onClickConnect()">
+          connect
+        </button>
+
+        <a
+          href="https://studio.golightstream.com/projects/5f1f9dc90d0f3262372d3118"
+          target="_blank"
+        >
+          <button class="nes-btn">stream</button>
+        </a>
+      </div>
+      <div id="youtube-content-div">
+        <p id="youtube-prompt-text">[wait...]</p>
+        <div id="youtube-prompt-div">
+          <p>
+            You can get api key from youtube service and connect this project to your youtube
+            stream, and this block will show the live comments real-time. Hope you enjoy this.
+          </p>
+          <p>Regards,</p>
+          <p>Vibert</p>
+        </div>
+      </div>
+      <button id="collapse-youtube-div-button" onclick="onClickCloseYoutube()">X</button>
+    </div>
+  </body>
+</html>
