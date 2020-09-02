@@ -120,6 +120,7 @@ const state = {
   commands: [],
   showPanel: false,
   idleBarsCount: 0,
+  barsCount: 0,
   backgroundSounds: {
     mute: false,
     samples: [],
@@ -1378,6 +1379,7 @@ function seqCallback(time, b) {
   if (state.master.autoBreak) {
     if (b % 32 === 31) {
       state.idleBarsCount += 1;
+      state.barsCount += 1;
 
       if (state.drum.mute) {
         if (Math.random() > 0.05) {
@@ -1385,6 +1387,11 @@ function seqCallback(time, b) {
           if (state.idleBarsCount > 8) {
             state.idleBarsCount = 0;
             randomChange();
+          }
+
+          if (state.barsCount > 400) {
+            state.barsCount = 0;
+            reset();
           }
         }
       } else {
@@ -1727,12 +1734,6 @@ function setupKeyboardEvents() {
       },
       // 32: () => {
       //   toggleStart();
-      // },
-      // 65: () => {
-      //   randomChange();
-      // },
-      // 66: () => {
-      //   testMessageCallbacks();
       // },
     };
     if (callbacks[e.keyCode]) {
@@ -2090,6 +2091,23 @@ function changeMasterFilter(v) {
 function changeDrumPattern(index) {
   state.drum.patternIndex = index;
   drumPatternsSelect.value = index;
+}
+
+function reset() {
+  changeMasterBpm(90);
+  changeDrumPattern(0);
+  toggleMelody(false);
+  toggleChords(false);
+  toggleBass(false);
+  toggleDrum(false);
+  toggleBackgroundSounds(false);
+  changeChords(1);
+  changeChordsInstrument(2);
+  changeMelodyByIndex(1);
+  changeInterpolationIndex(0);
+  changeMelodyInstrument(3);
+  state.backgroundSounds.switch(1);
+  state.backgroundSounds.gainNode.gain.value = 0.7;
 }
 
 function checkStarted() {
@@ -2693,10 +2711,10 @@ function initMessageCallbacks() {
     changeMasterBpm(Number(state.master.bpm) - 10);
   };
   callbacks[MORE_REVERB] = () => {
-    state.master.changeReverb(0.8);
+    state.master.changeReverb(Math.min(1, state.master.reverb.wet.value + 0.3));
   };
   callbacks[LESS_REVERB] = () => {
-    state.master.changeReverb(0);
+    state.master.changeReverb(Math.max(0, state.master.reverb.wet.value - 0.3));
   };
   callbacks[MORE_FILTER] = () => {
     state.master.changeFilter(20000);
@@ -2716,9 +2734,9 @@ function parseMessageToCommand(msg) {
     return CLICK_WINDOW;
   }
 
-  if (msg.includes('light')) {
-    return CLICK_LIGHT;
-  }
+  // if (msg.includes('light')) {
+  //   return CLICK_LIGHT;
+  // }
 
   if ((msg.includes('generate') && msg.includes('melody')) || msg.includes('rnn')) {
     return GENERATE_NEW_MELODY;
@@ -2790,7 +2808,7 @@ function parseMessageToCommand(msg) {
   }
 
   if (msg.includes('reverb')) {
-    if (msg.includes('more')) {
+    if (msg.includes('more') || msg.includes('add')) {
       return MORE_REVERB;
     }
     if (msg.includes('less')) {
@@ -2799,7 +2817,7 @@ function parseMessageToCommand(msg) {
   }
 
   if (msg.includes('filter')) {
-    if (msg.includes('more')) {
+    if (msg.includes('more') || msg.includes('add')) {
       return MORE_FILTER;
     }
     if (msg.includes('less')) {
