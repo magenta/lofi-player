@@ -2901,7 +2901,7 @@ async function onClickConnect() {
     let d = await fetchData(getVideoId(apiKey, channelId));
 
     if (!d.error) {
-      liveId = d.items[0].id.videoId;
+      liveId = d.items[d.items.length - 1].id.videoId;
     } else {
       youtubePromptDiv.innerHTML = '';
       const el = document.createElement('P');
