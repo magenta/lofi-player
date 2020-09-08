@@ -35,7 +35,9 @@ limitations under the License.
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-80107903-1"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
+      function gtag() {
+        dataLayer.push(arguments);
+      }
       gtag('js', new Date());
 
       gtag('config', 'UA-80107903-1');
@@ -402,6 +404,30 @@ limitations under the License.
                     <input type="checkbox" id="drum-toggle" class="nes-checkbox" checked />
                     <span></span>
                   </label>
+                </div>
+
+                <div>
+                  <label>volume</label>
+                  <input
+                    id="drum-volume-slider"
+                    type="range"
+                    class="nes-progress"
+                    min="0"
+                    max="100"
+                    value="100"
+                  />
+                </div>
+
+                <div>
+                  <label>tone</label>
+                  <input
+                    id="drum-tone-slider"
+                    type="range"
+                    class="nes-progress"
+                    min="0"
+                    max="100"
+                    value="100"
+                  />
                 </div>
 
                 <div>

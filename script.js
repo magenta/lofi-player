@@ -59,6 +59,8 @@ const youtubeDiv = document.getElementById('youtube-div');
 const youtubeButtons = document.getElementById('youtube-buttons');
 const collapseYoutubeDivButton = document.getElementById('collapse-youtube-div-button');
 const bubbleDiv = document.getElementById('bubble-div');
+const drumVolumeSlider = document.getElementById('drum-volume-slider');
+const drumToneSlider = document.getElementById('drum-tone-slider');
 
 const CLICK_CAT = 'click_cat';
 const CLICK_WINDOW = 'click_window';
@@ -167,6 +169,8 @@ const state = {
   seq: {},
   drum: {
     mute: true,
+    gain: 1,
+    tone: 1,
     names: ['kk', 'sn', 'hh'],
     samples: [],
     auto: false,
@@ -235,10 +239,12 @@ function initSounds() {
 
   const drumUrls = {};
   state.drum.names.forEach((n) => (drumUrls[n] = `${SAMPLES_BASE_URL}/drums/${n}.mp3`));
+  state.drum.gainNode = new Tone.Gain(1).toMaster();
+  state.drum.lpf = new Tone.Filter(10000, 'lowpass').connect(state.drum.gainNode);
   state.drum.samples = new Tone.Players(drumUrls, () => {
     console.log('drums loaded');
     checkFinishLoading();
-  }).toMaster();
+  }).connect(state.drum.lpf);
 
   state.backgroundSounds.gate = new Tone.Gain(state.backgroundSounds.mute ? 0 : 1).toMaster();
   state.backgroundSounds.gainNode = new Tone.Gain(1).connect(state.backgroundSounds.gate);
@@ -1486,6 +1492,19 @@ function onFinishLoading() {
 
   // callbacks
 
+  state.drum.changeGain = function (v) {
+    state.drum.gain = v;
+    drumVolumeSlider.value = v * 100;
+    state.drum.gainNode.gain.value = v;
+  };
+
+  state.drum.changeFilter = function (v) {
+    state.drum.tone = v;
+    const frq = v * 10000 + 200;
+    state.drum.lpf.frequency.value = frq;
+    drumToneSlider.value = v * 100;
+  };
+
   state.melody.changeGain = function (v) {
     state.melody.gain = v;
     melodyVolumeSlider.value = v * 100;
@@ -1546,6 +1565,24 @@ function onFinishLoading() {
   drumToggle.checked = !state.drum.mute;
   drumToggle.addEventListener('change', (e) => {
     toggleDrum(!drumToggle.checked);
+  });
+
+  if (state.drum.volumeSliderValue) {
+    state.drum.changeGain(state.drum.volumeSliderValue / 100);
+  } else {
+    state.drum.changeGain(state.drum.gain);
+  }
+  drumVolumeSlider.addEventListener('input', () => {
+    state.drum.changeGain(drumVolumeSlider.value / 100);
+  });
+
+  if (state.drum.toneSliderValue) {
+    state.drum.changeFilter(state.drum.toneSliderValue / 100);
+  } else {
+    state.drum.changeFilter(state.drum.tone);
+  }
+  drumToneSlider.addEventListener('input', () => {
+    state.drum.changeFilter(drumToneSlider.value / 100);
   });
 
   changeDrumPattern(state.drum.patternIndex);
@@ -2421,6 +2458,8 @@ function stateToUrlParams() {
     drum: {
       mute: state.drum.mute,
       patternIndex: state.drum.patternIndex,
+      volumeSliderValue: drumVolumeSlider.value,
+      toneSliderValue: drumToneSlider.value,
     },
     bass: {
       mute: state.bass.mute,
