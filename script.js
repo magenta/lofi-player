@@ -168,9 +168,9 @@ const state = {
   canvas: {},
   seq: {},
   drum: {
-    mute: true,
+    mute: false,
     gain: 1,
-    tone: 1,
+    tone: 0.5,
     names: ['kk', 'sn', 'hh'],
     samples: [],
     auto: false,
