@@ -2970,6 +2970,10 @@ async function onClickConnect() {
       return;
     }
 
+    console.log('listenPeriod', listenPeriod);
+    console.log('channelId', channelId);
+    console.log('apiKey', apiKey);
+
     youtubePromptText.textContent = '[fetching chat id...]';
     let chatId;
     d = await fetchData(getChatIdUrl(apiKey, liveId));
