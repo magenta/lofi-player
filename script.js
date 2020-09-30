@@ -2955,6 +2955,10 @@ async function onClickConnect() {
       }
     }
 
+    console.log('listenPeriod', listenPeriod);
+    console.log('channelId', channelId);
+    console.log('apiKey', apiKey);
+
     youtubePromptText.textContent = '[fetching live id...]';
     let liveId;
     let d = await fetchData(getVideoId(apiKey, channelId));
@@ -2969,10 +2973,6 @@ async function onClickConnect() {
       disconnectYoutubeLiveChat();
       return;
     }
-
-    console.log('listenPeriod', listenPeriod);
-    console.log('channelId', channelId);
-    console.log('apiKey', apiKey);
 
     youtubePromptText.textContent = '[fetching chat id...]';
     let chatId;
