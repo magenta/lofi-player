@@ -1769,9 +1769,13 @@ function setupKeyboardEvents() {
           shareButtonDiv.style.display = 'block';
         }
       },
-      32: () => {
-         toggleStart();
-      },
+      89: (e) => {
+	console.log(e.key);
+	console.log(e.ctrlKey)
+      }
+      //32: () => {
+      //   toggleStart();
+      //},
     };
     if (callbacks[e.keyCode]) {
       e.preventDefault();
