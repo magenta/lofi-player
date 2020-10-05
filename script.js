@@ -1769,9 +1769,8 @@ function setupKeyboardEvents() {
           shareButtonDiv.style.display = 'block';
         }
       },
-      89: (e) => {
-	console.log(e.key);
-	console.log(e.ctrlKey)
+      89: () => {
+	onClickConnect();
       }
       //32: () => {
       //   toggleStart();
