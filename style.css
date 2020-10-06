@@ -35,12 +35,11 @@
   --no-shadow: 0 8px 12px 0 rgba(0, 0, 0, 0), 0 12px 25px 0 rgba(0, 0, 0, 0);
 }
 
-/*
+
 * {
   font-family: 'Press Start 2P', cursive;
   user-select: none;
 }
-*/
 
 html {
   height: 100%;
