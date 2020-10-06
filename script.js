@@ -3031,6 +3031,7 @@ async function onClickConnect() {
       }
     };
     state.fetchintervalid = setTimeout(intervalCallback, listenPeriod);
+    console.log('Connected to youtube.');
   } catch (e) {
     console.warn('[youtube connection error]', e);
   }
