@@ -81,7 +81,7 @@ h3 {
   font-size: 1.2rem;
 }
 button {
-  font-size: 1rem;
+  font-size: 48px;
 }
 
 p {
@@ -113,7 +113,7 @@ iframe {
 #title {
   font-style: italic;
   width: 420px;
-  font-size: 1.9rem;
+  font-size: 52px; /*1.9rem; */
   color: var(--text-color);
   background-color: var(--text-background-color);
   border: solid var(--text-color) var(--border-width);
