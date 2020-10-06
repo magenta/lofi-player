@@ -35,9 +35,9 @@
   --no-shadow: 0 8px 12px 0 rgba(0, 0, 0, 0), 0 12px 25px 0 rgba(0, 0, 0, 0);
 }
 
-
 * {
   font-family: 'Press Start 2P', cursive;
+  font-size: 48px;
   user-select: none;
 }
 
@@ -80,7 +80,7 @@ h3 {
   font-size: 1.2rem;
 }
 button {
-  font-size: 48px;
+  font-size: 1rem;
 }
 
 p {
@@ -112,7 +112,7 @@ iframe {
 #title {
   font-style: italic;
   width: 420px;
-  font-size: 52px; /*1.9rem; */
+  font-size: 1.9rem;
   color: var(--text-color);
   background-color: var(--text-background-color);
   border: solid var(--text-color) var(--border-width);
