@@ -1769,9 +1769,12 @@ function setupKeyboardEvents() {
           shareButtonDiv.style.display = 'block';
         }
       },
-      // 32: () => {
+      89: () => {
+	onClickConnect();
+      }
+      //32: () => {
       //   toggleStart();
-      // },
+      //},
     };
     if (callbacks[e.keyCode]) {
       e.preventDefault();
@@ -2548,6 +2551,16 @@ function getApiKeyFromParams() {
   return urlParams.get('key');
 }
 
+function getChannelIdFromParams() {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get('channelId');
+}
+
+function getListenPeriodFromParams() {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get('listenPeriod');
+}
+
 function checkApiKeyIsValid(key) {
   if (!key) {
     return false;
@@ -2569,7 +2582,7 @@ function checkPeriodIsValid(p) {
     return false;
   }
 
-  if (p < 0 || p > 60000) {
+  if (p <= 0 || p > 60000) {
     return false;
   }
 
@@ -2916,24 +2929,38 @@ async function onClickConnect() {
     youtubePromptText.textContent = '[loading...]';
 
     let lastReadTime = Date.now();
-    let paramKey = getApiKeyFromParams();
-    let apiKey = paramKey;
+    let paramApiKey = getApiKeyFromParams();
+    let apiKey = paramApiKey;
     let hint = 'API key';
     while (!checkApiKeyIsValid(apiKey)) {
       apiKey = prompt(hint, paramKey);
       hint = 'Invalid API key. Try again.';
     }
-    let channelId = prompt('Channel Id', CHANNEL_ID);
-    let listenPeriod = Number(prompt('Fetch every milliseconds: ', 5000));
     if (!apiKey) {
-      apiKey = paramKey;
+      apiKey = paramApiKey;
+    }
+
+    let paramChannelId = getChannelIdFromParams();
+    let channelId = paramChannelId;
+    if (!channelId) {
+      channelId = prompt('Channel Id', CHANNEL_ID);
     }
     if (!channelId) {
       channelId = CHANNEL_ID;
     }
+
+    let paramListenPeriod = Number(getListenPeriodFromParams());
+    let listenPeriod = paramListenPeriod;
     if (!checkPeriodIsValid(listenPeriod)) {
-      listenPeriod = 5000;
+      listenPeriod = Number(prompt('Fetch every milliseconds: ', 5000));
+      if (!checkPeriodIsValid(listenPeriod)) {
+	listenPeriod = 5000;
+      }
     }
+
+    console.log('listenPeriod', listenPeriod);
+    console.log('channelId', channelId);
+    console.log('apiKey', apiKey);
 
     youtubePromptText.textContent = '[fetching live id...]';
     let liveId;
@@ -3004,6 +3031,7 @@ async function onClickConnect() {
       }
     };
     state.fetchintervalid = setTimeout(intervalCallback, listenPeriod);
+    console.log('Connected to youtube.');
   } catch (e) {
     console.warn('[youtube connection error]', e);
   }
