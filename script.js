@@ -111,6 +111,7 @@ const DEFAULT_GUIDANCE_INTERVAL = 500;
 const SAMPLES_BASE_URL = './samples';
 const CHANNEL_ID = 'UCizuHuCAHmpTa6EFeZS2Hqg';
 const MAGENTA_BLOG_LINK = 'https://g.co/magenta/lofi-player';
+const DRAGGING_PREVENT_CLICK_EVENT_THRESHOLD_FRAMECOUNT = 8;
 
 const worker = LOAD_ML_MODELS ? new Worker('worker.js') : null;
 const callbacks = {};
@@ -1770,8 +1771,8 @@ function setupKeyboardEvents() {
         }
       },
       89: () => {
-	onClickConnect();
-      }
+        onClickConnect();
+      },
       //32: () => {
       //   toggleStart();
       //},
@@ -2314,11 +2315,12 @@ function removeElement(el) {
 }
 
 function dragElement(el, onClickCallback = () => {}, params = {}) {
-  let pos1 = 0;
-  let pos2 = 0;
-  let pos3 = 0;
-  let pos4 = 0;
+  let shiftX = 0;
+  let shiftY = 0;
+  let posX = 0;
+  let posY = 0;
   let dragging = false;
+  let draggingFrameCount = 0;
   el.onmousedown = dragMouseDown;
   el.addEventListener('click', (e) => {
     if (!dragging) {
@@ -2328,34 +2330,37 @@ function dragElement(el, onClickCallback = () => {}, params = {}) {
   });
 
   function dragMouseDown(e) {
+    draggingFrameCount = 0;
     e = e || window.event;
     e.preventDefault();
     e.stopPropagation();
     // get the mouse cursor position at startup:
-    pos3 = e.clientX;
-    pos4 = e.clientY;
+    posX = e.clientX;
+    posY = e.clientY;
     document.onmouseup = closeDragElement;
     // call a function whenever the cursor moves:
     document.onmousemove = elementDrag;
   }
 
   function elementDrag(e) {
-    dragging = true;
+    if (draggingFrameCount++ > DRAGGING_PREVENT_CLICK_EVENT_THRESHOLD_FRAMECOUNT) {
+      dragging = true;
+    }
     e = e || window.event;
     e.preventDefault();
     // calculate the new cursor position:
-    pos1 = pos3 - e.clientX;
+    shiftX = posX - e.clientX;
     if (!params.horizontal) {
-      pos2 = pos4 - e.clientY;
+      shiftY = posY - e.clientY;
     }
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    // set the element's new position:
+    posX = e.clientX;
+    posY = e.clientY;
 
+    // set the element's new position:
     const w = el.parentElement.clientWidth;
     const h = el.parentElement.clientHeight;
-    let top = ((el.offsetTop - pos2) / h) * 100;
-    let left = ((el.offsetLeft - pos1) / w) * 100;
+    let top = ((el.offsetTop - shiftY) / h) * 100;
+    let left = ((el.offsetLeft - shiftX) / w) * 100;
     if (params.bounded) {
       const ww = Number(el.style.width.substring(0, el.style.width.length - 1));
       top = Math.max(Math.min(top, 95), -5);
@@ -2954,7 +2959,7 @@ async function onClickConnect() {
     if (!checkPeriodIsValid(listenPeriod)) {
       listenPeriod = Number(prompt('Fetch every milliseconds: ', 5000));
       if (!checkPeriodIsValid(listenPeriod)) {
-	listenPeriod = 5000;
+        listenPeriod = 5000;
       }
     }
 
