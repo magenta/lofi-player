@@ -304,7 +304,8 @@ button {
   padding: 1.5rem 1.2rem;
   text-align: center;
 }
-#interpolation-div p {
+#interpolation-div p,
+#interpolation-div a {
   width: 80%;
   font-size: 0.6rem;
 }
@@ -478,7 +479,8 @@ footer {
   margin-top: 1rem;
 }
 
-#info-div p {
+#info-div p,
+#info-div a {
   font-size: 0.6rem;
   margin: 0;
   padding: 0;
@@ -710,7 +712,8 @@ footer {
     margin-right: 0.2rem;
   }
 
-  #interpolation-div p {
+  #interpolation-div p,
+  #interpolation-div a {
     font-size: 0.4rem;
   }
   #interpolation-div div {
@@ -741,7 +744,8 @@ footer {
     font-size: 0.6rem;
     margin-top: 0;
   }
-  #info-div p {
+  #info-div p,
+  #info-div a {
     font-size: 0.5rem;
     margin: 0;
     padding: 0;
