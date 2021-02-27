@@ -9,4 +9,8 @@ For many it’s more fun to play around with the room without an instruction gui
 ## Contributors
 [Vibert Thio](https://vibertthio.com/portfolio/) is a Summer 2020 Magenta intern working with researcher Douglas Eck. Thanks to the beautiful people in Magenta for helping me make this project happen, including Fjord Hawthorne, Andy Coenen, Monica Dinculescu and others. Thanks also to Damien Henry from Google Arts and Culture and to Amit Pitaru and others from Google Creative Lab New York. Thanks to Conehead and E V E for the counsel on music.
 
+## Todos
+- [ ] add service worker
+
+
 **This is not an officially supported Google product**
