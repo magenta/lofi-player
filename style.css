@@ -620,7 +620,7 @@ footer {
   }
 }
 
-@media only screen and (max-width: 720px) {
+@media only screen and (max-width: 830px) {
   :root {
     --input-thumb-size: 8px;
     --border-width: 5px;
@@ -668,7 +668,7 @@ footer {
     font-size: 0.3rem;
   }
   #board-input {
-    font-size: 0.25rem;
+    font-size: 0.3rem;
   }
 
   #warning-overlay {
@@ -826,5 +826,27 @@ footer {
     font-size: 0.3rem;
     color: var(--background-color);
     padding: 0.2rem;
+  }
+}
+
+@media screen and (min-width: 1000px) {
+  #container {
+    width: 85%;
+    max-width: 1500px;
+  }
+}
+
+@media screen and (orientation:landscape) and (max-width: 830px) {
+
+  #container {
+    width: 75%;
+  }
+
+  #clock-text {
+    top: 15%;
+  }
+
+  #board-input {
+    font-size: 0.4rem;
   }
 }
