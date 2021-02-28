@@ -62,9 +62,12 @@ const mvae = new music_vae.MusicVAE(urls.twoBarSmall);
 const NUM_INSPIRATIONAL_MELODIES = 4;
 const NUM_INTERPOLATIONS = 5;
 
+let startedInitializing = false;
+
 // Main script asks for work.
 self.onmessage = async ({ data }) => {
-  if (!mvae.isInitialized()) {
+  if (!startedInitializing) {
+    startedInitializing = true;
     await mvae.initialize();
     await mrnn.initialize();
     postMessage({ msg: "init" });
@@ -74,7 +77,7 @@ self.onmessage = async ({ data }) => {
     }
   }
 
-  if (data.msg === "continue") {
+  if (mrnn.isInitialized() && data.msg === "continue") {
     const { id } = data;
     // const chordProgression = ["C", "Am", "F", "G", "C", "F", "G", "C"];
 
@@ -89,7 +92,7 @@ self.onmessage = async ({ data }) => {
     postMessage({ id, msg: "continue", result });
   }
 
-  if (data.msg === "interpolate") {
+  if (mvae.isInitialized() && data.msg === "interpolate") {
     const { left, right, id } = data;
     const result = await mvae.interpolate(
       [left, right],
@@ -102,7 +105,7 @@ self.onmessage = async ({ data }) => {
     postMessage({ id, msg: "interpolate", result });
   }
 
-  if (data.msg === "sample") {
+  if (mvae.isInitialized() && data.msg === "sample") {
     const scale = 4;
     const { currentMelody, inspirationalMelodies } = data;
 
