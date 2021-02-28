@@ -14,7 +14,7 @@ limitations under the License.
   <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1 />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
     <meta property="og:title" content="Lo-Fi Player" />
     <meta property="og:description" content="Interactive lofi beat player." />
     <meta
@@ -23,6 +23,7 @@ limitations under the License.
     />
     <meta property="og:url" content="https://magenta.github.io/lofi-player/" />
     <meta name="twitter:card" content="summary_large_image" />
+    <link rel="manifest" href="manifest.json">
 
     <!--  Non-Essential, But Recommended -->
 
@@ -63,6 +64,20 @@ limitations under the License.
     <script src="./third_party/Tonejs-Instruments.js"></script>
     <script src="./script.js" defer></script>
   </head>
+
+  <script>
+    // This is just to force HTTPS (can't do it statically on glitch)
+    if(location.protocol === 'http:' && location.hostname !== 'localhost') location.protocol = 'https:';
+    if('serviceWorker' in navigator && location.protocol === 'https:') {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Service Worker registered', reg))
+        .catch(err => console.error('Service Worker **not** registered', err));
+    }
+    else {
+      console.warn('Service Worker not supported in this browser or http is used');
+    }    
+  </script>
+
   <body>
     <div id="container">
       <div id="warning-overlay">
