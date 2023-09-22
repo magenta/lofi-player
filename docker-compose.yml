@@ -1,0 +1,8 @@
+services:
+  lofi-player:
+    container_name: lofi-player
+    image: lofi-player:latest
+    restart: unless-stopped
+    ports:
+      - 8097:80
+
